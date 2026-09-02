@@ -1,0 +1,138 @@
+body{
+	padding:0;
+	margin:0;
+	overflow:hidden;
+	font-family: Roboto,-apple-system,system-ui,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,sans-serif;
+    font-size: .812rem;
+    font-weight: 400;
+    line-height: 1.5;
+    height: 100vh;
+    background: #333;
+}
+.calling_now{
+	background-image: url(../img/landing-bg.jpg);
+    background-position: 0 0;
+    background-repeat: repeat;
+    -webkit-animation: sidedownscroll 30s linear infinite;
+    animation: sidedownscroll 30s linear infinite;
+    background-size: auto;
+    padding-top: 50px;
+    height:100vh;
+}
+#profile_img_call {
+    margin: 0 auto;
+    display: block;
+    border-radius: 50%;
+    border: 10px solid #fff;
+}
+.calling_now .caller_name {
+    font-size: 22px;
+    display: block;
+    margin: 0 auto;
+    text-align: center;
+    color: #fff;
+    font-weight: 600;
+    margin-top: 15px;
+}
+.calling_now .call_state {
+    font-size: 16px;
+    display: block;
+    margin: 0 auto;
+    text-align: center;
+    color: #fff;
+}
+#myvideo {
+    position: absolute;
+    width: 200px;
+    right: 30px;
+    bottom: 35px;
+    border: 2px solid #ff5e3a;
+    border-radius: 5px;
+    display: none;
+}
+#peerVideo {
+    width: 100%;
+    display: none;
+    border-radius: 5px;
+    background: #333;
+    max-height: 100vh;
+    margin: 0;
+    position: absolute;
+    top: 50%;
+    -ms-transform: translateY(-50%);
+    transform: translateY(-50%);
+    z-index: -1;
+}
+#call_timer {
+    position: absolute;
+    bottom: 40px;
+    left: 40px;
+    color: #fff;
+    font-size: 16px;
+    background: rgba(255,94,58, 0.85);
+    padding: 5px;
+    padding-left: 10px;
+    padding-right: 10px;
+    border-radius: 5px;
+}
+#mute_mic {
+    position: absolute;
+    bottom: 35px;
+    left: 0px;
+    right: 200px;
+    margin-left: auto;
+    margin-right: auto;
+    border: none;
+    border-radius: 50%;
+    width: 70px;
+    height: 70px;
+    font-size: 24px;
+    color: #333;
+    background: #ffffff;
+    transition: all ease-in-out 0.1s;
+}
+#end_call {
+    position: absolute;
+    bottom: 35px;
+    left: 0;
+    right: 0;
+    margin-left: auto;
+    margin-right: auto;
+    border: none;
+    border-radius: 50%;
+    width: 70px;
+    height: 70px;
+    font-size: 24px;
+    color: #fff;
+    background: #de1c1c;
+    transition: all ease-in-out 0.1s;
+}
+#remove_video {
+    position: absolute;
+    bottom: 35px;
+    left: 200px;
+    right: 0px;
+    margin-left: auto;
+    margin-right: auto;
+    border: none;
+    border-radius: 50%;
+    width: 70px;
+    height: 70px;
+    font-size: 24px;
+    color: #333;
+    background: #ffffff;
+    transition: all ease-in-out 0.1s;
+}
+  @media screen and (max-width: 768px) {
+  #myvideo{
+    width:100px;
+    right:20px;
+    top: 20px;
+    bottom: inherit;
+  }
+  #call_timer{
+    top: 20px;
+    left: 20px;
+    bottom: inherit;
+  }
+}
