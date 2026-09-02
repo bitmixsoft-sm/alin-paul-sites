@@ -1,0 +1,48 @@
+stages:
+  - push
+
+push:
+  image: ubuntu:latest
+  stage: push
+  services:
+    - docker:dind
+  before_script:
+    - apt-get update -y && apt-get install -yqqf openssh-client git sshpass rsync --fix-missing
+    - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client git -y )'
+    - eval $(ssh-agent -s)
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+
+    - ssh-keyscan -p 22224 7lovestory7.com >> ~/.ssh/known_hosts
+    - ssh-keyscan -p 22224 chit-chat.me >> ~/.ssh/known_hosts
+    - ssh-keyscan -p 22224 desyres.online >> ~/.ssh/known_hosts
+    - ssh-keyscan -p 22224 dolcepecato.online >> ~/.ssh/known_hosts
+    - ssh-keyscan -p 22224 dolcidei.com >> ~/.ssh/known_hosts
+    - ssh-keyscan -p 22224 findmesola.online >> ~/.ssh/known_hosts
+    - ssh-keyscan -p 22224 gattinacativva.com >> ~/.ssh/known_hosts
+    - ssh-keyscan -p 22224 makemeah.com >> ~/.ssh/known_hosts
+    - ssh-keyscan -p 22224 sexforyou.me >> ~/.ssh/known_hosts
+    - ssh-keyscan -p 22224 trovamequi.me >> ~/.ssh/known_hosts
+    - ssh-keyscan -p 22224 unasolaperte.online >> ~/.ssh/known_hosts
+    - ssh-keyscan -p 22224 wizoox.com >> ~/.ssh/known_hosts
+    - ssh-keyscan -p 22224 yourdesire4me.com >> ~/.ssh/known_hosts
+    - ssh-keyscan -p 22224 yourealfantasy.com >> ~/.ssh/known_hosts
+    - ssh-keyscan -p 22224 yoursoulmatefinder.com >> ~/.ssh/known_hosts
+
+    - chmod 644 ~/.ssh/known_hosts
+  script:
+    - sshpass -p $LOVESTORY_PASS rsync -rz --exclude '.env' --exclude 'storage/app/public' --delete -e 'ssh -p 22224' /builds/bellstar-dating/* lovestory7@7lovestory7.com:/home/lovestory7/backend
+    - sshpass -p $CHITCHAT_PASS rsync -rz --exclude '.env' --exclude 'storage/app/public' --delete -e 'ssh -p 22224' /builds/bellstar-dating/* chitchat@chit-chat.me:/home/chitchat/backend
+    - sshpass -p $DESYRES_PASS rsync -rz --exclude '.env' --exclude 'storage/app/public' --delete -e 'ssh -p 22224' /builds/bellstar-dating/* desyres@desyres.online:/home/desyres/backend
+    - sshpass -p $DOLCEPECATO_PASS rsync -rz --exclude '.env' --exclude 'storage/app/public' --delete -e 'ssh -p 22224' /builds/bellstar-dating/* dolcepecato@dolcepecato.online:/home/dolcepecato/backend
+    - sshpass -p $DOLCIDEI_PASS rsync -rz --exclude '.env' --exclude 'storage/app/public' --delete -e 'ssh -p 22224' /builds/bellstar-dating/* dolcidei@dolcidei.com:/home/dolcidei/backend
+    - sshpass -p $FINDMESOLA_PASS rsync -rz --exclude '.env' --exclude 'storage/app/public' --delete -e 'ssh -p 22224' /builds/bellstar-dating/* findmesola@findmesola.online:/home/findmesola/backend
+    - sshpass -p $GATTINACATIVVA_PASS rsync -rz --exclude '.env' --exclude 'storage/app/public' --delete -e 'ssh -p 22224' /builds/bellstar-dating/* gattinacativva@gattinacativva.com:/home/gattinacativva/backend
+    - sshpass -p $MAKEMEAH_PASS rsync -rz --exclude '.env' --exclude 'storage/app/public' --delete -e 'ssh -p 22224' /builds/bellstar-dating/* makemeah@makemeah.com:/home/makemeah/backend
+    - sshpass -p $SEXFORYOU_PASS rsync -rz --exclude '.env' --exclude 'storage/app/public' --delete -e 'ssh -p 22224' /builds/bellstar-dating/* sexforyou@sexforyou.me:/home/sexforyou/backend
+    - sshpass -p $TROVAMEQUI_PASS rsync -rz --exclude '.env' --exclude 'storage/app/public' --delete -e 'ssh -p 22224' /builds/bellstar-dating/* trovamequi@trovamequi.me:/home/trovamequi/backend
+    - sshpass -p $UNASOLAPERTE_PASS rsync -rz --exclude '.env' --exclude 'storage/app/public' --delete -e 'ssh -p 22224' /builds/bellstar-dating/* unasolaperte@unasolaperte.online:/home/unasolaperte/backend
+    - sshpass -p $WIZOOX_PASS rsync -rz --exclude '.env' --exclude 'storage/app/public' --delete -e 'ssh -p 22224' /builds/bellstar-dating/* wizoox@wizoox.com:/home/wizoox/backend
+    - sshpass -p $YOURDESIRE4ME_PASS rsync -rz --exclude '.env' --exclude 'storage/app/public' --delete -e 'ssh -p 22224' /builds/bellstar-dating/* yourdesire4me@yourdesire4me.com:/home/yourdesire4me/backend
+    - sshpass -p $YOUREALFANTASY_PASS rsync -rz --exclude '.env' --exclude 'storage/app/public' --delete -e 'ssh -p 22224' /builds/bellstar-dating/* yourealfantasy@yourealfantasy.com:/home/yourealfantasy/backend
+    - sshpass -p $YOURSOULMATEFINDER_PASS rsync -rz --exclude '.env' --exclude 'storage/app/public' --delete -e 'ssh -p 22224' /builds/bellstar-dating/* yoursoulmatefind@yoursoulmatefinder.com:/home/yoursoulmatefind/backend

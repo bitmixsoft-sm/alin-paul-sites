@@ -1,0 +1,195 @@
+:root{
+        /*
+		    --main-color: #c25a9f;
+		    --main-color-rgb: 194,90,159;
+		    --hover-color: #803b69;
+		    --bg-color: #000;
+        */
+        --main-color: #99160c;
+        --main-color-rgb: 0, 0, 255;
+        --hover-color: #10c1ed;
+        --bg-color: #f07d5a;
+        --dark-1: #3f4257;
+        --dark-2: #494c62;
+}
+body {
+	background: #000;			  	
+   	color: #fff;
+}
+
+.modal-content{
+	background-color: #000;
+}
+
+
+.ui-block {
+    background-color: var(--dark-2);
+    border: none;
+}
+.news-feed-form .nav-tabs {
+    background-color: #000;
+}
+.news-feed-form .nav-tabs .nav-link.active {
+    background-color: lightgray;
+}
+
+.news-feed-form .nav-tabs .nav-link {
+    border-bottom: 1px solid #333;
+    border-right: 1px solid #333;
+}
+
+.fixed-sidebar-right {
+    border-left: 1px solid #333;
+    background-color: var(--dark-1);
+}
+
+.fixed-sidebar-left {
+    background-color: var(--dark-1);
+}
+.search-friend {
+	background-color: blueviolet;
+}
+
+select, input {
+    color: #fff;
+    border: 1px solid #333;
+    /*background-color: #444;*/
+}
+
+.chats select{
+    color: #fff;
+    border: 1px solid #333;
+    background-color: #444;
+    padding: .5rem 1.1rem;
+}
+
+.dropdown-item {
+    background-color: #222;
+}
+
+.card-footer, .card-header {
+    background-color: #333;
+}
+.card-header a {
+    color: #fff;
+}
+.card-header a:hover, .card-header a:focus {
+    color: #ccc;
+}
+
+.card {
+    background-color: #333;
+}
+.your-profile-menu li a {
+    font-size: 11px;
+    padding: 12px 0;
+    color: #ccc;
+    }
+
+input, .form-control {
+    color: #ccc;
+}
+.daterangepicker {
+   background-color: #333;
+   
+}
+.daterangepicker .calendar-table {
+    border: 1px solid #fff;
+    padding: 4px;
+    border-radius: 4px;
+    background-color: #333;
+}
+.daterangepicker .calendar td {
+    color: #fff;
+    }
+.daterangepicker select.monthselect, .daterangepicker select.yearselect {
+    border: none;
+    font-size: 13px;
+    color: #fff;
+}
+
+.daterangepicker td.off, .daterangepicker td.off.in-range, .daterangepicker td.off.start-date, .daterangepicker td.off.end-date {
+    background-color: #111;
+}
+.popup-chat .chat-message-item {
+    padding: 13px;
+    background-color: darkcyan;
+ }
+
+ #admin_account {
+    background: #333;
+}
+
+#online_users_left {
+    background: #111;
+ }
+
+ input, .form-control, input, .form-control:focus {
+    color: #fff;
+}    
+
+.popup-chat .form-group.label-floating textarea {
+    background: #111;
+}
+.more-dropdown {
+    box-shadow: 0 0 34px 0 rgb(63 66 87 / 10%);
+    background-color: #222;
+}
+.more-dropdown a {
+    color: #efefef;
+}
+
+.author-page .chat-settings a {    color: #efefef;}
+
+.search-bar .form-group.with-button input {
+    color: #fff;
+}
+#video .upload-photo-item {
+	background: #333;
+}
+.upload-photo-item h6, .upload-photo-item .h6 {
+    color: #fff;
+}
+
+#livefeed_container {
+	background: #111;
+	color: #fff;
+}
+
+/*#theme-toggler,#theme-toggler-m{border: 1px solid #ccc; font-weight: bold; padding: 10px 20px; background: #fff; color: #000; margin: 10px;}*/
+
+.add-options-message i {
+	color: darkorange;
+}
+.add-options-message i:hover {
+    color: red;
+}
+
+.ai-popup-chat {
+    background-color: var(--dark-2);
+    color: #fff;
+}
+.ai-popup-chat-log {
+    background-color: var(--dark-1);
+}
+.ai-popup-chat-footer {
+    border-top: 1px solid #333;
+}
+.ai-popup-chat-input {
+    background-color: #444;
+    color: #fff;
+    border: 1px solid #333;
+}
+.ai-popup-chat-avatar {
+    background-color: #444;
+}
+.ai-popup-chat-upgrade-banner {
+    background-color: #444;
+    color: #ffeeba;
+}
+#find_friends_results .friend-avatar .author-content{
+    background-color: var(--dark-1);
+}
+.author-name{
+    color:#fff;
+}

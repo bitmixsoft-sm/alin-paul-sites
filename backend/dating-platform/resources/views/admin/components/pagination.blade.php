@@ -1,0 +1,1 @@
+{{$users->appends(['search' => $search])->links()}}
