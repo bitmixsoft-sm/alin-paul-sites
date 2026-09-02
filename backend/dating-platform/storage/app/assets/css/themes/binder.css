@@ -1,0 +1,1726 @@
+/* Binder theme - additive skin, only ever active under body.theme-binder.
+   Loaded AFTER the base /assets/css/style.css, never replaces it. */
+
+/* Trading-card "binder" theme - a collector's-album feel: holographic rotating-border cards
+   that flip-reveal on hover, colorful file-tab flourishes, a playful arcade display face.
+   Dark-by-default like Aurora/Nordic/Volt/Velvet (not flipped like Mosaic/Bloom) - this is a
+   single, deliberately maximalist dark world first, with an ink-on-paper light variant as the
+   required alternate for the site's light/dark toggle. */
+body.theme-binder {
+    --binder-bg: #15131F;
+    --binder-bg-2: #1D1B2A;
+    --binder-surface: #252336;
+    --binder-surface-2: #2F2C42;
+    --binder-line: rgba(255, 255, 255, 0.08);
+    --binder-line-strong: rgba(255, 255, 255, 0.16);
+    --binder-pink: #FF4FA0;
+    --binder-pink-bright: #FF7AB8;
+    --binder-yellow: #FFC22E;
+    --binder-yellow-bright: #FFD766;
+    --binder-blue: #3E7BFF;
+    --binder-green: #1FCB8C;
+    --binder-purple: #9B4FFF;
+    --binder-text: #F2F1FA;
+    --binder-text-dim: #8B87A3;
+    --binder-text-mute: #625D7A;
+    --binder-online: #1FCB8C;
+    --binder-display: 'Bungee', 'Segoe UI', sans-serif;
+    --binder-body: 'DM Sans', 'Segoe UI', sans-serif;
+    --binder-mono: 'DM Sans', 'Segoe UI', sans-serif;
+
+    background: var(--binder-bg) !important;
+    color: var(--binder-text) !important;
+    font-family: var(--binder-body) !important;
+    background-image: radial-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px) !important;
+    background-size: 24px 24px !important;
+    /* Hard safety net against the whole page gaining a horizontal scrollbar - a mobile
+       dating feed should never need one, so clipping here is always safe regardless of what
+       child element (mobile nav dropdown, search box, a card) miscalculates its own width.
+       This whole file only ever loads when binder is the active theme (see layout.blade.php),
+       so an unscoped `html` selector here is safe - it can never affect classic or another
+       theme. */
+    overflow-x: hidden;
+}
+html {
+    overflow-x: hidden;
+}
+
+/* Light variant - driven by the site's existing dark/light switch (the header's sun/moon
+   icon, storage/app/assets/js/theme-selector.js), which now also toggles body.site-dark-mode.
+   Every rule below only ever uses the --binder-* custom properties, so redefining them here
+   is enough to re-skin the whole theme without repeating every single color rule. Keeps the
+   same playful rainbow accents, just deepened for contrast against a paper-light page instead
+   of ink. */
+body.theme-binder:not(.site-dark-mode) {
+    --binder-bg: #FAF7F2;
+    --binder-bg-2: #F1ECE2;
+    --binder-surface: #FFFFFF;
+    --binder-surface-2: #F1ECE2;
+    --binder-line: rgba(30, 24, 20, 0.1);
+    --binder-line-strong: rgba(30, 24, 20, 0.22);
+    --binder-pink: #D6247A;
+    --binder-pink-bright: #B01A63;
+    --binder-yellow: #B8860B;
+    --binder-yellow-bright: #96700A;
+    --binder-blue: #2457CC;
+    --binder-green: #12946A;
+    --binder-purple: #7429D6;
+    --binder-text: #211D2E;
+    --binder-text-dim: #5C5570;
+    --binder-text-mute: #8E869F;
+    --binder-online: #12946A;
+}
+/* The control-block icons (notifications/chat/friend-requests) have a hardcoded
+   `.control-icon.has-items { fill: #fff; }` in main.css (not part of this theme/repo) - white
+   icons that are invisible against this theme's light-mode background. Only overridden in
+   light mode - dark mode's white icons are exactly right there, against the dark header. */
+body.theme-binder:not(.site-dark-mode) .control-block .control-icon,
+body.theme-binder:not(.site-dark-mode) .control-block .control-icon.has-items {
+    fill: var(--binder-text-dim) !important;
+}
+/* Same issue, same fix, for the profile avatar's name text next to it in the header
+   (components/header/profile-header.blade.php) - main.css hardcodes
+   `.control-block .author-title { color: #fff; svg { fill: #fff; } }`, invisible in light mode. */
+body.theme-binder:not(.site-dark-mode) .control-block .author-title,
+body.theme-binder:not(.site-dark-mode) .control-block .author-subtitle {
+    color: var(--binder-text) !important;
+}
+body.theme-binder:not(.site-dark-mode) .control-block .author-title svg {
+    fill: var(--binder-text) !important;
+}
+/* Same issue again, for the chat popup's own title-bar icons (msgtoggle eye-slash, the little
+   "X" close button, components/chat.blade.php) - no color/fill set anywhere in this repo, so
+   they render at the browser default, invisible against this theme's light-mode popup
+   background. */
+body.theme-binder:not(.site-dark-mode) .popup-chat .ui-block-title .msgtoggle i,
+body.theme-binder:not(.site-dark-mode) .popup-chat .ui-block-title .js-chat-close {
+    color: var(--binder-text-dim);
+    fill: var(--binder-text-dim);
+}
+body.theme-binder:not(.site-dark-mode) .popup-chat .ui-block-title .msgtoggle i:hover,
+body.theme-binder:not(.site-dark-mode) .popup-chat .ui-block-title .js-chat-close:hover {
+    color: var(--binder-text);
+    fill: var(--binder-text);
+    cursor: pointer;
+}
+
+/* The page template's own base CSS (main.css, not part of this repo/theme) puts an opaque
+   light background on the content wrapper and/or its direct child container, which sits on
+   top of the body background above and would otherwise hide it almost entirely - force it
+   (and its likely direct-child wrapper, whatever exact class it uses) transparent so the dark
+   body background actually shows through. */
+body.theme-binder #main-wrapper-content,
+body.theme-binder #main-wrapper-content > * {
+    background: transparent !important;
+    background-color: transparent !important;
+}
+body.theme-binder #main-wrapper-content,
+body.theme-binder #main-wrapper-content h1,
+body.theme-binder #main-wrapper-content h2,
+body.theme-binder #main-wrapper-content h3,
+body.theme-binder #main-wrapper-content h4,
+body.theme-binder #main-wrapper-content h5,
+body.theme-binder #main-wrapper-content h6 {
+    color: var(--binder-text) !important;
+    font-family: var(--binder-body) !important;
+}
+/* CMS pages (Terms of Use, Legal information, etc. - resources/views/cms_page.blade.php) put
+   their content inside .content_block, which has a permanently white background (style.css,
+   not part of this theme/repo) that never adapts to dark/light mode - the rule above forces
+   this theme's own (light, in dark mode) text color onto it, making it unreadable against
+   that always-white card. Force a fixed dark, readable color here instead, regardless of the
+   theme's own light/dark state - this card's background never changes, so neither should its
+   text color. */
+body.theme-binder #main-wrapper-content .content_block,
+body.theme-binder #main-wrapper-content .content_block h1,
+body.theme-binder #main-wrapper-content .content_block h2,
+body.theme-binder #main-wrapper-content .content_block h3,
+body.theme-binder #main-wrapper-content .content_block h4,
+body.theme-binder #main-wrapper-content .content_block h5,
+body.theme-binder #main-wrapper-content .content_block h6,
+body.theme-binder #main-wrapper-content #cms_header {
+    color: #2A2A2A !important;
+}
+
+/* ---------- nav / header ---------- */
+/* NOTE: uses --binder-bg-2 (a theme variable) instead of a hardcoded dark rgba() - the old
+   hardcoded value never lightened in light mode (see the light-variant block up top), leaving
+   dark text on a permanently-dark header background. */
+/* CONFIRMED root cause (checked main.css directly, live, via curl): the site's original
+   layout is CSS-FLOAT based, not flexbox - .search-bar is `float:left; width:500px;
+   height:70px;` and .control-block is `float:right`, with NO clearfix on
+   .header-content-wrapper. A float-only parent with no clearfix collapses to near-zero
+   height (floats don't contribute to parent height), while the floated search bar keeps its
+   own native 70px height - that's what made it visually stick out above/below the
+   (collapsed) header background. min-height below guarantees the header never collapses
+   under that height regardless of width; the clearfix on header-content-wrapper (further
+   down) makes this robust even without it. */
+body.theme-binder .header {
+    background: var(--binder-bg-2) !important;
+    backdrop-filter: blur(16px) saturate(140%);
+    border-bottom: 1px solid var(--binder-line);
+    min-height: 72px;
+}
+/* Classic clearfix - makes header-content-wrapper's height account for its floated children
+   (.search-bar, .control-block) at ANY width, not just the >=992px block below where we
+   override float with flex outright (flex items ignore float per spec, so this clearfix is
+   mainly what protects narrower/in-between widths). */
+body.theme-binder .header-content-wrapper::after {
+    content: '';
+    display: table;
+    clear: both;
+}
+body.theme-binder .header::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--binder-pink), var(--binder-yellow-bright), var(--binder-yellow));
+    opacity: .7;
+}
+/* The page title (e.g. "Find Friends" as a big heading) isn't part of the reference nav at
+   all - the nav links themselves already show what page you're on (active underline). */
+body.theme-binder .header .page-title {
+    display: none;
+}
+/* Force everything in the header onto one row, in a predictable order, instead of relying on
+   whatever flex rules main.css (not part of this repo) happens to apply - that's what was
+   causing the header to wrap onto two chaotic lines. Applied at ALL widths: the theme's own
+   .theme-nav-toggle hamburger (below) is the SOLE navigation at every width under this theme -
+   the native mobile tab header/drawer (header-responsive, fixed-sidebar-responsive) is hidden
+   unconditionally instead of being allowed to take over on narrow screens, so the mobile
+   experience always matches the new design instead of falling back to the classic look.
+   Kept a plain fixed 64px height here (mobile/hamburger range, <=991px) - .theme-nav is a
+   position:absolute dropdown at these widths (see the max-width:991px block further down), so
+   it's never actually part of this row's in-flow height and can't wrap it taller. The
+   height:auto+padding override for wrapping only applies >=992px below, where the *inline*
+   nav can genuinely need two lines - applying that unconditionally here previously added
+   needless extra height on mobile too, visibly crowding the page content right beneath the
+   header (it's position:fixed, so anything taller than the page's reserved .header-spacer
+   overlaps the content instead of pushing it down). */
+body.theme-binder .header {
+    height: 64px;
+    display: flex;
+    align-items: center;
+}
+@media screen and (min-width: 1280px) {
+    body.theme-binder .header {
+        height: auto;
+        padding: 10px 0;
+    }
+}
+body.theme-binder .header-content-wrapper {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    align-items: center;
+    width: 100%;
+    /* box-sizing:border-box - without it this padding would add to the 100% width above and
+       overflow the header. */
+    box-sizing: border-box;
+    padding: 0 16px;
+    gap: 16px;
+}
+/* Hides BOTH the native mobile tab header (header-responsive, its own icon row/search/
+   Register-Login pair) AND the native mobile "Quick Links" drawer (fixed-sidebar-responsive,
+   the hamburger-triggered slide-in menu) - unconditionally, at every width. Without this the
+   mobile view falls back to the unthemed classic mobile UI instead of the new design. */
+body.theme-binder .header-responsive,
+body.theme-binder #site-header-responsive,
+body.theme-binder .fixed-sidebar.fixed-sidebar-responsive {
+    display: none !important;
+}
+/* ---------- header search bar: one seamless rounded pill, icon has no button chrome of its
+   own (consolidated - this used to be split across several conflicting rule blocks from
+   earlier iterations, which is why the icon rendered as its own separate gray box). ---------- */
+body.theme-binder .search-bar {
+    float: none !important;
+    width: auto !important;
+    height: auto !important;
+    background: transparent !important;
+    flex: 0 0 auto;
+    margin: 0;
+    /* align-self (not just the parent's align-items) - guarantees this flex item is
+       vertically centered against the nav text regardless of any other rule touching it. */
+    align-self: center;
+    display: flex;
+    align-items: center;
+}
+body.theme-binder .search-bar .form-group {
+    position: relative;
+    width: 260px;
+    height: auto !important;
+    margin: 0;
+}
+/* Narrow screens: the header row is nowrap (see above) so a full 260px search box would
+   crowd out the hamburger toggle / control-block icons. CLOSED: just the small icon, no
+   visible footprint. OPEN: the <form class="search-bar"> element itself becomes the dropdown
+   panel - anchored to .header exactly the same way .theme-nav's own mobile dropdown already
+   is (position:absolute; top:100%; left/right:12px, same background/border/radius/shadow
+   tokens), since that pattern is already proven working. The earlier attempt made the INNER
+   .form-group try to become the panel while the outer .search-bar stayed a plain flex item -
+   two nested position/sizing contexts fighting each other is what produced the disconnected,
+   wrongly-colored shapes. Toggled by clicking the search icon again or clicking outside
+   (toggleThemeSearch(), theme-selector.js). */
+@media screen and (max-width: 767px) {
+    body.theme-binder .search-bar .form-group {
+        width: 34px;
+        height: 34px;
+        overflow: visible;
+        border-radius: 50%;
+        background: transparent;
+    }
+    body.theme-binder .search-bar input.form-control,
+    body.theme-binder .search-bar .js-user-search {
+        display: none !important;
+    }
+    body.theme-search-open.theme-binder .search-bar {
+        display: flex !important;
+        align-items: center;
+        position: absolute !important;
+        top: 100%;
+        left: 12px;
+        right: 12px;
+        margin-top: 8px;
+        background: var(--binder-bg-2) !important;
+        border: 1px solid var(--binder-line);
+        border-radius: 16px;
+        box-shadow: 0 20px 60px -15px rgba(0, 0, 0, 0.7);
+        padding: 10px 14px;
+        z-index: 1000;
+    }
+    body.theme-search-open.theme-binder .search-bar .form-group {
+        width: 100%;
+        height: auto;
+        display: flex;
+        align-items: center;
+        overflow: visible;
+        border-radius: 0;
+    }
+    body.theme-search-open.theme-binder .search-bar input.form-control {
+        display: block !important;
+        position: static;
+        flex: 1 1 auto;
+        width: auto;
+        height: 36px !important;
+        background: transparent !important;
+        border: none !important;
+        padding: 0 8px !important;
+    }
+    body.theme-search-open.theme-binder .search-bar button {
+        position: static !important;
+        flex: 0 0 auto;
+        width: auto !important;
+        background: transparent !important;
+    }
+    /* The AJAX suggestion results panel (dating.js toggles its own inline display:block/none)
+       stays fully hidden while the search box is closed, and drops below the now-open panel. */
+    body.theme-search-open.theme-binder .search-bar .js-user-search {
+        display: block !important;
+        position: absolute;
+        top: calc(100% + 8px) !important;
+        left: 0 !important;
+        right: 0;
+        width: 100% !important;
+    }
+}
+body.theme-binder .search-bar input.form-control {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0 40px 0 18px !important;
+    height: 40px !important;
+    background: var(--binder-surface) !important;
+    border: 1px solid var(--binder-line) !important;
+    border-radius: 100px !important;
+    color: var(--binder-text) !important;
+}
+body.theme-binder .search-bar input.form-control::placeholder {
+    color: var(--binder-text-mute);
+}
+body.theme-binder .search-bar input.form-control:focus {
+    border-color: var(--binder-pink) !important;
+    outline: none;
+}
+body.theme-binder .search-bar button {
+    position: absolute !important;
+    right: 4px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: transparent !important;
+    border: none !important;
+    border-radius: 50% !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    outline: none !important;
+    -webkit-tap-highlight-color: transparent;
+}
+/* Tapping/clicking the icon (it's a real <button>) otherwise leaves the browser's default
+   focus ring visible as a persistent circle outline around it. */
+body.theme-binder .search-bar button:focus,
+body.theme-binder .search-bar button:focus-visible {
+    outline: none !important;
+    box-shadow: none !important;
+}
+/* The icon's own base CSS may set a hardcoded fill color rather than relying on
+   currentColor, so the button's "color" alone might not actually recolor it - set fill
+   explicitly to guarantee it matches the theme. */
+body.theme-binder .search-bar button svg {
+    fill: var(--binder-text-dim);
+    width: 16px;
+    height: 16px;
+}
+/* Search suggestions dropdown - matches the search bar's own width/style instead of the
+   inline 500px/light-theme default it otherwise renders with. */
+/* position:absolute - the site's own style.css only sets this (as !important, alongside the
+   fixed top:70px/left:0 this overrides) INSIDE its own `@media (max-width:768px)` block, never
+   for desktop widths - so at desktop widths, with no position set at all, this box used to
+   render in NORMAL FLOW and genuinely shove the header/nav row down every time a search
+   result appeared (regardless of theme - .header being position:fixed here, same as classic,
+   was never the issue; the missing position on THIS element was). Setting position:absolute
+   here, unconditionally, is what actually overlays it instead. */
+body.theme-binder .search-bar .js-user-search {
+    position: absolute !important;
+    width: 100% !important;
+    left: 0 !important;
+    top: calc(100% + 6px) !important;
+    background: var(--binder-surface) !important;
+    border: 1px solid var(--binder-line) !important;
+    border-radius: 12px !important;
+    color: var(--binder-text);
+}
+/* display:flex + centering (not inline-block) - the emoji glyph this button shows
+   (theme-selector.js sets its innerHTML to a moon/sun emoji) has unusual line-height metrics
+   of its own that don't vertically center against the surrounding text with inline-block,
+   which is why it looked slightly misaligned with the nav row next to it. */
+body.theme-binder #theme-toggler {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    font-size: 18px;
+    line-height: 1;
+    filter: hue-rotate(200deg) saturate(1.4);
+}
+/* At desktop widths .control-block's children (notification/chat/credits icons) rely on
+   however main.css originally laid them out internally, so no display override is needed
+   there - margin-left:auto alone pushes the whole block right within the flex header row.
+   BELOW 768px though, main.css has its own rule forcing `.control-block { display:block;
+   padding:15px 20px 0; }` (meant for the native mobile tab header, which we hide entirely -
+   see above) - that turns every icon link into a full-width stacked block, which is the
+   vertically-stacked-icons / full-width red Packages button bug. Overriding display back to
+   flex at that same breakpoint fixes it. */
+body.theme-binder .control-block {
+    flex: 0 0 auto;
+    margin-left: auto;
+}
+@media screen and (max-width: 767px) {
+    body.theme-binder .control-block {
+        display: flex !important;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 10px;
+        height: auto !important;
+        padding: 0 !important;
+    }
+    body.theme-binder .control-block > * {
+        flex: 0 0 auto;
+        width: auto !important;
+    }
+    /* Packages button + credits pill are redundant on mobile - every page with a Packages
+       button already shows its own full one further down, and dropping these two frees up
+       enough width for the notification/chat/friend-request icon badges (previously squeezed
+       off/invisible in this same row) to actually fit and show. */
+    body.theme-binder .control-block .packages-top,
+    body.theme-binder .control-block .theme-credits-pill {
+        display: none !important;
+    }
+}
+/* The profile avatar link+dropdown (components/header/profile-header.blade.php) is hidden
+   entirely on mobile (not just its :hover dropdown) - .theme-nav's own mobile-only Account/
+   Language/Log Out links (see header.blade.php) replace it there, so keeping the avatar link
+   around too was a redundant duplicate eating space in the icon row. Desktop keeps the avatar
+   link AND its native hover dropdown exactly as before - the dropdown works fine there with a
+   mouse; showing these same links inline in the desktop .theme-nav row too (tried previously)
+   just made that row wrap awkwardly against the credits/packages controls. */
+@media screen and (max-width: 1279px) {
+    body.theme-binder .control-block .author-page {
+        display: none !important;
+    }
+}
+/* ---------- header icon dropdowns (notifications/chat/friend-requests/profile) - these
+   reuse the site's shared .more-dropdown component, which is hardcoded to a white classic
+   background/dark text/small border-radius regardless of theme. Restyled here to match the
+   exact same rounded-card look as the .theme-nav mobile dropdown (16px radius, same
+   background/border/shadow tokens) rather than just swapping colors on the old shape -
+   scoped to .control-block so only the header's own copies are touched (the same class is
+   reused elsewhere in the app - calendar, shop cart, etc. - which must stay untouched). ---------- */
+body.theme-binder .control-block .more-dropdown {
+    background: var(--binder-bg-2) !important;
+    border: 1px solid var(--binder-line);
+    border-radius: 16px !important;
+    box-shadow: 0 20px 60px -15px rgba(0, 0, 0, 0.7);
+    padding: 12px !important;
+    overflow: hidden;
+}
+body.theme-binder .control-block .more-dropdown .ui-block-title .title,
+body.theme-binder .control-block .more-dropdown a,
+body.theme-binder .control-block .more-dropdown .h6,
+body.theme-binder .control-block .more-dropdown .notification-friend,
+body.theme-binder .control-block .more-dropdown .author-title {
+    color: var(--binder-text) !important;
+}
+body.theme-binder .control-block .more-dropdown .chat-message-item,
+body.theme-binder .control-block .more-dropdown .notification-date,
+body.theme-binder .control-block .more-dropdown .author-subtitle,
+body.theme-binder .control-block .more-dropdown .no-req {
+    color: var(--binder-text-dim) !important;
+}
+body.theme-binder .control-block .more-dropdown a:hover {
+    color: var(--binder-pink) !important;
+}
+/* Unread/hover row states (notification-list li.message-unread/.un-read, .notification-list
+   li:hover - main.css, not part of this theme/repo) have their own hardcoded near-white
+   background, painted OVER the dark .more-dropdown background above for just that one row -
+   left unfixed, that made unread rows (which is most of them, in a busy inbox) show this
+   theme's light text on a near-white row, unreadable. Only rows with neither state showed
+   the correct dark background/light text. */
+body.theme-binder .control-block .more-dropdown .notification-list li.message-unread,
+body.theme-binder .control-block .more-dropdown .notification-list li.un-read,
+body.theme-binder .control-block .more-dropdown .notification-list li:hover {
+    background: var(--binder-surface-2) !important;
+}
+body.theme-binder .control-block .more-dropdown input.form-control {
+    background: var(--binder-surface) !important;
+    border: 1px solid var(--binder-line) !important;
+    color: var(--binder-text) !important;
+}
+body.theme-binder .header .link-find-friend {
+    color: var(--binder-text-dim);
+    font-weight: 600;
+}
+body.theme-binder .header .link-find-friend:hover {
+    color: var(--binder-text);
+}
+body.theme-binder .theme-credits-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--binder-surface-2);
+    border: 1px solid var(--binder-line);
+    padding: 7px 14px;
+    border-radius: 999px;
+    font-family: var(--binder-mono);
+    font-size: 13px;
+    color: var(--binder-yellow);
+}
+/* .packages-top (the "Packages" pill in the header) isn't themed by any of the rules above -
+   it uses its own hardcoded `background: var(--main-color)` (a site-wide admin setting,
+   currently a dark navy, completely independent of this theme's light/dark variables) - in
+   light mode that left the (also dark) --binder-text-dim text nearly unreadable against it.
+   Giving it the same themed gradient + guaranteed-white text as the other buttons fixes that
+   in both modes, instead of depending on whatever --main-color happens to be. */
+body.theme-binder .header .btn-purple,
+body.theme-binder .header .btn-primary,
+body.theme-binder .header .packages-top {
+    background: linear-gradient(120deg, var(--binder-pink), var(--binder-yellow-bright)) !important;
+    border: none !important;
+    color: #fff !important;
+    font-family: var(--binder-body);
+    font-weight: 700;
+}
+
+/* ---------- ambient glow (same technique as the hero's radial gradients, applied behind
+   the sidebars too so the whole chrome feels like one atmosphere, not just the hero).
+   NOT applied to .header any more - the glow's ::before used to bleed into/behind the search
+   and hamburger dropdown panels (visible as an ugly red blur).
+   IMPORTANT: this used to force position:relative on .header/.fixed-sidebar-left/
+   .fixed-sidebar-right (reasoning: the ::before overlay and the search/nav dropdowns need a
+   "positioned" ancestor to anchor to). That was unnecessary AND harmful - all three already
+   have a non-static native position (.header is position:fixed, both sidebars are
+   position:absolute - see main.css, not part of this theme/repo), which already satisfies
+   that requirement on its own. Overriding .header to position:relative silently broke its
+   native fixed/sticky-on-scroll behavior (it stayed in the page's normal flow and scrolled
+   away instead), and overriding .fixed-sidebar-right specifically broke its native small<->large
+   slide-open animation (base-init.js toggles a `.open` class that drives a CSS
+   `transform: translateX(...)` on these exact elements - forcing position:relative altered
+   their containing-block/stacking behavior enough to make the "large" (expanded, with names)
+   panel fail to slide into view correctly, reported as "the chat panel disappears instead of
+   opening" in every theme except classic, which never touched position here). Removed
+   entirely - the ::before below still anchors correctly to the native fixed/absolute position. */
+body.theme-binder .fixed-sidebar-left::before,
+body.theme-binder .fixed-sidebar-right::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+        radial-gradient(120% 140% at 0% 0%, rgba(255, 79, 160, 0.14), transparent 55%),
+        radial-gradient(120% 140% at 100% 100%, rgba(255, 194, 46, 0.12), transparent 55%);
+}
+
+/* ---------- left sidebar: permanently hidden - its real links (Find Friends, Newsfeed, CMS
+   pages, admin) now live in the header's own .theme-nav instead (see header.blade.php), which
+   is the sole nav at every width under this theme. NOTE: zeroing #main-wrapper-content's
+   margin-left is a best-effort attempt to reclaim the space the sidebar used to occupy - the
+   exact compensation rule lives in main.css (not part of this repo), so this may need
+   adjustment once seen live.
+   IMPORTANT: targets #sidebar-left/#sidebar-left-1 by ID, NOT the .fixed-sidebar-left CLASS -
+   components/sidebar-left.blade.php renders this desktop sidebar (#sidebar-left/#sidebar-left-1)
+   AND a wholly separate mobile drawer (#sidebar-left-responsive/#sidebar-left-1-responsive,
+   the classic theme's "Quick Links"/hamburger menu) sharing the same .fixed-sidebar-left class
+   - the mobile drawer is hidden separately, as a whole, via the
+   .fixed-sidebar.fixed-sidebar-responsive rule further up (next to header-responsive), so it
+   isn't accidentally caught by this ID-scoped rule (which fixed an earlier bug where the class
+   selector nuked both at once). */
+body.theme-binder #sidebar-left,
+body.theme-binder #sidebar-left-1 {
+    visibility: hidden !important;
+    width: 0 !important;
+    height: 0 !important;
+    overflow: visible !important;
+}
+body.theme-binder #main-wrapper-content {
+    margin-left: 0 !important;
+}
+body.theme-binder .fixed-sidebar-right .mCustomScrollbar {
+    background: transparent !important;
+}
+
+/* Pulls the "online users" flyout back into view (its own CSS assumed it'd be inside a
+   visible sidebar) - opened via the new .open_online_users link in .theme-nav, using the
+   exact same click handler as before (bound by class in dating.js, unchanged). top/left below
+   are just a fallback; theme-selector.js repositions this on every click to sit right under
+   whichever .open_online_users link was actually clicked (it can be in different places -
+   inline in the desktop nav, or in the mobile hamburger dropdown), instead of this fixed spot
+   that only ever matched the old sidebar toggle's position. */
+body.theme-binder .fixed-sidebar-left #online_users_left {
+    visibility: visible !important;
+    position: fixed !important;
+    top: 70px;
+    left: 20px;
+    width: 280px;
+    max-height: 60vh;
+    overflow-y: auto;
+    background: var(--binder-bg-2);
+    border: 1px solid var(--binder-line);
+    border-radius: 16px;
+    box-shadow: 0 20px 60px -15px rgba(0, 0, 0, 0.7);
+    z-index: 999;
+}
+
+
+/* ---------- icon-free horizontal nav (matches the theme reference exactly) ---------- */
+body.theme-binder .theme-nav {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px 28px;
+    flex: 1 1 auto;
+    justify-content: center;
+    margin: 0;
+}
+/* Account/Language section labels (desktop: small inline labels ahead of their group;
+   mobile: full-width block headers, see the max-width:991px block below) - these are what
+   visually separate "page links" from "account" from "language" in the single nav list. */
+body.theme-binder .theme-nav-section-label {
+    color: var(--binder-text-mute);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+}
+/* "Binder tab" flourish - each nav link reads like a colored file-folder tab (rounded top
+   corners only, cycling through the theme's rainbow accents), leaning back slightly on hover
+   as if being pulled forward - the collector's-album flavor carried into the ONE piece of nav
+   this theme keeps fully stock (same horizontal bar/hamburger mechanics as every other theme
+   in this family - only this cosmetic layer is new). */
+/* Font changed from --binder-display (Bungee) to --binder-body (DM Sans) - Bungee is a
+   "unicase" display face (its lowercase glyphs are drawn to look like small capitals), which
+   read fine at the hero's large headline size but became genuinely hard to read at this small,
+   dense tab-label size - text-transform/letter-spacing below recreate the same bold "tab
+   label" feel with a face actually legible that small. Text color is white by default (better
+   contrast against the pink/blue/green tabs, which are all fairly saturated/mid-dark in both
+   of this theme's light/dark states) with dark ink specifically overridden for the yellow tab
+   (the one background bright enough to need dark text instead). */
+body.theme-binder .theme-nav-link {
+    color: #fff;
+    font-weight: 700;
+    font-size: 12.5px;
+    font-family: var(--binder-body);
+    text-transform: uppercase;
+    letter-spacing: .03em;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+    position: relative;
+    padding: 8px 14px 6px;
+    border-radius: 10px 10px 3px 3px;
+    background: var(--binder-text-mute);
+    transition: transform .15s ease, opacity .15s ease;
+    opacity: .7;
+}
+body.theme-binder .theme-nav-link:nth-of-type(4n+1) { background: var(--binder-pink); }
+body.theme-binder .theme-nav-link:nth-of-type(4n+2) { background: var(--binder-blue); }
+body.theme-binder .theme-nav-link:nth-of-type(4n+3) { background: var(--binder-green); }
+body.theme-binder .theme-nav-link:nth-of-type(4n+4) {
+    background: var(--binder-yellow);
+    color: #171529;
+    text-shadow: none;
+}
+body.theme-binder .theme-nav-link:hover {
+    opacity: 1;
+    transform: translateY(-2px) rotate(-1deg);
+}
+body.theme-binder .theme-nav-link.active {
+    opacity: 1;
+}
+body.theme-binder .theme-nav-link.active::after {
+    content: '';
+    position: absolute;
+    left: 10px;
+    right: 10px;
+    bottom: 1px;
+    height: 2px;
+    border-radius: 2px;
+    background: #171529;
+}
+/* Hamburger toggle - hidden on desktop, only shown at mobile widths (see media query below) */
+body.theme-binder .theme-nav-toggle {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    color: var(--binder-text-dim);
+    background: var(--binder-surface-2);
+    border: 1px solid var(--binder-line);
+}
+body.theme-binder .theme-nav-toggle:hover,
+body.theme-binder.theme-nav-dropdown-open .theme-nav-toggle {
+    color: var(--binder-pink);
+}
+/* Hidden by default (desktop) - MUST come before the max-width:991px block below, not after:
+   an unscoped rule placed after a media query wins the cascade at equal specificity regardless
+   of the media query, which is exactly what silently hid these mobile-only links entirely. */
+body.theme-binder .theme-nav-mobile-only {
+    display: none;
+}
+@media screen and (max-width: 1279px) {
+    body.theme-binder .theme-nav-toggle {
+        display: inline-flex;
+    }
+    body.theme-binder .theme-nav {
+        display: none;
+        /* position:absolute anchored to .header, which is already "positioned" (native
+           position:fixed - see main.css, not part of this theme/repo) so no extra position
+           override is needed on .header itself for this to anchor correctly. */
+        position: absolute;
+        top: 100%;
+        left: 12px;
+        right: 12px;
+        margin-top: 8px;
+        flex-direction: column;
+        /* flex-wrap:nowrap overrides the desktop rule's flex-wrap:wrap (unconditional, further
+           up) - with flex-direction:column, "wrap" doesn't overflow vertically at all, it
+           starts a SECOND COLUMN to the side once content exceeds max-height (wrapping happens
+           on the cross axis, which is horizontal here). That's what silently ate Deutsch/
+           Français/Español: they weren't missing, they'd wrapped into an invisible second
+           column that overflow-x:hidden then clipped, instead of the vertical scrollbar the
+           max-height+overflow-y:auto below was meant to produce. */
+        flex-wrap: nowrap;
+        align-items: flex-start;
+        gap: 4px;
+        margin: 0;
+        padding: 12px;
+        background: var(--binder-bg-2);
+        border: 1px solid var(--binder-line);
+        border-radius: 16px;
+        box-shadow: 0 20px 60px -15px rgba(0, 0, 0, 0.7);
+        z-index: 1000;
+    }
+    body.theme-binder.theme-nav-dropdown-open .theme-nav {
+        display: flex;
+    }
+    body.theme-binder .theme-nav-link {
+        padding: 10px 8px;
+        width: 100%;
+    }
+    /* Account/language/logout links (see header.blade.php) only exist for the mobile
+       dropdown - desktop keeps the profile avatar's own native hover dropdown for these. */
+    body.theme-binder .theme-nav-mobile-only {
+        display: block;
+    }
+    /* The custom-status ("moto") form needs its input+button side by side, not the plain
+       block stacking .theme-nav-mobile-only gives everything else above. */
+    body.theme-binder .theme-nav-status-form {
+        display: flex !important;
+        align-items: center;
+        gap: 8px;
+        width: 100%;
+        /* min-width:0 - a flex item's default min-width is "auto" (its own content size), not
+           0, which stopped this row from ever shrinking to fit the panel; the input inside
+           inherits the same problem and needs the same fix (below). This is what forced the
+           whole .theme-nav panel wider than the screen, breaking its column layout entirely
+           (multiple links squeezed per "row" instead of one each, requiring horizontal scroll
+           to see the rest - the "language above AND below" symptom reported). */
+        min-width: 0;
+        box-sizing: border-box;
+        padding: 4px 8px;
+    }
+    body.theme-binder .theme-nav-status-form input.form-control {
+        flex: 1 1 auto;
+        width: auto;
+        min-width: 0;
+        max-width: 100%;
+        box-sizing: border-box;
+        height: 36px;
+        background: var(--binder-surface);
+        border: 1px solid var(--binder-line);
+        border-radius: 100px;
+        padding: 0 14px;
+        color: var(--binder-text);
+    }
+    /* Native .form-group.with-button button (main.css, not part of this repo/theme, and NOT
+       scoped to .search-bar) forces `position:absolute; right:0; top:0; height:100%;` on any
+       button inside a .form-group.with-button - which this form's markup reuses. Left
+       unoverridden, that yanks the button out of the flex row entirely and pins it to the
+       corner of whatever positioned ancestor it lands on (.theme-nav itself), which is what
+       made it visibly stick out past the input. position:static neutralizes that. */
+    body.theme-binder .theme-nav-status-form button {
+        position: static !important;
+        flex: 0 0 auto;
+        width: 32px;
+        height: 32px !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: none;
+        border-radius: 50%;
+        background: linear-gradient(120deg, var(--binder-pink), var(--binder-yellow-bright));
+        fill: #fff;
+    }
+    /* Section labels become full-width block headers with a top divider/spacing in the
+       stacked mobile dropdown, instead of the small inline labels used in the desktop row. */
+    body.theme-binder .theme-nav-section-label {
+        width: 100%;
+        padding: 10px 8px 0;
+        margin-top: 6px;
+        border-top: 1px solid var(--binder-line);
+    }
+    body.theme-binder .theme-nav-section-label:first-of-type {
+        margin-top: 0;
+    }
+    /* The extra account/language links can make the panel taller than the viewport - scroll
+       instead of overflowing off-screen. overflow-x:hidden is a safety net (not the actual
+       fix - that's the min-width:0 above) so a future child with its own unshrinkable min
+       width clips instead of forcing the whole panel wider than the screen again.
+       100vh (not dvh) reports the FULL screen height on many mobile browsers, including the
+       area their address bar/toolbar actually covers - the panel then computes a max-height
+       taller than what's really visible, so its bottom portion is invisible AND unreachable
+       (it's position:absolute, so the page itself has nothing extra to scroll to reveal it).
+       100dvh reflects the actual visible viewport instead - declared second so browsers that
+       don't support dvh yet simply keep the vh fallback above. */
+    body.theme-binder .theme-nav {
+        max-height: calc(100vh - 100px);
+        max-height: calc(100dvh - 100px);
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        overflow-x: hidden;
+    }
+}
+
+/* ---------- right sidebar: same detached floating capsule treatment as the left one ---------- */
+/* NOTE: no margin/height override here (an earlier version had `margin: 16px 16px 16px 0;
+   height: calc(100% - 32px) !important;` for a "floating card" look) - main.css (not part of
+   this theme/repo) positions this element with BOTH top:0 and bottom:70px (no explicit
+   height), leaving its own height implicit; forcing an explicit height on top of that
+   over-constrains the box (per the CSS spec, that makes the browser ignore the native
+   bottom:70px), which threw off exactly where the fixed .search-friend/.olympus-chat footer
+   bars (both anchored with their own bottom:0/bottom:70px insets, relative to THIS box) ended
+   up landing - reported as "something is pushing the bottom part down". Border/radius/shadow
+   are still safe to override since they don't affect layout math. */
+body.theme-binder .fixed-sidebar-right {
+    background: var(--binder-bg-2) !important;
+    border-color: var(--binder-line) !important;
+    box-shadow: 0 20px 50px -15px rgba(0, 0, 0, 0.6);
+}
+body.theme-binder .fixed-sidebar-right .chat-users > li {
+    margin: 4px 10px;
+    padding: 8px;
+    border-radius: 14px;
+    transition: background .18s ease;
+}
+body.theme-binder .fixed-sidebar-right .chat-users > li:hover {
+    background: var(--binder-surface-2);
+}
+body.theme-binder .fixed-sidebar-right .author-thumb .avatar {
+    border-radius: 12px;
+    box-shadow: 0 0 0 1px var(--binder-line);
+}
+body.theme-binder .fixed-sidebar-right .author-content .author-name,
+body.theme-binder .fixed-sidebar-right .name {
+    color: var(--binder-text);
+    font-family: var(--binder-display);
+}
+/* Bottom of the right chat panel (components/sidebar-right.blade.php) - the search box and
+   the "TROMAVEQUI"/chat-icon footer bar below it are native, hardcoded to a fixed white/
+   purple regardless of theme (main.css, not part of this repo/theme). Restyled to match the
+   same soft rounded/glow language as the rest of Binder. */
+body.theme-binder .fixed-sidebar-right .search-friend {
+    background: var(--binder-bg-2) !important;
+    box-shadow: none !important;
+    border-top: 1px solid var(--binder-line);
+}
+body.theme-binder .fixed-sidebar-right .search-friend input {
+    background: var(--binder-surface);
+    border: 1px solid var(--binder-line);
+    color: var(--binder-text);
+    border-radius: 10px;
+}
+body.theme-binder .fixed-sidebar-right .search-friend a {
+    fill: var(--binder-text-dim);
+}
+body.theme-binder .fixed-sidebar-right .search-friend a:hover {
+    fill: var(--binder-pink);
+}
+body.theme-binder .fixed-sidebar-right .olympus-chat {
+    background: linear-gradient(120deg, var(--binder-pink), var(--binder-yellow-bright)) !important;
+    fill: #fff !important;
+}
+body.theme-binder .fixed-sidebar-right .olympus-chat-title {
+    color: #fff !important;
+    font-family: var(--binder-display);
+}
+
+/* ---------- hero / search / chips (theme-only markup, see find_friends.blade.php) ---------- */
+body.theme-binder .theme-hero {
+    position: relative;
+    z-index: 2;
+    padding: 40px 12px 30px;
+    text-align: center;
+    max-width: 900px;
+    margin: 0 auto;
+}
+body.theme-binder .theme-hero-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--binder-mono);
+    font-size: 12px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--binder-online);
+    background: rgba(31, 203, 140, 0.1);
+    border: 1px solid rgba(31, 203, 140, 0.3);
+    padding: 6px 14px;
+    border-radius: 100px;
+    margin-bottom: 18px;
+}
+body.theme-binder .theme-pulse-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--binder-online);
+    box-shadow: 0 0 8px var(--binder-online);
+    animation: binder-blink 1.6s infinite;
+}
+@keyframes binder-blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: .35; }
+}
+body.theme-binder .theme-hero-title {
+    font-family: var(--binder-display);
+    font-weight: 400;
+    line-height: 1.4;
+    font-size: clamp(20px, 3.4vw, 32px);
+    letter-spacing: 0;
+    color: var(--binder-text);
+}
+body.theme-binder .theme-hero-title em {
+    font-style: normal;
+    color: var(--binder-yellow);
+}
+body.theme-binder .theme-hero-sub {
+    margin-top: 14px;
+    color: var(--binder-text-dim);
+    font-size: 16px;
+    max-width: 520px;
+    margin-inline: auto;
+    line-height: 1.55;
+}
+body.theme-binder .theme-searchbar {
+    margin: 26px auto 0;
+    max-width: 560px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--binder-surface);
+    border: 1px solid var(--binder-line);
+    border-radius: 100px;
+    padding: 8px 8px 8px 20px;
+    box-shadow: 0 20px 50px -20px rgba(0, 0, 0, 0.6);
+}
+body.theme-binder .theme-searchbar input {
+    flex: 1;
+    background: none;
+    border: none;
+    outline: none;
+    color: var(--binder-text);
+    font-family: var(--binder-body);
+    font-size: 15px;
+}
+body.theme-binder .theme-searchbar input::placeholder {
+    color: var(--binder-text-mute);
+}
+body.theme-binder .theme-searchbar button {
+    border: none;
+    cursor: pointer;
+    font-family: var(--binder-display);
+    font-weight: 400;
+    font-size: 11px;
+    padding: 12px 22px;
+    border-radius: 100px;
+    color: #171529;
+    background: var(--binder-yellow);
+    transition: transform .18s ease;
+}
+body.theme-binder .theme-searchbar button:hover {
+    transform: translateY(-1px) scale(1.02);
+}
+body.theme-binder .theme-chips {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 18px;
+}
+body.theme-binder .find-friends-sort-chip {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--binder-text-dim);
+    border: 1px solid var(--binder-line);
+    padding: 8px 16px;
+    border-radius: 100px;
+    cursor: pointer;
+    background: var(--binder-surface);
+    transition: all .18s;
+}
+body.theme-binder .find-friends-sort-chip:hover,
+body.theme-binder .find-friends-sort-chip.active {
+    color: var(--binder-text);
+    background: var(--binder-surface-2);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+}
+
+/* ---------- profile cards (find_friends grid - same classes for initial load AND the
+   controller's AJAX "load more" HTML, so both stay visually identical) ---------- */
+/* ---------- collectible-card treatment (this theme's whole reason to exist) ----------
+   A real 3D flip - .friend-item-content holds BOTH faces as real DOM children
+   (find_friends.blade.php's own @if($activeTheme === 'binder') branch, mirrored in
+   FindFriendsController::search() for AJAX "load more" cards - a real second face needs real
+   markup, which can't be faked from the single face every other theme in this family uses;
+   every other theme's markup path, and classic's, is completely untouched by that branch).
+   !important is used heavily below because style.css (not part of this theme/repo) has its
+   own ID-scoped #find_friends_results .friend-item-content / .control-block-button rules
+   (an ID always outranks any number of classes) that would otherwise silently win and break
+   the overlap/rotation this needs.
+   - .find_friends_item (the OUTER wrapper, not the photo itself) gets a static rainbow accent
+     bar across just its TOP edge (inset from both side edges so it doesn't visually merge
+     into one long bar with the neighboring card's own accent).
+   - .ui-block is the real photo (background:url(...) set inline by the server).
+   - .friend-item gets `perspective`; .friend-item-content is what actually rotates 180deg on
+     hover, holding both faces with backface-visibility:hidden so only the correctly-facing
+     one is ever visible.
+   - FRONT face (.friend-avatar for rarity + .friend-actions - an OPAQUE placeholder with a
+     big initial-letter watermark via the data-initial attribute, hiding the photo by default)
+     rotates away with the shared parent transform.
+   - BACK face (.friend-actions-back - name again + the SAME real See Profile/Chat actions
+     every theme already has, no invented stats) is pre-rotated 180deg so it faces forward
+     after the shared 180deg turn, and is itself transparent - the real photo (untouched,
+     underneath) shows through once flipped, per the client's "just the photo" request.
+   - The online/offline badge (.span-online/.span-offline) lives OUTSIDE .friend-item-content
+     (a sibling of .friend-item, not one of its children), so it is NOT part of the rotation
+     and stays visible on both states, restyled into a full-width strip pinned to the BOTTOM
+     instead of the small top-left pill every other theme in this family uses. */
+/* !important on position - .col-xl-3 etc (Bootstrap) doesn't normally fight this, but the
+   accent bar below was rendering as one bar spanning the WHOLE row instead of each card's
+   own, which only happens if this element isn't actually establishing its own positioning
+   context - forcing it defensively, same reasoning as the other !importants in this file. */
+body.theme-binder .find_friends_item {
+    position: relative !important;
+    border-radius: 18px;
+    /* Bootstrap's .col-* grid has no vertical gap of its own between wrapped rows (only .row's
+       own horizontal gutter) - without this, cards in different rows touch directly. */
+    margin-bottom: 28px;
+    transition: transform .28s cubic-bezier(.2, .7, .3, 1);
+}
+/* Back to the small diamond "set marker" gem in the top-left corner - but a single, functional
+   two-state color exactly mirroring the same online/offline status the badge at the bottom
+   already shows (green/gray), not decorative rainbow cycling (that had no meaning and read as
+   confusing/arbitrary "what does this represent?" per the client). */
+body.theme-binder .find_friends_item::before {
+    content: '';
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    width: 12px;
+    height: 12px;
+    z-index: 2;
+    border-radius: 3px;
+    background: var(--binder-online);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35), 0 0 0 2px rgba(255, 255, 255, 0.18);
+    transform: rotate(45deg);
+}
+/* :has() - modern-browser progressive enhancement: on a browser without it, every card just
+   keeps the pale-green corner (including offline ones) instead of only online ones getting
+   it - a harmless cosmetic miss, not a functional break. */
+body.theme-binder .find_friends_item:has(.span-offline)::before {
+    background: var(--binder-text-mute);
+}
+body.theme-binder .find_friends_item:hover {
+    transform: translateY(-6px);
+}
+body.theme-binder .find_friends_item .ui-block {
+    position: relative;
+    z-index: 1;
+    /* NOTE: deliberately no "background" override here - .ui-block's background is the
+       profile's actual photo, set as an inline style (background: url(...)) by the server -
+       it's the FRONT face (.friend-actions, further down) that hides it by default, revealing
+       it only once the card is flipped. */
+    border-radius: 16px;
+    overflow: hidden;
+    /* AI Companion cards set an inline `background-size: contain` (find_friends.blade.php),
+       which letterboxes the photo instead of filling the card edge-to-edge like real user
+       cards do (those have no inline background-size, so they use the browser default -
+       effectively "auto", which combined with the photo's own dimensions typically fills the
+       box). !important is required since inline styles otherwise always win. */
+    background-size: cover !important;
+    height: 100% !important;
+}
+body.theme-binder .find_friends_item {
+    aspect-ratio: 5 / 7;
+}
+/* The 3D stage: .friend-item is the perspective "camera", .friend-item-content is what
+   actually rotates (holding both faces as real children). !important throughout this rule and
+   the next few - see the top-of-section note on why. */
+body.theme-binder .friend-item {
+    position: relative !important;
+    height: 100% !important;
+    perspective: 1400px;
+}
+body.theme-binder .friend-item-content {
+    position: relative !important;
+    height: 100% !important;
+    display: block !important;
+    padding: 0 !important;
+    transform-style: preserve-3d;
+    -webkit-transform-style: preserve-3d;
+    transition: transform .6s cubic-bezier(.3, .7, .3, 1);
+}
+body.theme-binder .find_friends_item:hover .friend-item-content,
+body.theme-binder .find_friends_item:focus-within .friend-item-content {
+    transform: rotateY(180deg);
+}
+/* backface-visibility needs the -webkit- prefix too, not just the unprefixed property, for
+   reliable cross-browser support. */
+body.theme-binder .friend-item .friend-avatar,
+body.theme-binder .friend-item .friend-actions,
+body.theme-binder .friend-item .friend-actions-back {
+    position: absolute !important;
+    inset: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+/* Deliberately NO background here - the real photo is .ui-block's own (non-rotating, always
+   there) background; this face just needs to be transparent for it to show through, per the
+   "just the photo" request - a scrim behind the name/buttons handles legibility instead of an
+   opaque panel hiding the photo entirely. */
+/* Bottom padding is much bigger than the other 3 sides - the always-visible online/offline
+   strip (a sibling OUTSIDE this rotating face entirely, pinned to bottom:3px on the whole
+   card - see the "online/offline badges" section further down) was overlapping the name/
+   buttons here, since both were anchored near the same bottom edge independently. */
+body.theme-binder .friend-item .friend-actions-back {
+    transform: rotateY(180deg);
+    -webkit-transform: rotateY(180deg);
+    display: flex !important;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 14px 14px 40px !important;
+    text-align: center;
+    background-image: linear-gradient(rgba(0, 0, 0, 0) 40%, rgba(0, 0, 0, 0.75));
+}
+/* The front face is an OPAQUE placeholder (not transparent like the back) - it's what
+   actually hides .ui-block's real photo by default; a big initial-letter watermark (via the
+   data-initial attribute find_friends.blade.php/FindFriendsController::search() put on this
+   same element - CSS attr() can only read an attribute off the exact element the pseudo is
+   attached to, not an ancestor) stands in for it. */
+body.theme-binder .friend-item .friend-actions {
+    background: linear-gradient(160deg, var(--binder-surface), var(--binder-bg-2));
+}
+/* No z-index here (or on .friend-actions itself, which would need one of its own for a
+   negative z-index child to stay put instead of escaping to the nearest actual stacking
+   context - the exact bug already hit once this project with the chat popup's photo layer,
+   see chat.blade.php's own comment on that). A ::before pseudo is inserted as the FIRST
+   child of its element, so it already paints BEHIND any later real sibling (.author-content
+   below) with no z-index needed at all. */
+body.theme-binder .friend-item .friend-actions::before {
+    content: attr(data-initial);
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--binder-display);
+    font-size: 72px;
+    color: rgba(255, 255, 255, 0.14);
+}
+/* Nameplate strip at the TOP of the front face (not the bottom overlay every other theme in
+   this family uses) - this sits on top of the profile PHOTO, not the page background, so it
+   stays a fixed light color regardless of light/dark mode. The back face's name is NOT on a
+   photo when unrevealed, but IS once the real photo shows through it after flipping - kept a
+   fixed light color too, matching the front, since it sits on that photo either way. */
+body.theme-binder .friend-item .friend-actions .author-content {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    text-align: center;
+    padding: 8px 30px 6px;
+    background: linear-gradient(rgba(0, 0, 0, 0.55), transparent);
+}
+body.theme-binder .friend-item .friend-actions .author-name,
+body.theme-binder .friend-item .friend-actions .h5.author-name {
+    font-family: var(--binder-display);
+    font-weight: 400 !important;
+    font-size: 11px !important;
+    letter-spacing: .02em;
+    text-transform: uppercase;
+    color: #fff !important;
+    text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6);
+}
+body.theme-binder .friend-item .friend-actions-back .author-name,
+body.theme-binder .friend-item .friend-actions-back .h5.author-name {
+    font-family: var(--binder-display);
+    font-weight: 400 !important;
+    font-size: 13px !important;
+    color: #fff !important;
+    text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6);
+}
+/* !important - style.css's own #find_friends_results .control-block-button rule (ID-scoped)
+   sets width:48%/display:block/position:absolute on the buttons here. */
+body.theme-binder .friend-item .friend-actions-back .control-block-button {
+    position: static !important;
+    display: flex !important;
+    gap: 8px;
+    width: 100% !important;
+}
+/* Cosmetic-only "rarity" stars, top-right of the FRONT face art - cycles through a fixed
+   pattern by card position (there's no real per-profile "rarity" concept anywhere in this
+   app), same spirit as the accent bar itself: a collectible flourish, not a claim about the
+   person. */
+/* .friend-avatar is normally only visibly used as a fallback circular avatar for users with
+   NO uploaded photo - repurposed here purely as a mount point for the rarity-star ::after
+   below, so that fallback avatar/thumb must be hidden or it would show as a stray photo/
+   circle in the same top-right corner. z-index:1 - .friend-avatar comes BEFORE .friend-actions
+   in the DOM, and .friend-actions now paints an opaque placeholder background that would
+   otherwise sit on top of and hide these rarity stars, since same-stacking-level absolutely-
+   positioned siblings paint in DOM order by default. */
+body.theme-binder .friend-item .friend-avatar {
+    z-index: 1;
+    display: flex !important;
+    align-items: flex-start;
+    justify-content: flex-end;
+    padding: 8px 10px !important;
+    font-size: 10px;
+    letter-spacing: 1px;
+    color: var(--binder-yellow);
+    pointer-events: none;
+}
+body.theme-binder .friend-item .friend-avatar .author-thumb {
+    display: none;
+}
+body.theme-binder .find_friends_item:nth-child(6n+1) .friend-item .friend-avatar::after { content: '★★★'; }
+body.theme-binder .find_friends_item:nth-child(6n+2) .friend-item .friend-avatar::after { content: '★★'; }
+body.theme-binder .find_friends_item:nth-child(6n+3) .friend-item .friend-avatar::after { content: '★'; }
+body.theme-binder .find_friends_item:nth-child(6n+4) .friend-item .friend-avatar::after { content: '★★'; }
+body.theme-binder .find_friends_item:nth-child(6n+5) .friend-item .friend-avatar::after { content: '★★★'; }
+body.theme-binder .find_friends_item:nth-child(6n+6) .friend-item .friend-avatar::after { content: '★'; }
+/* width/flex !important - style.css's own #find_friends_results .control-block-button
+   .btn-control rule (ID-scoped) sets width:48% here. */
+body.theme-binder .friend-item .btn-control.bg-blue {
+    background: rgba(255, 255, 255, 0.16) !important;
+    border: 1px solid rgba(255, 255, 255, 0.28) !important;
+    border-radius: 100px !important;
+    color: #fff !important;
+    font-weight: 700 !important;
+    font-size: 11px !important;
+    flex: 1 !important;
+    width: auto !important;
+    text-align: center;
+}
+body.theme-binder .friend-item .btn-control.bg-purple {
+    background: var(--binder-pink) !important;
+    border: none !important;
+    border-radius: 100px !important;
+    color: #fff !important;
+    font-weight: 700 !important;
+    font-size: 11px !important;
+    flex: 1 !important;
+    width: auto !important;
+    text-align: center;
+}
+
+/* ---------- online/offline badges - restretched into a full-width strip pinned to the
+   BOTTOM of the card (a trading card's "type line"), instead of staying the small top-left
+   pill every other theme in this family uses - still the same existing elements, no markup
+   change, so this looks identical whether the card came from the initial page render or the
+   AJAX "load more" response. NOTE: still position:absolute (never "relative" - see the
+   long-standing note carried over from Aurora on why that specific override broke things
+   badly the one time an earlier version of this theme family tried it), just with different
+   insets. */
+body.theme-binder .span-online,
+body.theme-binder .find_friends_status.span-online,
+body.theme-binder .span-offline,
+body.theme-binder .find_friends_status.span-offline {
+    top: auto !important;
+    left: 3px !important;
+    right: 3px !important;
+    bottom: 3px !important;
+    width: auto;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0 0 12px 12px !important;
+    padding: 8px 6px !important;
+    font-family: var(--binder-mono);
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    z-index: 2;
+}
+body.theme-binder .span-online,
+body.theme-binder .find_friends_status.span-online {
+    background: rgba(0, 0, 0, 0.4) !important;
+    color: var(--binder-online) !important;
+}
+body.theme-binder .span-online::before {
+    content: '';
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    margin-right: 6px;
+    border-radius: 50%;
+    background: var(--binder-online);
+    box-shadow: 0 0 0 0 rgba(31, 203, 140, 0.6);
+    animation: binder-ring 1.8s ease-out infinite;
+}
+@keyframes binder-ring {
+    0% { box-shadow: 0 0 0 0 rgba(31, 203, 140, 0.55); }
+    70% { box-shadow: 0 0 0 7px rgba(31, 203, 140, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(31, 203, 140, 0); }
+}
+body.theme-binder .span-offline,
+body.theme-binder .find_friends_status.span-offline {
+    background: rgba(0, 0, 0, 0.4) !important;
+    color: var(--binder-text-mute) !important;
+}
+body.theme-binder .icon-status.online {
+    background: var(--binder-online) !important;
+    box-shadow: 0 0 0 0 rgba(31, 203, 140, 0.6);
+    animation: binder-ring 1.8s ease-out infinite;
+}
+
+/* ---------- "load more" trigger (find_friends.blade.php's #load_more_find_friends, the
+   three-dots circle below the grid) - permanently a plain light-gray circle regardless of
+   theme (style.css/vendor CSS, not part of this repo), which read as a stray pale dot against
+   this theme's dark background. */
+body.theme-binder #load_more_find_friends {
+    background: var(--binder-surface) !important;
+    border: 1px solid var(--binder-line-strong) !important;
+    box-shadow: 0 8px 20px -8px rgba(0, 0, 0, 0.5);
+}
+body.theme-binder #load_more_find_friends .olymp-three-dots-icon {
+    fill: var(--binder-pink) !important;
+}
+body.theme-binder #load_more_find_friends:hover {
+    background: var(--binder-pink) !important;
+    border-color: var(--binder-pink) !important;
+}
+body.theme-binder #load_more_find_friends:hover .olymp-three-dots-icon {
+    fill: #fff !important;
+}
+
+/* ---------- chat popup (light touch - keep functional layout, just recolor) ---------- */
+body.theme-binder .popup-chat .ui-block-title {
+    background: var(--binder-surface-2);
+}
+body.theme-binder .popup-chat .mCustomScrollbar {
+    background-color: var(--binder-bg-2);
+}
+body.theme-binder .popup-chat .notification-list li .notification-event .chat-message-item {
+    background: var(--binder-surface);
+    color: var(--binder-text);
+}
+/* Admin-only chat controls: managed-account switcher, per-user language, translate toggle
+   (components/chat.blade.php) - plain native <select> elements, unstyled/white by default. */
+body.theme-binder #popup-chat .row.m-0 > div {
+    padding: 0 4px;
+}
+body.theme-binder .popup-chat select#admin_account,
+body.theme-binder .popup-chat select.lang_for_user,
+body.theme-binder .popup-chat select.auto_translate {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    box-sizing: border-box;
+    margin: 6px 0;
+    padding: 8px 30px 8px 14px;
+    background-color: var(--binder-surface);
+    background-image:
+        linear-gradient(45deg, transparent 50%, var(--binder-yellow) 50%),
+        linear-gradient(135deg, var(--binder-yellow) 50%, transparent 50%);
+    background-position: calc(100% - 18px) center, calc(100% - 13px) center;
+    background-size: 5px 5px, 5px 5px;
+    background-repeat: no-repeat;
+    border: 1px solid var(--binder-line);
+    border-radius: 100px;
+    color: var(--binder-text);
+    font-size: 13px;
+    font-family: var(--binder-body);
+}
+body.theme-binder .popup-chat select#admin_account:focus,
+body.theme-binder .popup-chat select.lang_for_user:focus,
+body.theme-binder .popup-chat select.auto_translate:focus {
+    border-color: var(--binder-yellow);
+    outline: none;
+}
+body.theme-binder .popup-chat select#admin_account option,
+body.theme-binder .popup-chat select.lang_for_user option,
+body.theme-binder .popup-chat select.auto_translate option {
+    background: var(--binder-surface);
+    color: var(--binder-text);
+}
+body.theme-binder .popup-chat select#admin_account::-ms-expand,
+body.theme-binder .popup-chat select.lang_for_user::-ms-expand,
+body.theme-binder .popup-chat select.auto_translate::-ms-expand {
+    display: none;
+}
+
+/* ---------- profile page (resources/views/profile/profile.blade.php,
+   components/top-header-profile.blade.php) - same soft rounded/glow language as the header
+   and find_friends cards. ---------- */
+body.theme-binder .top-header {
+    background: var(--binder-bg-2);
+    border: 1px solid var(--binder-line);
+    border-radius: 24px;
+    overflow: hidden;
+}
+body.theme-binder .top-header-thumb {
+    background: var(--binder-surface);
+}
+body.theme-binder .profile-section {
+    background: var(--binder-bg-2);
+}
+body.theme-binder .profile-menu a {
+    color: var(--binder-text-dim) !important;
+    font-family: var(--binder-body);
+}
+body.theme-binder .profile-menu a:hover,
+body.theme-binder .profile-menu a.active {
+    color: var(--binder-text) !important;
+}
+body.theme-binder .top-header-author .author-thumb img {
+    border-radius: 50%;
+    box-shadow: 0 0 0 4px var(--binder-bg-2), 0 0 0 5px var(--binder-line);
+}
+body.theme-binder .top-header-author .author-name {
+    color: var(--binder-text) !important;
+    font-family: var(--binder-display);
+    font-weight: 700;
+}
+/* Add Friend / Chat / settings gear on the profile cover - same pill-gradient treatment as
+   the find_friends card buttons (body.theme-binder .friend-item .btn-control.bg-blue/.bg-purple
+   further up), extended to this page's own .control-block-button context. */
+body.theme-binder .top-header .control-block-button .btn-control.bg-blue {
+    background: var(--binder-surface-2) !important;
+    border: 1px solid var(--binder-line) !important;
+    border-radius: 100px !important;
+    color: var(--binder-text) !important;
+}
+body.theme-binder .top-header .control-block-button .btn-control.bg-purple,
+body.theme-binder .top-header .control-block-button .btn-control.bg-primary {
+    background: linear-gradient(120deg, var(--binder-pink), var(--binder-yellow-bright)) !important;
+    border: none !important;
+    border-radius: 100px !important;
+    color: #fff !important;
+}
+/* .ui-block is the generic "card" wrapper reused across the whole site (Profile Intro, Last
+   Photos, Friends boxes here; Account/Personal Information on the settings page below) - its
+   native background is a hardcoded white (style.css, not part of this theme/repo), same class
+   of issue as the CMS .content_block fix above, but here the card should actually adopt the
+   theme instead of staying a fixed white document look.
+   :not([style]) is required - the find_friends grid (and the AI Companions grid on the same
+   page) ALSO uses .ui-block, but sets the profile photo as an inline `style="background:
+   url(...)"` attribute (FindFriendsController.php). An earlier version of this rule used a
+   bare .ui-block selector, whose !important background overrode that inline photo and made
+   every card photo disappear across the whole site. Cards with a real photo always carry an
+   inline style attribute; cards that don't (Profile Intro, Account Info, and find_friends
+   cards for users with no photo) don't, so this cleanly targets only the latter. */
+body.theme-binder .ui-block:not([style]) {
+    background: var(--binder-surface) !important;
+    border: 1px solid var(--binder-line) !important;
+    border-radius: 20px !important;
+}
+body.theme-binder .ui-block-title {
+    border-bottom: 1px solid var(--binder-line) !important;
+}
+body.theme-binder .ui-block-title .title,
+body.theme-binder .ui-block .widget .title,
+body.theme-binder .ui-block .widget .text {
+    color: var(--binder-text) !important;
+    font-family: var(--binder-body);
+}
+body.theme-binder .ui-block .widget .title {
+    color: var(--binder-text-dim) !important;
+}
+/* Timeline posts (same .ui-block card, plus their own author/date row) */
+body.theme-binder .hentry.post .post__author-name,
+body.theme-binder .hentry.post p {
+    color: var(--binder-text) !important;
+}
+body.theme-binder .hentry.post .post__date time {
+    color: var(--binder-text-mute) !important;
+}
+body.theme-binder .hentry.post .likes.post-add-icon {
+    color: var(--binder-text-dim) !important;
+    fill: var(--binder-text-dim) !important;
+}
+body.theme-binder .hentry.post .likes.post-add-icon.active {
+    color: var(--binder-pink) !important;
+    fill: var(--binder-pink) !important;
+}
+
+/* ---------- profile settings / account dashboard page
+   (resources/views/profile/profile-info.blade.php) ---------- */
+body.theme-binder .main-header {
+    background: var(--binder-bg-2);
+    border-bottom: 1px solid var(--binder-line);
+}
+body.theme-binder .main-header .content-bg-wrap {
+    opacity: .35;
+}
+body.theme-binder .main-header-content h1 {
+    color: var(--binder-text) !important;
+    font-family: var(--binder-display);
+    font-weight: 700;
+}
+body.theme-binder .main-header-content p {
+    color: var(--binder-text-dim) !important;
+}
+body.theme-binder .form-group.label-floating .control-label {
+    color: var(--binder-text-mute) !important;
+}
+body.theme-binder .form-group .form-control,
+body.theme-binder .form-group input,
+body.theme-binder .form-group textarea {
+    background: var(--binder-surface) !important;
+    border: 1px solid var(--binder-line) !important;
+    border-radius: 12px !important;
+    color: var(--binder-text) !important;
+}
+body.theme-binder .your-profile .title,
+body.theme-binder .your-profile-menu a {
+    color: var(--binder-text-dim) !important;
+}
+body.theme-binder .your-profile-menu a:hover {
+    color: var(--binder-text) !important;
+}
+body.theme-binder .your-profile .card {
+    background: transparent !important;
+    border: none !important;
+}
+body.theme-binder .your-profile .card-header a {
+    color: var(--binder-text) !important;
+    font-family: var(--binder-body);
+}
+body.theme-binder .btn-primary,
+body.theme-binder .btn-secondary {
+    border-radius: 100px !important;
+    font-family: var(--binder-body);
+    font-weight: 700;
+}
+body.theme-binder .btn-primary {
+    background: linear-gradient(120deg, var(--binder-pink), var(--binder-yellow-bright)) !important;
+    border: none !important;
+    color: #fff !important;
+}
+body.theme-binder .btn-secondary {
+    background: var(--binder-surface-2) !important;
+    border: 1px solid var(--binder-line) !important;
+    color: var(--binder-text) !important;
+}
+
+/* ---------- packages page (resources/views/packages.blade.php) - .generic_price_table cards
+   are permanently white/gray (style.css, not part of this theme/repo), same class of issue
+   as .content_block and .ui-block above. Restyled with the same soft rounded/glow language
+   as the rest of Binder, keeping a tier accent (Silver/Gold/VIP -> the theme's own blue/pink/
+   yellow rainbow tokens) on the diagonal header instead of the native gray/blue/green. ---------- */
+body.theme-binder .price-heading h1 {
+    color: var(--binder-text) !important;
+    font-family: var(--binder-display);
+    font-weight: 700;
+}
+body.theme-binder .generic_content {
+    background: var(--binder-surface) !important;
+    border-radius: 20px;
+    overflow: hidden;
+}
+body.theme-binder .generic_head_price {
+    background: var(--binder-surface-2) !important;
+}
+body.theme-binder .generic_price_tag .price,
+body.theme-binder .generic_price_tag .sign,
+body.theme-binder .generic_price_tag .currency,
+body.theme-binder .generic_price_tag .cent {
+    color: var(--binder-text) !important;
+}
+body.theme-binder .generic_feature_list ul li {
+    color: var(--binder-text-mute) !important;
+}
+body.theme-binder .generic_feature_list ul li span {
+    color: var(--binder-text-dim) !important;
+}
+body.theme-binder .generic_feature_list ul li:hover {
+    background: var(--binder-surface-2) !important;
+    border-left-color: var(--binder-pink) !important;
+}
+/* Tier accent on the diagonal header - blue (entry tier) -> pink (mid) -> yellow (top),
+   replacing the native gray/blue/green, for both the Subscriptions (pk1_*) and Credits
+   (pk2_*) card sets. */
+body.theme-binder .generic_content.pk1_1 .head_bg,
+body.theme-binder .generic_content.pk2_1 .head_bg {
+    border-color: var(--binder-blue) transparent transparent var(--binder-blue) !important;
+}
+body.theme-binder .generic_content.pk1_2 .head_bg,
+body.theme-binder .generic_content.pk2_2 .head_bg {
+    border-color: var(--binder-pink) transparent transparent var(--binder-pink) !important;
+}
+body.theme-binder .generic_content.pk1_3 .head_bg,
+body.theme-binder .generic_content.pk2_3 .head_bg {
+    border-color: var(--binder-yellow) transparent transparent var(--binder-yellow) !important;
+}
+body.theme-binder .generic_content.pk1_1 .head span,
+body.theme-binder .generic_content.pk2_1 .head span,
+body.theme-binder .generic_content.pk1_2 .head span,
+body.theme-binder .generic_content.pk2_2 .head span,
+body.theme-binder .generic_content.pk1_3 .head span,
+body.theme-binder .generic_content.pk2_3 .head span,
+body.theme-binder .generic_content.active .head span,
+body.theme-binder .generic_content:hover .head span {
+    color: #fff !important;
+}
+body.theme-binder .generic_content.active .head_bg,
+body.theme-binder .generic_content:hover .head_bg {
+    border-color: var(--binder-yellow-bright) transparent transparent var(--binder-yellow-bright) !important;
+}
+/* Purchase/Claim/Unsubscribe button - same pill-gradient treatment as the rest of Binder's
+   buttons, guaranteed via !important since the native color source here varies (plain
+   outlined by default, solid on hover/active). */
+body.theme-binder .generic_price_btn a {
+    background: linear-gradient(120deg, var(--binder-pink), var(--binder-yellow-bright)) !important;
+    border: none !important;
+    color: #fff !important;
+}
+body.theme-binder .ribbon-red {
+    background: var(--binder-pink) !important;
+}
+
+/* ---------- page-load preloader (layouts/layout.blade.php, #hellopreloader) - shown full-
+   screen while the page/assets are still loading, hardcoded to the site's brand color
+   (var(--main-color), an unrelated admin setting) regardless of theme. The spinner icon's own
+   stroke color (an SVG presentation attribute, inline in the markup) is overridden here via a
+   normal CSS rule, since presentation attributes always lose to any CSS rule regardless of
+   specificity - no !important needed for that part. */
+body.theme-binder #hellopreloader {
+    background: var(--binder-bg) !important;
+}
+body.theme-binder .preloader svg {
+    stroke: var(--binder-pink);
+}
+body.theme-binder .preloader .text {
+    color: var(--binder-text) !important;
+}
+
+/* ---------- AI Inbox panel (find_friends.blade.php, admin-only "managed accounts" list) -
+   uses plain Bootstrap .list-group/.list-group-item, permanently white/black regardless of
+   theme (Bootstrap's own defaults, not part of this theme/repo). Restyled to match the rest
+   of Binder. Kept simple/light-touch since the client may ask to fold this into the main
+   chat inbox later - not worth a deeper redesign yet. */
+body.theme-binder .ai-inbox-panel h4 {
+    color: var(--binder-text) !important;
+    font-family: var(--binder-display);
+}
+body.theme-binder .ai-inbox-panel h4 .text-muted {
+    color: var(--binder-text-mute) !important;
+}
+body.theme-binder .ai-inbox-panel .list-group {
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid var(--binder-line);
+}
+body.theme-binder .ai-inbox-panel .list-group-item {
+    background: var(--binder-surface) !important;
+    border-color: var(--binder-line) !important;
+    color: var(--binder-text) !important;
+}
+body.theme-binder .ai-inbox-panel .list-group-item:hover,
+body.theme-binder .ai-inbox-panel .list-group-item-action:hover {
+    background: var(--binder-surface-2) !important;
+}
+body.theme-binder .ai-inbox-panel .list-group-item .text-muted,
+body.theme-binder .ai-inbox-panel .list-group-item small {
+    color: var(--binder-text-mute) !important;
+}
+
+/* ---------- "livefeed" popup toast (layouts/layout.blade.php, #livefeed_container -
+   "X purchased a Y subscription!" / "X is now Online!", shown periodically via dating.js's
+   get_livefeed()) - permanently white/#333 (style.css, not part of this theme/repo) regardless
+   of theme or light/dark mode. Restyled to use this theme's own surface/text tokens. */
+body.theme-binder #livefeed_container {
+    background: var(--binder-surface) !important;
+    border: 1px solid var(--binder-line) !important;
+    border-radius: 14px !important;
+    color: var(--binder-text) !important;
+    box-shadow: 0 20px 50px -20px rgba(0, 0, 0, 0.6);
+}
+body.theme-binder #livefeed_name {
+    color: var(--binder-yellow) !important;
+}
+body.theme-binder #livefeed_pack {
+    color: var(--binder-pink-bright) !important;
+}
+body.theme-binder #livefeed_time_container {
+    color: var(--binder-text-mute) !important;
+}
+body.theme-binder #livefeed_close {
+    background: var(--binder-surface-2) !important;
+    color: var(--binder-text) !important;
+}
+body.theme-binder #livefeed_close:hover {
+    background: var(--binder-pink) !important;
+    color: #fff !important;
+}

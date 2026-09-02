@@ -278,8 +278,17 @@
        - same rule as the live AI video call). The photo lives on its own layer with a negative
        z-index so the blur filter (which would otherwise blur the whole element it's applied to,
        messages included) only ever touches the photo, never the message bubbles on top of it. */
+    /* z-index (not just position:relative) is required here - position:relative alone, with
+       z-index left at its default "auto", does NOT establish a new stacking context. Without
+       an actual value, the photo's z-index:-1 below doesn't stay confined to just behind THIS
+       element's own background - it escapes to the nearest ancestor that DOES form a stacking
+       context (in practice, .popup-chat itself, which every theme gives its own opaque
+       background), rendering the photo completely behind the whole popup instead of just
+       behind its message bubbles. This is what made the background photo/video invisible for
+       every regular (non-AI-video) chat that has one, in every theme including classic. */
     .popup-chat .mCustomScrollbar {
         position: relative;
+        z-index: 0;
     }
     .popup-chat .mCustomScrollbar .real-ai-bg-photo {
         position: absolute;

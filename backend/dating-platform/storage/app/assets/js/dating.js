@@ -25,9 +25,15 @@ $('a[data-change="profile-status"]').click(function (e) {
         }
     });
 });
-$('#moto-change').submit(function (e) {
+// Was bound via #moto-change (an ID selector, which only ever matches/binds to the first
+// element with that ID) - widened to the shared .custom-status class so the mobile theme-nav's
+// own copy of this form (see header.blade.php, aurora/nordic/volt themes only) gets the same
+// handler too. The value read is scoped to $(this) (the form actually submitted), not a bare
+// global `input[name="moto"]` lookup, since that would always read whichever instance happens
+// to be first in the DOM regardless of which form the user typed into.
+$('.custom-status').submit(function (e) {
     e.preventDefault();
-    var moto = $('input[name="moto"]').val();
+    var moto = $(this).find('input[name="moto"]').val();
     var CSRF_TOKEN = $('input[name="_token"]').val();
     $.ajax({
         /* the route pointing to the post function */
@@ -846,6 +852,20 @@ function setRealAiChatBackgroundPhoto(dataId, imageName, blurAmount) {
     var blurPx = parseInt(blurAmount, 10) || 0;
     layer.css('filter', blurPx > 0 ? 'blur(' + blurPx + 'px)' : 'none');
 }
+
+// AI Companions chat (window.ai_chat_open, find_friends.blade.php) - same .real-ai-bg-photo
+// layer as the real-profile chat above, just fed a ready absolute URL instead of a bare
+// filename under /storage/images/, since AIProfile::imageUrl() already returns a full URL
+// (its own S3/CDN base, or an http(s) URL as-is). No blur here - the package-tier privacy
+// blur only ever applied to real people's live video/photo, not a fictional companion's.
+window.setAiCompanionChatBackgroundPhoto = function (dataId, imageUrl) {
+    var scrollDiv = $('.popup-chat[data-id="' + dataId + '"] .mCustomScrollbar');
+    var layer = scrollDiv.find('.real-ai-bg-photo');
+    if (!layer.length) {
+        layer = $('<div class="real-ai-bg-photo"></div>').prependTo(scrollDiv);
+    }
+    layer.css('background-image', imageUrl ? 'url("' + imageUrl + '")' : 'none');
+};
 
 // Same package-tier blur applied to the chat popup's background video - here the video
 // element itself is the only thing rendered inside .ubgvideo, so a plain filter on it
@@ -1857,20 +1877,28 @@ function load_messages(t) {
         });
     }
 };
+// Reads the themed hero search box/sort-chip state, if present on the page (only the
+// aurora/nordic find_friends hero renders them - absent for classic, so q/sort are simply
+// omitted from the request there, matching the site's original behavior exactly).
+function findFriendsSearchParams() {
+    var searchBox = $('#find-friends-search');
+    var activeChip = $('.find-friends-sort-chip.active');
+    return {
+        q: searchBox.length ? searchBox.val() : '',
+        sort: activeChip.length ? (activeChip.data('sort') || '') : ''
+    };
+}
 function find_friends_change() {
     $("#load_more_find_friends").show();
     var CSRF_TOKEN = $('input[name="_token"]').val();
-    var country = $('#find-friends-country').val();
-    var language = $('#find-friends-language').val();
-    //console.log(country);
+    var params = findFriendsSearchParams();
     $.ajax({
         url: '/find-friends',
         type: 'POST',
         data: {
             _token: CSRF_TOKEN,
-            country: country,
-            language: language,
-            age: $('.range-slider-js').val()
+            q: params.q,
+            sort: params.sort
         },
         dataType: 'JSON',
         success: function (data) {
@@ -1885,19 +1913,24 @@ function find_friends_change() {
     });
 
 };
+// Admin/normal user: switches the active sort chip in the themed find_friends hero and
+// re-runs the search with the new sort applied.
+function setFindFriendsSortChip(t) {
+    $('.find-friends-sort-chip').removeClass('active');
+    $(t).addClass('active');
+    find_friends_change();
+}
 $("#load_more_find_friends").click(function (e) {
     e.preventDefault();
     var CSRF_TOKEN = $('input[name="_token"]').val();
-    var country = $('#find-friends-country').val();
-    var language = $('#find-friends-language').val();
+    var params = findFriendsSearchParams();
     $.ajax({
         url: '/find-friends',
         type: 'POST',
         data: {
             _token: CSRF_TOKEN,
-            country: country,
-            language: language,
-            age: $('.range-slider-js').val(),
+            q: params.q,
+            sort: params.sort,
             items: $('.friend-item').length
         },
         dataType: 'JSON',

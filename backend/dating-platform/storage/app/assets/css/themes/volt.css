@@ -1,0 +1,1469 @@
+/* Volt theme - additive skin, only ever active under body.theme-volt.
+   Loaded AFTER the base /assets/css/style.css, never replaces it.
+
+   Design direction (deliberately distinct from both Aurora - soft/glowy pink-violet pills -
+   and Nordic - minimal squared teal/gold): a bold, high-contrast neo-brutalist look. Thick
+   solid borders instead of soft glows, hard offset drop-shadows instead of blurred ones,
+   sharp/small border-radius instead of full pills, a single searing neon-lime accent against
+   near-black, and a bold condensed display face. The header/nav/mobile-menu/search-dropdown/
+   sidebar mechanics below are copied VERBATIM (class prefix renamed only) from the now-fully-
+   debugged Aurora implementation, on purpose - that plumbing took a long, painful back-and-
+   forth to get right, and re-deriving it from scratch here would risk reintroducing the exact
+   same bugs (dropdown positioning, mobile control-block stacking, header-responsive
+   duplication, etc). Only the design tokens and the "flourish" sections (hero, cards, badges,
+   buttons) are new. */
+
+body.theme-volt {
+    --volt-bg: #0A0A0A;
+    --volt-bg-2: #121212;
+    --volt-surface: #181818;
+    --volt-surface-2: #1F1F1F;
+    --volt-line: rgba(255, 255, 255, 0.14);
+    --volt-line-strong: rgba(255, 255, 255, 0.28);
+    --volt-lime: #D4FF3D;
+    --volt-pink: #FF3DAE;
+    --volt-text: #F5F5F0;
+    --volt-text-dim: #B8B8B0;
+    --volt-text-mute: #7A7A73;
+    --volt-online: #3DFFB0;
+    --volt-display: 'Space Grotesk', sans-serif;
+    --volt-body: 'Space Grotesk', sans-serif;
+    --volt-mono: 'IBM Plex Mono', monospace;
+
+    background: var(--volt-bg) !important;
+    color: var(--volt-text) !important;
+    font-family: var(--volt-body) !important;
+    /* Hard safety net against the whole page gaining a horizontal scrollbar - a mobile
+       dating feed should never need one, so clipping here is always safe regardless of what
+       child element (mobile nav dropdown, search box, a card) miscalculates its own width.
+       This whole file only ever loads when volt is the active theme (see layout.blade.php),
+       so an unscoped `html` selector here is safe - it can never affect classic or another
+       theme. */
+    overflow-x: hidden;
+}
+html {
+    overflow-x: hidden;
+}
+
+/* Light variant - driven by the site's existing dark/light switch (the header's sun/moon
+   icon, storage/app/assets/js/theme-selector.js), which also toggles body.site-dark-mode.
+   Every rule below only ever uses the --volt-* custom properties, so redefining them here is
+   enough to re-skin the whole theme without repeating every single color rule. */
+body.theme-volt:not(.site-dark-mode) {
+    --volt-bg: #F7F7F2;
+    --volt-bg-2: #FFFFFF;
+    --volt-surface: #FFFFFF;
+    --volt-surface-2: #EFEFE7;
+    --volt-line: rgba(10, 10, 10, 0.16);
+    --volt-line-strong: rgba(10, 10, 10, 0.9);
+    --volt-lime: #7FA300;
+    --volt-pink: #C4127F;
+    --volt-text: #0A0A0A;
+    --volt-text-dim: #47473F;
+    --volt-text-mute: #7A7A73;
+    --volt-online: #14895C;
+}
+/* The control-block icons (notifications/chat/friend-requests) have a hardcoded
+   `.control-icon.has-items { fill: #fff; }` in main.css (not part of this theme/repo) - white
+   icons that are invisible against this theme's light-mode background. Only overridden in
+   light mode - dark mode's white icons are exactly right there, against the near-black header. */
+body.theme-volt:not(.site-dark-mode) .control-block .control-icon,
+body.theme-volt:not(.site-dark-mode) .control-block .control-icon.has-items {
+    fill: var(--volt-text-dim) !important;
+}
+/* Same issue, same fix, for the profile avatar's name text next to it in the header
+   (components/header/profile-header.blade.php) - main.css hardcodes
+   `.control-block .author-title { color: #fff; svg { fill: #fff; } }`, invisible in light mode. */
+body.theme-volt:not(.site-dark-mode) .control-block .author-title,
+body.theme-volt:not(.site-dark-mode) .control-block .author-subtitle {
+    color: var(--volt-text) !important;
+}
+body.theme-volt:not(.site-dark-mode) .control-block .author-title svg {
+    fill: var(--volt-text) !important;
+}
+/* Same issue again, for the chat popup's own title-bar icons (msgtoggle eye-slash, the little
+   "X" close button, components/chat.blade.php) - no color/fill set anywhere in this repo, so
+   they render at the browser default, invisible against this theme's light-mode popup
+   background. */
+body.theme-volt:not(.site-dark-mode) .popup-chat .ui-block-title .msgtoggle i,
+body.theme-volt:not(.site-dark-mode) .popup-chat .ui-block-title .js-chat-close {
+    color: var(--volt-text-dim);
+    fill: var(--volt-text-dim);
+}
+body.theme-volt:not(.site-dark-mode) .popup-chat .ui-block-title .msgtoggle i:hover,
+body.theme-volt:not(.site-dark-mode) .popup-chat .ui-block-title .js-chat-close:hover {
+    color: var(--volt-text);
+    fill: var(--volt-text);
+    cursor: pointer;
+}
+
+/* The page template's own base CSS (main.css, not part of this repo/theme) puts an opaque
+   light background on the content wrapper and/or its direct child container, which sits on
+   top of the body background above and would otherwise hide it almost entirely - force it
+   (and its likely direct-child wrapper, whatever exact class it uses) transparent so the dark
+   body background actually shows through. */
+body.theme-volt #main-wrapper-content,
+body.theme-volt #main-wrapper-content > * {
+    background: transparent !important;
+    background-color: transparent !important;
+}
+body.theme-volt #main-wrapper-content,
+body.theme-volt #main-wrapper-content h1,
+body.theme-volt #main-wrapper-content h2,
+body.theme-volt #main-wrapper-content h3,
+body.theme-volt #main-wrapper-content h4,
+body.theme-volt #main-wrapper-content h5,
+body.theme-volt #main-wrapper-content h6 {
+    color: var(--volt-text) !important;
+    font-family: var(--volt-body) !important;
+}
+/* CMS pages (Terms of Use, Legal information, etc. - resources/views/cms_page.blade.php) put
+   their content inside .content_block, which has a permanently white background (style.css,
+   not part of this theme/repo) that never adapts to dark/light mode - the rule above forces
+   this theme's own (light, in dark mode) text color onto it, making it unreadable against
+   that always-white card. Force a fixed dark, readable color here instead, regardless of the
+   theme's own light/dark state - this card's background never changes, so neither should its
+   text color. */
+body.theme-volt #main-wrapper-content .content_block,
+body.theme-volt #main-wrapper-content .content_block h1,
+body.theme-volt #main-wrapper-content .content_block h2,
+body.theme-volt #main-wrapper-content .content_block h3,
+body.theme-volt #main-wrapper-content .content_block h4,
+body.theme-volt #main-wrapper-content .content_block h5,
+body.theme-volt #main-wrapper-content .content_block h6,
+body.theme-volt #main-wrapper-content #cms_header {
+    color: #2A2A2A !important;
+}
+
+/* ---------- nav / header ---------- */
+/* CONFIRMED root cause (checked main.css directly, live, via curl, during Aurora's build):
+   the site's original layout is CSS-FLOAT based, not flexbox - .search-bar is `float:left;
+   width:500px; height:70px;` and .control-block is `float:right`, with NO clearfix on
+   .header-content-wrapper. A float-only parent with no clearfix collapses to near-zero
+   height (floats don't contribute to parent height), while the floated search bar keeps its
+   own native 70px height - min-height below guarantees the header never collapses under that
+   height regardless of width; the clearfix on header-content-wrapper (further down) makes
+   this robust even without it. */
+body.theme-volt .header {
+    background: var(--volt-bg-2) !important;
+    border-bottom: 2px solid var(--volt-line-strong);
+    min-height: 72px;
+}
+/* Classic clearfix - makes header-content-wrapper's height account for its floated children
+   (.search-bar, .control-block) at ANY width, not just the >=992px block below where we
+   override float with flex outright (flex items ignore float per spec, so this clearfix is
+   mainly what protects narrower/in-between widths). */
+body.theme-volt .header-content-wrapper::after {
+    content: '';
+    display: table;
+    clear: both;
+}
+body.theme-volt .header::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -2px;
+    height: 3px;
+    background: repeating-linear-gradient(90deg, var(--volt-lime) 0 24px, var(--volt-pink) 24px 48px);
+}
+/* The page title (e.g. "Find Friends" as a big heading) isn't part of the reference nav at
+   all - the nav links themselves already show what page you're on (active underline). */
+body.theme-volt .header .page-title {
+    display: none;
+}
+/* NOTE: this used to force position:relative on .header/.fixed-sidebar-left/
+   .fixed-sidebar-right (reasoning: the search-suggestions dropdown and .theme-nav's mobile
+   dropdown, both position:absolute, need a "positioned" ancestor to anchor to). That was
+   unnecessary AND harmful - all three already have a non-static native position (.header is
+   position:fixed, both sidebars are position:absolute - see main.css, not part of this
+   theme/repo), which already satisfies that requirement on its own. Overriding .header to
+   position:relative silently broke its native fixed/sticky-on-scroll behavior (it stayed in
+   the page's normal flow and scrolled away instead), and overriding .fixed-sidebar-right
+   specifically broke its native small<->large slide-open animation (base-init.js toggles a
+   `.open` class that drives a CSS `transform: translateX(...)` on these exact elements -
+   forcing position:relative altered their containing-block/stacking behavior enough to make
+   the "large" (expanded, with names) panel fail to slide into view correctly, reported as
+   "the chat panel disappears instead of opening"). Removed entirely. */
+/* Force everything in the header onto one row, in a predictable order, instead of relying on
+   whatever flex rules main.css (not part of this repo) happens to apply - that's what was
+   causing the header to wrap onto two chaotic lines. Applied at ALL widths: the theme's own
+   .theme-nav-toggle hamburger (below) is the SOLE navigation at every width under this theme -
+   the native mobile tab header/drawer (header-responsive, fixed-sidebar-responsive) is hidden
+   unconditionally instead of being allowed to take over on narrow screens, so the mobile
+   experience always matches the new design instead of falling back to the classic look.
+   Kept a plain fixed 64px height here (mobile/hamburger range, <=991px) - .theme-nav is a
+   position:absolute dropdown at these widths (see the max-width:991px block further down), so
+   it's never actually part of this row's in-flow height and can't wrap it taller. The
+   min-height/auto-height+padding override for wrapping only applies >=992px below, where the
+   *inline* nav (Volt's bold uppercase text takes more horizontal room than Aurora/Nordic's)
+   can genuinely need two lines - applying that unconditionally here previously added needless
+   extra height on mobile too, visibly crowding the page content right beneath the header (it's
+   position:fixed, so anything taller than the page's reserved .header-spacer overlaps the
+   content instead of pushing it down). */
+body.theme-volt .header {
+    height: 64px;
+    display: flex;
+    align-items: center;
+}
+@media screen and (min-width: 1280px) {
+    body.theme-volt .header {
+        min-height: 72px;
+        height: auto;
+        padding: 10px 0;
+    }
+}
+body.theme-volt .header-content-wrapper {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    align-items: center;
+    width: 100%;
+    /* box-sizing:border-box - without it this padding would add to the 100% width above and
+       overflow the header, which is exactly what pushed .control-block's icons/credits pill
+       off the right edge before this was added. */
+    box-sizing: border-box;
+    padding: 0 16px;
+    gap: 16px;
+}
+/* Hides BOTH the native mobile tab header (header-responsive, its own icon row/search/
+   Register-Login pair) AND the native mobile "Quick Links" drawer (fixed-sidebar-responsive,
+   the hamburger-triggered slide-in menu) - unconditionally, at every width. Without this the
+   mobile view falls back to the unthemed classic mobile UI instead of the new design. */
+body.theme-volt .header-responsive,
+body.theme-volt #site-header-responsive,
+body.theme-volt .fixed-sidebar.fixed-sidebar-responsive {
+    display: none !important;
+}
+/* ---------- header search bar: a sharp-cornered, thick-bordered bar (no soft pill) - icon
+   has no button chrome of its own. ---------- */
+body.theme-volt .search-bar {
+    float: none !important;
+    width: auto !important;
+    height: auto !important;
+    background: transparent !important;
+    flex: 0 0 auto;
+    margin: 0;
+    /* align-self (not just the parent's align-items) - guarantees this flex item is
+       vertically centered against the nav text regardless of any other rule touching it. */
+    align-self: center;
+    display: flex;
+    align-items: center;
+}
+body.theme-volt .search-bar .form-group {
+    position: relative;
+    width: 260px;
+    height: auto !important;
+    margin: 0;
+}
+/* Narrow screens: the header row is nowrap (see above) so a full 260px search box would
+   crowd out the hamburger toggle / control-block icons. CLOSED: just the small icon, no
+   visible footprint. OPEN: the <form class="search-bar"> element itself becomes the dropdown
+   panel - anchored to .header the same way .theme-nav's own mobile dropdown is (position:
+   absolute; top:100%; left/right:12px, same background/border/shadow tokens). Toggled by
+   clicking the search icon again or clicking outside (toggleThemeSearch(), theme-selector.js). */
+@media screen and (max-width: 767px) {
+    body.theme-volt .search-bar .form-group {
+        width: 34px;
+        height: 34px;
+        overflow: visible;
+        background: transparent;
+    }
+    body.theme-volt .search-bar input.form-control,
+    body.theme-volt .search-bar .js-user-search {
+        display: none !important;
+    }
+    body.theme-search-open.theme-volt .search-bar {
+        display: flex !important;
+        align-items: center;
+        position: absolute !important;
+        top: 100%;
+        left: 12px;
+        right: 12px;
+        margin-top: 8px;
+        background: var(--volt-bg-2) !important;
+        border: 2px solid var(--volt-line-strong);
+        box-shadow: 6px 6px 0 var(--volt-lime);
+        padding: 10px 14px;
+        z-index: 1000;
+    }
+    body.theme-search-open.theme-volt .search-bar .form-group {
+        width: 100%;
+        height: auto;
+        display: flex;
+        align-items: center;
+        overflow: visible;
+    }
+    body.theme-search-open.theme-volt .search-bar input.form-control {
+        display: block !important;
+        position: static;
+        flex: 1 1 auto;
+        width: auto;
+        height: 36px !important;
+        background: transparent !important;
+        border: none !important;
+        padding: 0 8px !important;
+    }
+    body.theme-search-open.theme-volt .search-bar button {
+        position: static !important;
+        flex: 0 0 auto;
+        width: auto !important;
+        background: transparent !important;
+    }
+    /* The AJAX suggestion results panel (dating.js toggles its own inline display:block/none)
+       stays fully hidden while the search box is closed, and drops below the now-open panel. */
+    body.theme-search-open.theme-volt .search-bar .js-user-search {
+        display: block !important;
+        position: absolute;
+        top: calc(100% + 8px) !important;
+        left: 0 !important;
+        right: 0;
+        width: 100% !important;
+    }
+}
+body.theme-volt .search-bar input.form-control {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0 40px 0 18px !important;
+    height: 40px !important;
+    background: var(--volt-surface) !important;
+    border: 2px solid var(--volt-line) !important;
+    border-radius: 6px !important;
+    color: var(--volt-text) !important;
+}
+body.theme-volt .search-bar input.form-control::placeholder {
+    color: var(--volt-text-mute);
+}
+body.theme-volt .search-bar input.form-control:focus {
+    border-color: var(--volt-lime) !important;
+    outline: none;
+}
+body.theme-volt .search-bar button {
+    position: absolute !important;
+    right: 4px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: transparent !important;
+    border: none !important;
+    border-radius: 4px !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    outline: none !important;
+    -webkit-tap-highlight-color: transparent;
+}
+/* Tapping/clicking the icon (it's a real <button>) otherwise leaves the browser's default
+   focus ring visible as a persistent circle outline around it. */
+body.theme-volt .search-bar button:focus,
+body.theme-volt .search-bar button:focus-visible {
+    outline: none !important;
+    box-shadow: none !important;
+}
+/* The icon's own base CSS may set a hardcoded fill color rather than relying on
+   currentColor, so the button's "color" alone might not actually recolor it - set fill
+   explicitly to guarantee it matches the theme. */
+body.theme-volt .search-bar button svg {
+    fill: var(--volt-text-dim);
+    width: 16px;
+    height: 16px;
+}
+/* Search suggestions dropdown - matches the search bar's own width/style instead of the
+   inline 500px/light-theme default it otherwise renders with. */
+/* position:absolute - the site's own style.css only sets this (as !important, alongside the
+   fixed top:70px/left:0 this overrides) INSIDE its own `@media (max-width:768px)` block, never
+   for desktop widths - so at desktop widths, with no position set at all, this box used to
+   render in NORMAL FLOW and genuinely shove the header/nav row down every time a search
+   result appeared (regardless of theme - .header being position:fixed here, same as classic,
+   was never the issue; the missing position on THIS element was). Setting position:absolute
+   here, unconditionally, is what actually overlays it instead. */
+body.theme-volt .search-bar .js-user-search {
+    position: absolute !important;
+    width: 100% !important;
+    left: 0 !important;
+    top: calc(100% + 6px) !important;
+    background: var(--volt-surface) !important;
+    border: 2px solid var(--volt-line) !important;
+    border-radius: 6px !important;
+    color: var(--volt-text);
+}
+/* display:flex + centering (not inline-block) - the emoji glyph this button shows
+   (theme-selector.js sets its innerHTML to a moon/sun emoji) has unusual line-height metrics
+   of its own that don't vertically center against the surrounding text with inline-block. */
+body.theme-volt #theme-toggler {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    font-size: 18px;
+    line-height: 1;
+}
+/* At desktop widths .control-block's children (notification/chat/credits icons) rely on
+   however main.css originally laid them out internally, so no display override is needed
+   there - margin-left:auto alone pushes the whole block right within the flex header row.
+   BELOW 768px though, main.css has its own rule forcing `.control-block { display:block;
+   padding:15px 20px 0; }` (meant for the native mobile tab header, which we hide entirely -
+   see above) - that turns every icon link into a full-width stacked block. Overriding display
+   back to flex at that same breakpoint fixes it. */
+body.theme-volt .control-block {
+    flex: 0 0 auto;
+    margin-left: auto;
+}
+@media screen and (max-width: 767px) {
+    body.theme-volt .control-block {
+        display: flex !important;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 10px;
+        height: auto !important;
+        padding: 0 !important;
+    }
+    body.theme-volt .control-block > * {
+        flex: 0 0 auto;
+        width: auto !important;
+    }
+    /* Packages button + credits pill are redundant on mobile - every page with a Packages
+       button already shows its own full one further down, and dropping these two frees up
+       enough width for the notification/chat/friend-request icon badges to actually fit. */
+    body.theme-volt .control-block .packages-top,
+    body.theme-volt .control-block .theme-credits-pill {
+        display: none !important;
+    }
+}
+/* The profile avatar link+dropdown (components/header/profile-header.blade.php) is hidden
+   entirely on mobile (not just its :hover dropdown) - .theme-nav's own mobile-only Account/
+   Language/Log Out links (see header.blade.php) replace it there. Desktop keeps the avatar
+   link AND its native hover dropdown exactly as-is. */
+@media screen and (max-width: 1279px) {
+    body.theme-volt .control-block .author-page {
+        display: none !important;
+    }
+}
+/* ---------- header icon dropdowns (notifications/chat/friend-requests/profile) - these
+   reuse the site's shared .more-dropdown component, which is hardcoded to a white classic
+   background/dark text regardless of theme - restyled here with the same thick-border/hard-
+   shadow language as the rest of Volt, scoped to .control-block so only the header's own
+   copies are touched (the same class is reused elsewhere in the app - calendar, shop cart,
+   etc. - which must stay untouched). ---------- */
+body.theme-volt .control-block .more-dropdown {
+    background: var(--volt-bg-2) !important;
+    border: 2px solid var(--volt-line-strong);
+    border-radius: 8px !important;
+    box-shadow: 6px 6px 0 var(--volt-lime);
+    padding: 12px !important;
+    overflow: hidden;
+}
+body.theme-volt .control-block .more-dropdown .ui-block-title .title,
+body.theme-volt .control-block .more-dropdown a,
+body.theme-volt .control-block .more-dropdown .h6,
+body.theme-volt .control-block .more-dropdown .notification-friend,
+body.theme-volt .control-block .more-dropdown .author-title {
+    color: var(--volt-text) !important;
+}
+body.theme-volt .control-block .more-dropdown .chat-message-item,
+body.theme-volt .control-block .more-dropdown .notification-date,
+body.theme-volt .control-block .more-dropdown .author-subtitle,
+body.theme-volt .control-block .more-dropdown .no-req {
+    color: var(--volt-text-dim) !important;
+}
+body.theme-volt .control-block .more-dropdown a:hover {
+    color: var(--volt-lime) !important;
+}
+/* Unread/hover row states (notification-list li.message-unread/.un-read, .notification-list
+   li:hover - main.css, not part of this theme/repo) have their own hardcoded near-white
+   background, painted OVER the dark .more-dropdown background above for just that one row -
+   left unfixed, that made unread rows (which is most of them, in a busy inbox) show this
+   theme's light text on a near-white row, unreadable. Only rows with neither state showed
+   the correct dark background/light text. */
+body.theme-volt .control-block .more-dropdown .notification-list li.message-unread,
+body.theme-volt .control-block .more-dropdown .notification-list li.un-read,
+body.theme-volt .control-block .more-dropdown .notification-list li:hover {
+    background: var(--volt-surface-2) !important;
+}
+body.theme-volt .control-block .more-dropdown input.form-control {
+    background: var(--volt-surface) !important;
+    border: 2px solid var(--volt-line) !important;
+    color: var(--volt-text) !important;
+}
+body.theme-volt .header .link-find-friend {
+    color: var(--volt-text-dim);
+    font-weight: 700;
+}
+body.theme-volt .header .link-find-friend:hover {
+    color: var(--volt-text);
+}
+body.theme-volt .theme-credits-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--volt-surface-2);
+    border: 2px solid var(--volt-line-strong);
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-family: var(--volt-mono);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--volt-lime);
+}
+/* .packages-top (the "Packages" pill in the header) isn't themed by any of the rules above -
+   it uses its own hardcoded `background: var(--main-color)` (a site-wide admin setting,
+   currently a dark navy, completely independent of this theme's light/dark variables) - in
+   light mode that left the (also dark) text-dim color nearly unreadable against it. Giving it
+   the same themed lime + guaranteed-black text as the other buttons fixes that in both modes,
+   instead of depending on whatever --main-color happens to be. */
+body.theme-volt .header .btn-purple,
+body.theme-volt .header .btn-primary,
+body.theme-volt .header .packages-top {
+    background: var(--volt-lime) !important;
+    border: 2px solid var(--volt-line-strong) !important;
+    color: #0A0A0A !important;
+    font-family: var(--volt-body);
+    font-weight: 700;
+}
+
+/* ---------- left sidebar: permanently hidden - its real links (Find Friends, Newsfeed, CMS
+   pages, admin) now live in the header's own .theme-nav instead (see header.blade.php), which
+   is the sole nav at every width under this theme. NOTE: zeroing #main-wrapper-content's
+   margin-left is a best-effort attempt to reclaim the space the sidebar used to occupy - the
+   exact compensation rule lives in main.css (not part of this repo), so this may need
+   adjustment once seen live.
+   IMPORTANT: targets #sidebar-left/#sidebar-left-1 by ID, NOT the .fixed-sidebar-left CLASS -
+   components/sidebar-left.blade.php renders this desktop sidebar (#sidebar-left/#sidebar-left-1)
+   AND a wholly separate mobile drawer (#sidebar-left-responsive/#sidebar-left-1-responsive,
+   the classic theme's "Quick Links"/hamburger menu) sharing the same .fixed-sidebar-left class
+   - the mobile drawer is hidden separately, as a whole, via the
+   .fixed-sidebar.fixed-sidebar-responsive rule further up. */
+body.theme-volt #sidebar-left,
+body.theme-volt #sidebar-left-1 {
+    visibility: hidden !important;
+    width: 0 !important;
+    height: 0 !important;
+    overflow: visible !important;
+}
+body.theme-volt #main-wrapper-content {
+    margin-left: 0 !important;
+}
+body.theme-volt .fixed-sidebar-right .mCustomScrollbar {
+    background: transparent !important;
+}
+
+/* Pulls the "online users" flyout back into view (its own CSS assumed it'd be inside a
+   visible sidebar) - opened via the .open_online_users link in .theme-nav, using the exact
+   same click handler as before (bound by class in dating.js, unchanged). top/left below are
+   just a fallback; theme-selector.js repositions this on every click to sit right under
+   whichever .open_online_users link was actually clicked (it can be in different places -
+   inline in the desktop nav, or in the mobile hamburger dropdown), instead of this fixed spot
+   that only ever matched the old sidebar toggle's position. */
+body.theme-volt .fixed-sidebar-left #online_users_left {
+    visibility: visible !important;
+    position: fixed !important;
+    top: 70px;
+    left: 20px;
+    width: 280px;
+    max-height: 60vh;
+    overflow-y: auto;
+    background: var(--volt-bg-2);
+    border: 2px solid var(--volt-line-strong);
+    box-shadow: 6px 6px 0 var(--volt-lime);
+    z-index: 999;
+}
+
+
+/* ---------- icon-free horizontal nav ---------- */
+body.theme-volt .theme-nav {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px 26px;
+    flex: 1 1 auto;
+    justify-content: center;
+    margin: 0;
+}
+/* Account/Language section labels (desktop: small inline labels ahead of their group;
+   mobile: full-width block headers, see the max-width:991px block below). */
+body.theme-volt .theme-nav-section-label {
+    color: var(--volt-text-mute);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+}
+body.theme-volt .theme-nav-link {
+    color: var(--volt-text-dim);
+    font-weight: 700;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: .02em;
+    position: relative;
+    padding-bottom: 4px;
+    transition: color .15s;
+}
+body.theme-volt .theme-nav-link:hover {
+    color: var(--volt-text);
+}
+body.theme-volt .theme-nav-link.active {
+    color: var(--volt-lime);
+}
+body.theme-volt .theme-nav-link.active::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -2px;
+    height: 3px;
+    background: var(--volt-lime);
+}
+/* Hamburger toggle - hidden on desktop, only shown at mobile widths (see media query below) */
+body.theme-volt .theme-nav-toggle {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 4px;
+    color: var(--volt-text);
+    background: var(--volt-surface-2);
+    border: 2px solid var(--volt-line-strong);
+}
+body.theme-volt .theme-nav-toggle:hover,
+body.theme-volt.theme-nav-dropdown-open .theme-nav-toggle {
+    color: var(--volt-lime);
+    border-color: var(--volt-lime);
+}
+/* Hidden by default (desktop) - MUST come before the max-width:991px block below, not after:
+   an unscoped rule placed after a media query wins the cascade at equal specificity regardless
+   of the media query, which would otherwise silently hide these mobile-only links entirely. */
+body.theme-volt .theme-nav-mobile-only {
+    display: none;
+}
+@media screen and (max-width: 1279px) {
+    body.theme-volt .theme-nav-toggle {
+        display: inline-flex;
+    }
+    body.theme-volt .theme-nav {
+        display: none;
+        /* position:absolute anchored to .header, which is already "positioned" (native
+           position:fixed - see main.css, not part of this theme/repo) so no extra position
+           override is needed on .header itself for this to anchor correctly. */
+        position: absolute;
+        top: 100%;
+        left: 12px;
+        right: 12px;
+        margin-top: 8px;
+        flex-direction: column;
+        /* flex-wrap:nowrap overrides the desktop rule's flex-wrap:wrap (unconditional, further
+           up) - with flex-direction:column, "wrap" doesn't overflow vertically at all, it
+           starts a SECOND COLUMN to the side once content exceeds max-height (wrapping happens
+           on the cross axis, which is horizontal here). That's what silently ate Deutsch/
+           Français/Español: they weren't missing, they'd wrapped into an invisible second
+           column that overflow-x:hidden then clipped, instead of the vertical scrollbar the
+           max-height+overflow-y:auto below was meant to produce. */
+        flex-wrap: nowrap;
+        align-items: flex-start;
+        gap: 4px;
+        margin: 0;
+        padding: 12px;
+        background: var(--volt-bg-2);
+        border: 2px solid var(--volt-line-strong);
+        box-shadow: 6px 6px 0 var(--volt-lime);
+        z-index: 1000;
+    }
+    body.theme-volt.theme-nav-dropdown-open .theme-nav {
+        display: flex;
+    }
+    body.theme-volt .theme-nav-link {
+        padding: 10px 8px;
+        width: 100%;
+    }
+    /* Account/language/logout links (see header.blade.php) only exist for the mobile
+       dropdown - desktop keeps the profile avatar's own native hover dropdown for these. */
+    body.theme-volt .theme-nav-mobile-only {
+        display: block;
+    }
+    /* The custom-status ("moto") form needs its input+button side by side, not the plain
+       block stacking .theme-nav-mobile-only gives everything else above. */
+    body.theme-volt .theme-nav-status-form {
+        display: flex !important;
+        align-items: center;
+        gap: 8px;
+        width: 100%;
+        /* min-width:0 - a flex item's default min-width is "auto" (its own content size), not
+           0, which stopped this row from ever shrinking to fit the panel; the input inside
+           inherits the same problem and needs the same fix (below). This is what forced the
+           whole .theme-nav panel wider than the screen, breaking its column layout entirely
+           (multiple links squeezed per "row" instead of one each, requiring horizontal scroll
+           to see the rest - the "language above AND below" symptom reported). */
+        min-width: 0;
+        box-sizing: border-box;
+        padding: 4px 8px;
+    }
+    body.theme-volt .theme-nav-status-form input.form-control {
+        flex: 1 1 auto;
+        width: auto;
+        min-width: 0;
+        max-width: 100%;
+        box-sizing: border-box;
+        height: 36px;
+        background: var(--volt-surface);
+        border: 2px solid var(--volt-line);
+        border-radius: 6px;
+        padding: 0 14px;
+        color: var(--volt-text);
+    }
+    /* Native .form-group.with-button button (main.css, not part of this repo/theme, and NOT
+       scoped to .search-bar) forces `position:absolute; right:0; top:0; height:100%;` on any
+       button inside a .form-group.with-button - which this form's markup reuses. Left
+       unoverridden, that yanks the button out of the flex row entirely and pins it to the
+       corner of whatever positioned ancestor it lands on (.theme-nav itself), which is what
+       made it visibly stick out past the input. position:static neutralizes that. */
+    body.theme-volt .theme-nav-status-form button {
+        position: static !important;
+        flex: 0 0 auto;
+        width: 32px;
+        height: 32px !important;
+        box-sizing: border-box;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid #0A0A0A;
+        border-radius: 4px;
+        background: var(--volt-lime);
+        fill: #0A0A0A;
+    }
+    /* Section labels become full-width block headers with a top divider/spacing in the
+       stacked mobile dropdown, instead of the small inline labels used in the desktop row. */
+    body.theme-volt .theme-nav-section-label {
+        width: 100%;
+        padding: 10px 8px 0;
+        margin-top: 6px;
+        border-top: 1px solid var(--volt-line);
+    }
+    body.theme-volt .theme-nav-section-label:first-of-type {
+        margin-top: 0;
+    }
+    /* The extra account/language links can make the panel taller than the viewport - scroll
+       instead of overflowing off-screen. overflow-x:hidden is a safety net (not the actual
+       fix - that's the min-width:0 above) so a future child with its own unshrinkable min
+       width clips instead of forcing the whole panel wider than the screen again.
+       100vh (not dvh) reports the FULL screen height on many mobile browsers, including the
+       area their address bar/toolbar actually covers - the panel then computes a max-height
+       taller than what's really visible, so its bottom portion is invisible AND unreachable
+       (it's position:absolute, so the page itself has nothing extra to scroll to reveal it).
+       100dvh reflects the actual visible viewport instead - declared second so browsers that
+       don't support dvh yet simply keep the vh fallback above. */
+    body.theme-volt .theme-nav {
+        max-height: calc(100vh - 100px);
+        max-height: calc(100dvh - 100px);
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        overflow-x: hidden;
+    }
+}
+
+/* ---------- right sidebar - sharp corners, thick border, hard offset shadow instead of a
+   soft floating capsule ---------- */
+body.theme-volt .fixed-sidebar-right {
+    background: var(--volt-bg-2) !important;
+    border-left: 2px solid var(--volt-line-strong) !important;
+}
+body.theme-volt .fixed-sidebar-right .chat-users > li {
+    margin: 4px 10px;
+    padding: 8px;
+    border-radius: 6px;
+    transition: background .15s ease;
+}
+body.theme-volt .fixed-sidebar-right .chat-users > li:hover {
+    background: var(--volt-surface-2);
+}
+body.theme-volt .fixed-sidebar-right .author-thumb .avatar {
+    border-radius: 4px;
+    box-shadow: 0 0 0 2px var(--volt-line-strong);
+}
+body.theme-volt .fixed-sidebar-right .author-content .author-name,
+body.theme-volt .fixed-sidebar-right .name {
+    color: var(--volt-text);
+    font-family: var(--volt-display);
+    font-weight: 700;
+}
+/* Bottom of the right chat panel (components/sidebar-right.blade.php) - the search box and
+   the "TROMAVEQUI"/chat-icon footer bar below it are native, hardcoded to a fixed white/
+   purple regardless of theme (main.css, not part of this repo/theme). Restyled to match the
+   same thick-border/hard-shadow neo-brutalist language as the rest of Volt. */
+body.theme-volt .fixed-sidebar-right .search-friend {
+    background: var(--volt-bg-2) !important;
+    box-shadow: none !important;
+    border-top: 2px solid var(--volt-line-strong);
+}
+body.theme-volt .fixed-sidebar-right .search-friend input {
+    background: var(--volt-surface);
+    border: 2px solid var(--volt-line);
+    color: var(--volt-text);
+    border-radius: 4px;
+}
+body.theme-volt .fixed-sidebar-right .search-friend a {
+    fill: var(--volt-text-dim);
+}
+body.theme-volt .fixed-sidebar-right .search-friend a:hover {
+    fill: var(--volt-lime);
+}
+body.theme-volt .fixed-sidebar-right .olympus-chat {
+    background: var(--volt-lime) !important;
+    border-top: 2px solid #0A0A0A;
+    fill: #0A0A0A !important;
+}
+body.theme-volt .fixed-sidebar-right .olympus-chat-title {
+    color: #0A0A0A !important;
+    font-family: var(--volt-display);
+    font-weight: 700;
+}
+
+/* ---------- hero / search / chips (theme-only markup, see find_friends.blade.php) - a bold
+   stat "sticker" tag (slightly rotated, like a slapped-on label) instead of a soft pill eyebrow,
+   solid-color highlight instead of a gradient-text italic, and a hard-shadow search bar. ---------- */
+body.theme-volt .theme-hero {
+    position: relative;
+    z-index: 2;
+    padding: 44px 12px 30px;
+    text-align: center;
+    max-width: 900px;
+    margin: 0 auto;
+}
+body.theme-volt .theme-hero-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--volt-mono);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: #0A0A0A;
+    background: var(--volt-online);
+    border: 2px solid var(--volt-line-strong);
+    padding: 6px 14px;
+    border-radius: 4px;
+    transform: rotate(-2deg);
+    margin-bottom: 22px;
+}
+body.theme-volt .theme-pulse-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #0A0A0A;
+    animation: volt-blink 1s steps(2, jump-none) infinite;
+}
+@keyframes volt-blink {
+    50% { opacity: .25; }
+}
+body.theme-volt .theme-hero-title {
+    font-family: var(--volt-display);
+    font-weight: 700;
+    line-height: 1.04;
+    font-size: clamp(32px, 5.4vw, 52px);
+    letter-spacing: -0.01em;
+    text-transform: uppercase;
+    color: var(--volt-text);
+}
+body.theme-volt .theme-hero-title em {
+    font-style: normal;
+    font-weight: 700;
+    color: var(--volt-bg);
+    background: var(--volt-lime);
+    padding: 0 6px;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+}
+body.theme-volt .theme-hero-sub {
+    margin-top: 16px;
+    color: var(--volt-text-dim);
+    font-size: 16px;
+    max-width: 520px;
+    margin-inline: auto;
+    line-height: 1.55;
+}
+body.theme-volt .theme-searchbar {
+    margin: 28px auto 0;
+    max-width: 560px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--volt-surface);
+    border: 2px solid var(--volt-line-strong);
+    box-shadow: 6px 6px 0 var(--volt-pink);
+    border-radius: 6px;
+    padding: 8px 8px 8px 20px;
+}
+body.theme-volt .theme-searchbar input {
+    flex: 1;
+    background: none;
+    border: none;
+    outline: none;
+    color: var(--volt-text);
+    font-family: var(--volt-body);
+    font-size: 15px;
+}
+body.theme-volt .theme-searchbar input::placeholder {
+    color: var(--volt-text-mute);
+}
+body.theme-volt .theme-searchbar button {
+    border: 2px solid #0A0A0A;
+    cursor: pointer;
+    font-family: var(--volt-body);
+    font-weight: 700;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    padding: 11px 20px;
+    border-radius: 4px;
+    color: #0A0A0A;
+    background: var(--volt-lime);
+    transition: transform .12s ease, box-shadow .12s ease;
+}
+body.theme-volt .theme-searchbar button:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 3px 3px 0 var(--volt-pink);
+}
+body.theme-volt .theme-chips {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 20px;
+}
+body.theme-volt .find-friends-sort-chip {
+    font-size: 12.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+    color: var(--volt-text-dim);
+    border: 2px solid var(--volt-line-strong);
+    padding: 7px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    background: var(--volt-surface);
+    transition: all .15s;
+}
+body.theme-volt .find-friends-sort-chip:hover,
+body.theme-volt .find-friends-sort-chip.active {
+    color: #0A0A0A;
+    background: var(--volt-lime);
+    border-color: var(--volt-line-strong);
+}
+
+/* ---------- profile cards (find_friends grid - same classes for initial load AND the
+   controller's AJAX "load more" HTML, so both stay visually identical) ---------- */
+/* NOTE: deliberately no "background" override here - .ui-block's background is the profile's
+   actual photo, set as an inline style (background: url(...)) by the server. Overriding it
+   (even just background-color, since the shorthand resets everything) would hide the photo
+   behind a flat color. */
+body.theme-volt .find_friends_item .ui-block {
+    border: 2px solid var(--volt-line-strong);
+    border-radius: 6px;
+    overflow: hidden;
+    transition: box-shadow .18s, border-color .18s;
+    /* AI Companion cards set an inline `background-size: contain` (find_friends.blade.php),
+       which letterboxes the photo instead of filling the card edge-to-edge like real user
+       cards do (those have no inline background-size, so they use the browser default -
+       effectively "auto", which combined with the photo's own dimensions typically fills the
+       box). !important is required since inline styles otherwise always win. */
+    background-size: cover !important;
+}
+/* Hard offset shadow instead of a soft lift - lives on the OUTER wrapper, not .ui-block
+   itself, matching the same reasoning Aurora's build settled on: a transform on the element
+   that also has overflow:hidden + border-radius + an absolutely-positioned badge child (the
+   "Online" tag) can make some browsers recompute that child's position incorrectly. */
+body.theme-volt .find_friends_item {
+    transition: transform .15s ease;
+}
+body.theme-volt .find_friends_item:hover {
+    transform: translate(-3px, -3px);
+}
+body.theme-volt .find_friends_item:hover .ui-block {
+    border-color: var(--volt-lime);
+    box-shadow: 5px 5px 0 var(--volt-lime);
+}
+/* Wide, shorter cards (contrast Aurora's tall portrait cards) - overrides the server's
+   inline height:415px. */
+body.theme-volt .find_friends_item .ui-block {
+    height: 380px !important;
+}
+body.theme-volt #find_friends_results .friend-actions,
+body.theme-volt #ai_friends_results .friend-actions {
+    background-image: linear-gradient(rgba(10, 10, 10, 0), rgba(10, 10, 10, 0.5), rgba(10, 10, 10, 0.95));
+}
+/* Fixed light text/scrim on the card overlay - this sits on top of the profile PHOTO, not the
+   page background, so it must stay readable regardless of whether light or dark mode is
+   active for the rest of the site (unlike --volt-text, which flips for light mode). */
+body.theme-volt .friend-item .author-name,
+body.theme-volt .friend-item .h5.author-name {
+    font-family: var(--volt-display);
+    font-weight: 700 !important;
+    font-size: 19px !important;
+    text-transform: uppercase;
+    color: #fff !important;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+}
+body.theme-volt .friend-item .btn-control.bg-blue {
+    background: rgba(255, 255, 255, 0.9) !important;
+    border: 2px solid #0A0A0A !important;
+    border-radius: 4px !important;
+    color: #0A0A0A !important;
+    font-weight: 700 !important;
+}
+body.theme-volt .friend-item .btn-control.bg-purple {
+    background: var(--volt-lime) !important;
+    border: 2px solid #0A0A0A !important;
+    border-radius: 4px !important;
+    color: #0A0A0A !important;
+    font-weight: 700 !important;
+}
+
+/* ---------- online/offline badges - solid rectangular tag instead of a soft glowing pill,
+   plain hard blink instead of an animated glow ring ---------- */
+/* NOTE: no "position" override here - .span-online is already position:absolute (set by the
+   base stylesheet, which is what overlays it onto the top-left of the photo). Overriding it
+   to "relative" breaks that entirely, turning the badge into a full-width in-flow bar above
+   the card instead of a small tag overlaid on it (a real regression hit during Aurora's build). */
+body.theme-volt .span-online,
+body.theme-volt .find_friends_status.span-online {
+    background: var(--volt-online) !important;
+    color: #0A0A0A !important;
+    border-radius: 4px;
+    padding: 4px 10px 4px 8px !important;
+    font-family: var(--volt-mono);
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 11px;
+}
+body.theme-volt .span-online::before {
+    content: '';
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    margin-right: 5px;
+    background: #0A0A0A;
+    animation: volt-blink 1s steps(2, jump-none) infinite;
+}
+body.theme-volt .span-offline,
+body.theme-volt .find_friends_status.span-offline {
+    background: rgba(255, 255, 255, 0.12) !important;
+    color: var(--volt-text-mute) !important;
+    border-radius: 4px;
+    padding: 4px 10px !important;
+    font-family: var(--volt-mono);
+    font-size: 11px;
+    text-transform: uppercase;
+}
+body.theme-volt .icon-status.online {
+    background: var(--volt-online) !important;
+    box-shadow: 0 0 0 2px var(--volt-bg-2);
+}
+
+/* ---------- chat popup (light touch - keep functional layout, just recolor) ---------- */
+body.theme-volt .popup-chat .ui-block-title {
+    background: var(--volt-surface-2);
+}
+body.theme-volt .popup-chat .mCustomScrollbar {
+    background-color: var(--volt-bg-2);
+}
+body.theme-volt .popup-chat .notification-list li .notification-event .chat-message-item {
+    background: var(--volt-surface);
+    color: var(--volt-text);
+}
+/* Admin-only chat controls: managed-account switcher, per-user language, translate toggle
+   (components/chat.blade.php) - plain native <select> elements, unstyled/white by default. */
+body.theme-volt #popup-chat .row.m-0 > div {
+    padding: 0 4px;
+}
+body.theme-volt .popup-chat select#admin_account,
+body.theme-volt .popup-chat select.lang_for_user,
+body.theme-volt .popup-chat select.auto_translate {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    box-sizing: border-box;
+    margin: 6px 0;
+    padding: 8px 28px 8px 12px;
+    background-color: var(--volt-surface);
+    background-image:
+        linear-gradient(45deg, transparent 50%, var(--volt-lime) 50%),
+        linear-gradient(135deg, var(--volt-lime) 50%, transparent 50%);
+    background-position: calc(100% - 17px) center, calc(100% - 12px) center;
+    background-size: 5px 5px, 5px 5px;
+    background-repeat: no-repeat;
+    border: 2px solid var(--volt-line);
+    border-radius: 6px;
+    color: var(--volt-text);
+    font-size: 13px;
+    font-family: var(--volt-body);
+}
+body.theme-volt .popup-chat select#admin_account:focus,
+body.theme-volt .popup-chat select.lang_for_user:focus,
+body.theme-volt .popup-chat select.auto_translate:focus {
+    border-color: var(--volt-lime);
+    outline: none;
+}
+body.theme-volt .popup-chat select#admin_account option,
+body.theme-volt .popup-chat select.lang_for_user option,
+body.theme-volt .popup-chat select.auto_translate option {
+    background: var(--volt-surface);
+    color: var(--volt-text);
+}
+body.theme-volt .popup-chat select#admin_account::-ms-expand,
+body.theme-volt .popup-chat select.lang_for_user::-ms-expand,
+body.theme-volt .popup-chat select.auto_translate::-ms-expand {
+    display: none;
+}
+
+/* ---------- profile page (resources/views/profile/profile.blade.php,
+   components/top-header-profile.blade.php) - same thick-border/hard-shadow neo-brutalist
+   language as the header and find_friends cards. ---------- */
+body.theme-volt .top-header {
+    background: var(--volt-bg-2);
+    border: 2px solid var(--volt-line-strong);
+    overflow: hidden;
+}
+body.theme-volt .top-header-thumb {
+    background: var(--volt-surface);
+}
+body.theme-volt .profile-section {
+    background: var(--volt-bg-2);
+}
+body.theme-volt .profile-menu a {
+    color: var(--volt-text-dim) !important;
+    font-family: var(--volt-body);
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 13px;
+    letter-spacing: .02em;
+}
+body.theme-volt .profile-menu a:hover,
+body.theme-volt .profile-menu a.active {
+    color: var(--volt-lime) !important;
+}
+body.theme-volt .top-header-author .author-thumb img {
+    border-radius: 4px;
+    box-shadow: 0 0 0 3px var(--volt-bg-2), 0 0 0 5px var(--volt-line-strong);
+}
+body.theme-volt .top-header-author .author-name {
+    color: var(--volt-text) !important;
+    font-family: var(--volt-display);
+    font-weight: 700;
+    text-transform: uppercase;
+}
+/* Add Friend / Chat / settings gear on the profile cover - same thick-border/hard-shadow
+   treatment as the find_friends card buttons (body.theme-volt .friend-item .btn-control.
+   bg-blue/.bg-purple further up), extended to this page's own .control-block-button context. */
+body.theme-volt .top-header .control-block-button .btn-control.bg-blue {
+    background: rgba(255, 255, 255, 0.92) !important;
+    border: 2px solid #0A0A0A !important;
+    border-radius: 4px !important;
+    color: #0A0A0A !important;
+}
+body.theme-volt .top-header .control-block-button .btn-control.bg-purple,
+body.theme-volt .top-header .control-block-button .btn-control.bg-primary {
+    background: var(--volt-lime) !important;
+    border: 2px solid #0A0A0A !important;
+    border-radius: 4px !important;
+    color: #0A0A0A !important;
+}
+/* .ui-block is the generic "card" wrapper reused across the whole site (Profile Intro, Last
+   Photos, Friends boxes here; Account/Personal Information on the settings page below) - its
+   native background is a hardcoded white (style.css, not part of this theme/repo), same class
+   of issue as the CMS .content_block fix above, but here the card should actually adopt the
+   theme instead of staying a fixed white document look.
+   :not([style]) is required - the find_friends grid (and the AI Companions grid on the same
+   page) ALSO uses .ui-block, but sets the profile photo as an inline `style="background:
+   url(...)"` attribute (FindFriendsController.php). An earlier version of this rule used a
+   bare .ui-block selector, whose !important background overrode that inline photo and made
+   every card photo disappear across the whole site. Cards with a real photo always carry an
+   inline style attribute; cards that don't (Profile Intro, Account Info, and find_friends
+   cards for users with no photo) don't, so this cleanly targets only the latter. */
+body.theme-volt .ui-block:not([style]) {
+    background: var(--volt-bg-2) !important;
+    border: 2px solid var(--volt-line-strong) !important;
+    border-radius: 6px !important;
+}
+body.theme-volt .ui-block-title {
+    border-bottom: 1px solid var(--volt-line) !important;
+}
+body.theme-volt .ui-block-title .title,
+body.theme-volt .ui-block .widget .title,
+body.theme-volt .ui-block .widget .text {
+    color: var(--volt-text) !important;
+    font-family: var(--volt-body);
+}
+body.theme-volt .ui-block .widget .title {
+    color: var(--volt-text-dim) !important;
+    text-transform: uppercase;
+    font-size: 12px;
+}
+/* Timeline posts (same .ui-block card, plus their own author/date row) */
+body.theme-volt .hentry.post .post__author-name,
+body.theme-volt .hentry.post p {
+    color: var(--volt-text) !important;
+}
+body.theme-volt .hentry.post .post__date time {
+    color: var(--volt-text-mute) !important;
+}
+body.theme-volt .hentry.post .likes.post-add-icon {
+    color: var(--volt-text-dim) !important;
+    fill: var(--volt-text-dim) !important;
+}
+body.theme-volt .hentry.post .likes.post-add-icon.active {
+    color: var(--volt-pink) !important;
+    fill: var(--volt-pink) !important;
+}
+
+/* ---------- profile settings / account dashboard page
+   (resources/views/profile/profile-info.blade.php) ---------- */
+body.theme-volt .main-header {
+    background: var(--volt-bg-2);
+    border-bottom: 2px solid var(--volt-line-strong);
+}
+body.theme-volt .main-header .content-bg-wrap {
+    opacity: .2;
+}
+body.theme-volt .main-header-content h1 {
+    color: var(--volt-text) !important;
+    font-family: var(--volt-display);
+    font-weight: 700;
+    text-transform: uppercase;
+}
+body.theme-volt .main-header-content p {
+    color: var(--volt-text-dim) !important;
+}
+body.theme-volt .form-group.label-floating .control-label {
+    color: var(--volt-text-mute) !important;
+    text-transform: uppercase;
+    font-size: 11px;
+}
+body.theme-volt .form-group .form-control,
+body.theme-volt .form-group input,
+body.theme-volt .form-group textarea {
+    background: var(--volt-surface) !important;
+    border: 2px solid var(--volt-line) !important;
+    border-radius: 4px !important;
+    color: var(--volt-text) !important;
+}
+body.theme-volt .your-profile .title,
+body.theme-volt .your-profile-menu a {
+    color: var(--volt-text-dim) !important;
+    text-transform: uppercase;
+    font-size: 13px;
+}
+body.theme-volt .your-profile-menu a:hover {
+    color: var(--volt-lime) !important;
+}
+body.theme-volt .your-profile .card {
+    background: transparent !important;
+    border: none !important;
+}
+body.theme-volt .your-profile .card-header a {
+    color: var(--volt-text) !important;
+    font-family: var(--volt-body);
+    font-weight: 700;
+}
+body.theme-volt .btn-primary,
+body.theme-volt .btn-secondary {
+    border-radius: 4px !important;
+    font-family: var(--volt-body);
+    font-weight: 700;
+    text-transform: uppercase;
+}
+body.theme-volt .btn-primary {
+    background: var(--volt-lime) !important;
+    border: 2px solid #0A0A0A !important;
+    color: #0A0A0A !important;
+}
+body.theme-volt .btn-secondary {
+    background: var(--volt-surface-2) !important;
+    border: 2px solid var(--volt-line-strong) !important;
+    color: var(--volt-text) !important;
+}
+
+/* ---------- packages page (resources/views/packages.blade.php) - .generic_price_table cards
+   are permanently white/gray (style.css, not part of this theme/repo), same class of issue
+   as .content_block and .ui-block above. Restyled with the same thick-border/hard-shadow
+   neo-brutalist language as the rest of Volt, keeping a tier accent (Silver/Gold/VIP -> white/
+   pink/lime) on the diagonal header instead of the native gray/blue/green. ---------- */
+body.theme-volt .price-heading h1 {
+    color: var(--volt-text) !important;
+    font-family: var(--volt-display);
+    font-weight: 700;
+    text-transform: uppercase;
+}
+body.theme-volt .generic_content {
+    background: var(--volt-bg-2) !important;
+    border: 2px solid var(--volt-line-strong);
+    border-radius: 6px;
+    overflow: hidden;
+}
+body.theme-volt .generic_head_price {
+    background: var(--volt-surface-2) !important;
+}
+body.theme-volt .generic_price_tag .price,
+body.theme-volt .generic_price_tag .sign,
+body.theme-volt .generic_price_tag .currency,
+body.theme-volt .generic_price_tag .cent {
+    color: var(--volt-text) !important;
+}
+body.theme-volt .generic_feature_list ul li {
+    color: var(--volt-text-mute) !important;
+    text-transform: uppercase;
+    font-size: 12px;
+}
+body.theme-volt .generic_feature_list ul li span {
+    color: var(--volt-text-dim) !important;
+}
+body.theme-volt .generic_feature_list ul li:hover {
+    background: var(--volt-surface-2) !important;
+    border-left-color: var(--volt-lime) !important;
+}
+/* Tier accent on the diagonal header - light gray (entry tier) -> pink (mid) -> lime (top),
+   replacing the native gray/blue/green, for both the Subscriptions (pk1_*) and Credits
+   (pk2_*) card sets. */
+body.theme-volt .generic_content.pk1_1 .head_bg,
+body.theme-volt .generic_content.pk2_1 .head_bg {
+    border-color: var(--volt-text-mute) transparent transparent var(--volt-text-mute) !important;
+}
+body.theme-volt .generic_content.pk1_2 .head_bg,
+body.theme-volt .generic_content.pk2_2 .head_bg {
+    border-color: var(--volt-pink) transparent transparent var(--volt-pink) !important;
+}
+body.theme-volt .generic_content.pk1_3 .head_bg,
+body.theme-volt .generic_content.pk2_3 .head_bg {
+    border-color: var(--volt-lime) transparent transparent var(--volt-lime) !important;
+}
+body.theme-volt .generic_content.pk1_1 .head span,
+body.theme-volt .generic_content.pk2_1 .head span,
+body.theme-volt .generic_content.pk1_2 .head span,
+body.theme-volt .generic_content.pk2_2 .head span,
+body.theme-volt .generic_content.active .head span,
+body.theme-volt .generic_content:hover .head span {
+    color: #fff !important;
+}
+body.theme-volt .generic_content.pk1_3 .head span,
+body.theme-volt .generic_content.pk2_3 .head span {
+    color: #0A0A0A !important;
+}
+body.theme-volt .generic_content.active .head_bg,
+body.theme-volt .generic_content:hover .head_bg {
+    border-color: var(--volt-lime) transparent transparent var(--volt-lime) !important;
+}
+/* Purchase/Claim/Unsubscribe button - same thick-border/hard-shadow treatment as the rest of
+   Volt's buttons, guaranteed via !important since the native color source here varies (plain
+   outlined by default, solid on hover/active). */
+body.theme-volt .generic_price_btn a {
+    background: var(--volt-lime) !important;
+    border: 2px solid #0A0A0A !important;
+    color: #0A0A0A !important;
+}
+body.theme-volt .ribbon-red {
+    background: var(--volt-pink) !important;
+    border: 2px solid #0A0A0A;
+}
+
+/* ---------- page-load preloader (layouts/layout.blade.php, #hellopreloader) - shown full-
+   screen while the page/assets are still loading, hardcoded to the site's brand color
+   (var(--main-color), an unrelated admin setting) regardless of theme. The spinner icon's own
+   stroke color (an SVG presentation attribute, inline in the markup) is overridden here via a
+   normal CSS rule, since presentation attributes always lose to any CSS rule regardless of
+   specificity - no !important needed for that part. */
+body.theme-volt #hellopreloader {
+    background: var(--volt-bg) !important;
+}
+body.theme-volt .preloader svg {
+    stroke: var(--volt-lime);
+}
+body.theme-volt .preloader .text {
+    color: var(--volt-text) !important;
+}
+
+/* ---------- AI Inbox panel (find_friends.blade.php, admin-only "managed accounts" list) -
+   uses plain Bootstrap .list-group/.list-group-item, permanently white/black regardless of
+   theme (Bootstrap's own defaults, not part of this theme/repo). Restyled to match the rest
+   of Volt. Kept simple/light-touch since the client may ask to fold this into the main chat
+   inbox later - not worth a deeper redesign yet. */
+body.theme-volt .ai-inbox-panel h4 {
+    color: var(--volt-text) !important;
+    font-family: var(--volt-display);
+    font-weight: 700;
+}
+body.theme-volt .ai-inbox-panel h4 .text-muted {
+    color: var(--volt-text-mute) !important;
+}
+body.theme-volt .ai-inbox-panel .list-group {
+    border-radius: 6px;
+    overflow: hidden;
+    border: 2px solid var(--volt-line-strong);
+}
+body.theme-volt .ai-inbox-panel .list-group-item {
+    background: var(--volt-bg-2) !important;
+    border-color: var(--volt-line) !important;
+    color: var(--volt-text) !important;
+}
+body.theme-volt .ai-inbox-panel .list-group-item:hover,
+body.theme-volt .ai-inbox-panel .list-group-item-action:hover {
+    background: var(--volt-surface-2) !important;
+}
+body.theme-volt .ai-inbox-panel .list-group-item .text-muted,
+body.theme-volt .ai-inbox-panel .list-group-item small {
+    color: var(--volt-text-mute) !important;
+}
+
+/* ---------- "load more" trigger (find_friends.blade.php's #load_more_find_friends, the
+   three-dots circle below the grid) - permanently a plain light-gray circle regardless of
+   theme (style.css/vendor CSS, not part of this repo), which read as a stray pale dot against
+   this theme's dark background. Thicker border, matching Volt's neo-brutalist look rather
+   than the soft glow the other themes in this family use. */
+body.theme-volt #load_more_find_friends {
+    background: var(--volt-surface) !important;
+    border: 2px solid var(--volt-line-strong) !important;
+}
+body.theme-volt #load_more_find_friends .olymp-three-dots-icon {
+    fill: var(--volt-lime) !important;
+}
+body.theme-volt #load_more_find_friends:hover {
+    background: var(--volt-lime) !important;
+    border-color: var(--volt-lime) !important;
+}
+body.theme-volt #load_more_find_friends:hover .olymp-three-dots-icon {
+    fill: #0A0A0A !important;
+}
+
+/* ---------- "livefeed" popup toast (layouts/layout.blade.php, #livefeed_container -
+   "X purchased a Y subscription!" / "X is now Online!", shown periodically via dating.js's
+   get_livefeed()) - permanently white/#333 (style.css, not part of this theme/repo) regardless
+   of theme or light/dark mode. Restyled to use this theme's own surface/text tokens - thick
+   border, sharp corners, matching Volt's neo-brutalist look rather than the soft pill/glow
+   treatment the other themes in this family use. */
+body.theme-volt #livefeed_container {
+    background: var(--volt-surface) !important;
+    border: 2px solid var(--volt-line-strong) !important;
+    border-radius: 6px !important;
+    color: var(--volt-text) !important;
+}
+body.theme-volt #livefeed_name {
+    color: var(--volt-lime) !important;
+}
+body.theme-volt #livefeed_pack {
+    color: var(--volt-pink) !important;
+}
+body.theme-volt #livefeed_time_container {
+    color: var(--volt-text-mute) !important;
+}
+body.theme-volt #livefeed_close {
+    background: var(--volt-surface-2) !important;
+    color: var(--volt-text) !important;
+    border-radius: 4px !important;
+}
+body.theme-volt #livefeed_close:hover {
+    background: var(--volt-pink) !important;
+    color: #000 !important;
+}

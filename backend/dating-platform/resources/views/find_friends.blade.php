@@ -3,16 +3,56 @@
     <!-- ... end Responsive Header-BP -->
     @php
         $show_roulette = 0;
+        // Resolved independently here (not inherited from layouts/layout.blade.php) because
+        // this content section is rendered before that parent layout runs - see the note in
+        // ActiveTheme::current()'s docblock.
+        $activeTheme = \App\Support\ActiveTheme::current();
     @endphp
     <div class="header-spacer"></div>
 
     <!-- Main Content Groups -->
 
     <div class="container">
+        @if(($activeTheme ?? 'classic') !== 'classic')
+            <div class="theme-hero">
+                <div class="theme-hero-eyebrow">
+                    <span class="theme-pulse-dot"></span>
+                    {{ number_format(\App\User::where('status', 'online')->count()) }} {{ l('members online right now') }}
+                </div>
+                <h1 class="theme-hero-title">{{ l('Meet someone who') }} <em>{{ l('truly pays attention to you') }}</em></h1>
+                <p class="theme-hero-sub">{{ l('Browse profiles, start a conversation with one click, and find who\'s worth continuing with.') }}</p>
+                @if($activeTheme === 'nordic')
+                    {{-- Matches the nordic reference design's own hero, which uses two CTA
+                         buttons here instead of a search bar. --}}
+                    <div class="theme-hero-actions">
+                        <a href="#find_friends_results" class="theme-hero-btn-primary">{{ l('Browse now') }}</a>
+                        <a href="/packages" class="theme-hero-btn-ghost">{{ l('View packages') }}</a>
+                    </div>
+                @else
+                    <div class="theme-searchbar">
+                        <input type="text" id="find-friends-search" placeholder="{{ l('Search by name or city...') }}" onkeypress="if(event.key==='Enter'){ event.preventDefault(); find_friends_change(); }">
+                        <button type="button" onclick="find_friends_change();">{{ l('Search') }}</button>
+                    </div>
+                @endif
+                <div class="theme-chips">
+                    <div class="find-friends-sort-chip active" data-sort="" onclick="setFindFriendsSortChip(this);">{{ l('Recommended') }}</div>
+                    <div class="find-friends-sort-chip" data-sort="newest" onclick="setFindFriendsSortChip(this);">{{ l('New members') }}</div>
+                </div>
+                @if($activeTheme === 'nordic')
+                    <div class="theme-searchbar theme-searchbar-secondary">
+                        <input type="text" id="find-friends-search" placeholder="{{ l('Search by name or city...') }}" onkeypress="if(event.key==='Enter'){ event.preventDefault(); find_friends_change(); }">
+                        <button type="button" onclick="find_friends_change();">{{ l('Search') }}</button>
+                    </div>
+                @endif
+            </div>
+        @endif
         <h1 class="header-middle-center">{{ l('Matches for you') }}</h1>
         <hr>
 
-        @if(Auth::check() && Auth::user()->isAdmin() && count($aiInbox ?? []))
+        {{-- Hidden when MERGE_AI_INBOX is on (config/services.php) - the same conversations
+             already show in the header's "Chat / Messages" dropdown on every page in that case,
+             so this separate panel would just be a duplicate list. --}}
+        @if(!config('services.merge_ai_inbox') && Auth::check() && Auth::user()->isAdmin() && count($aiInbox ?? []))
             <div class="ai-inbox-panel mb-3">
                 <h4 class="header-middle-center">{{ l('AI Inbox') }} <small class="text-muted">({{ l('managed accounts') }})</small></h4>
                 <div class="list-group">
@@ -45,12 +85,39 @@
                             <div class="ui-block"
                                 style="@if ($ai->imageUrl()) background: #222 url('{{ $ai->imageUrl() }}') no-repeat center center; background-size: contain;@endif  height:415px;">
                                 <span class="find_friends_status span-online">{{ l('Online') }}</span>
-                                <div class="friend-item friend-groups">
+                                <div class="friend-item friend-groups @if($activeTheme === 'binder') binder-flip @endif">
                                     <div class="friend-item-content">
                                         <div class="friend-avatar">
                                             <div class="author-thumb find-friends-item"></div>
                                         </div>
-                                        <div class="friend-actions">
+                                        <div class="friend-actions" @if($activeTheme === 'binder') data-initial="{{ strtoupper(substr($ai->name, 0, 1)) }}" @endif>
+                                            <div class="author-content">
+                                                <span class="h5 author-name">{{ $ai->name }}</span>
+                                            </div>
+                                            @unless($activeTheme === 'binder')
+                                            <div class="control-block-button @guest justify-content-center @endguest">
+                                                <a href="#" class="  btn btn-control bg-blue" onclick="return false;"
+                                                    data-toggle="tooltip" data-placement="top"
+                                                    data-original-title="{{ l('See Profile') }}">
+                                                    {{ l('See Profile') }}
+                                                </a>
+                                                @auth
+                                                    <a href="#" class="btn btn-control bg-purple"
+                                                        onclick="ai_chat_open({{ $ai->id }}, @js($ai->name), @js($ai->imageUrl())); return false;"
+                                                        data-toggle="tooltip" data-placement="top"
+                                                        data-original-title="{{ l('Start chatting') }}">
+                                                        {{ l('Chat') }}
+                                                    </a>
+                                                @endauth
+                                            </div>
+                                            @endunless
+                                        </div>
+                                        {{-- Binder-only: real 3D card flip "back face" - see themes/binder.css's
+                                             "collectible-card" section. Duplicates the name + the SAME real
+                                             See Profile/Chat actions every theme already has, just revealed on
+                                             flip instead of always visible - no new data, no new behavior. --}}
+                                        @if($activeTheme === 'binder')
+                                        <div class="friend-actions-back">
                                             <div class="author-content">
                                                 <span class="h5 author-name">{{ $ai->name }}</span>
                                             </div>
@@ -70,6 +137,7 @@
                                                 @endauth
                                             </div>
                                         </div>
+                                        @endif
                                     </div>
                                 </div>
                             </div>
@@ -98,7 +166,7 @@
                                 ])
                             @else
                                 <!-- Friend Item -->
-                                <div class="friend-item friend-groups">
+                                <div class="friend-item friend-groups @if($activeTheme === 'binder') binder-flip @endif">
 
                                     <div class="friend-item-content">
 
@@ -123,7 +191,40 @@
                                                 @endforeach
                                             </ul>
                                         @endauth --}}
-                                        <div class="friend-actions">
+                                        <div class="friend-actions" @if($activeTheme === 'binder') data-initial="{{ strtoupper(substr($user->name(), 0, 1)) }}" @endif>
+                                            <div class="author-content">
+                                                <a href="/profile/{{ $user->username }}"
+                                                    class="h5 author-name">{{ $user->name() }} @if ($user->age() != 0)
+                                                        , {{ $user->age() }}
+                                                    @endif
+                                                </a>
+                                            </div>
+                                            @unless($activeTheme === 'binder')
+                                            <div class="control-block-button @guest justify-content-center @endguest">
+                                                <a href="/profile/{{ $user->username }}" class="  btn btn-control bg-blue"
+                                                    data-toggle="tooltip" data-placement="top"
+                                                    data-original-title="{{ l('See Profile') }}">
+                                                    {{ l('See Profile') }}
+                                                </a>
+                                                @auth
+                                                    <a href="#" data-id="{{ $user->id }}"
+                                                        onclick="chat_open(this,event);" class="btn btn-control bg-purple"
+                                                        data-toggle="tooltip" data-placement="top"
+                                                        data-original-title="{{ l('Start chatting') }}">
+                                                        {{ l('Chat') }}
+                                                    </a>
+                                                @endauth
+                                            </div>
+                                            @endunless
+                                        </div>
+                                        {{-- Binder-only: real 3D card flip "back face" - see themes/binder.css's
+                                             "collectible-card" section, and FindFriendsController::search()'s
+                                             matching branch for AJAX "load more" cards. Duplicates the name +
+                                             the SAME real See Profile/Chat actions every theme already has,
+                                             just revealed on flip instead of always visible - no new data, no
+                                             new behavior. --}}
+                                        @if($activeTheme === 'binder')
+                                        <div class="friend-actions-back">
                                             <div class="author-content">
                                                 <a href="/profile/{{ $user->username }}"
                                                     class="h5 author-name">{{ $user->name() }} @if ($user->age() != 0)
@@ -147,6 +248,7 @@
                                                 @endauth
                                             </div>
                                         </div>
+                                        @endif
                                     </div>
                                 </div>
                             @endif
@@ -357,6 +459,15 @@
             if (closeIcon) { closeIcon.setAttribute('data-id', dataId); }
 
             $(chatsBox).prepend(popup);
+            // Same background-photo layer the real (human) chat popup uses (see
+            // setRealAiChatBackgroundPhoto/.real-ai-bg-photo in dating.js/chat.blade.php) -
+            // this feature existed for real profiles but was never wired up for AI Companions.
+            // AIProfile::imageUrl() already returns a full URL (not a bare filename under
+            // /storage/images/ like the real-profile version expects), so it needs its own
+            // small setter instead of reusing that one directly.
+            if (typeof window.setAiCompanionChatBackgroundPhoto === 'function') {
+                window.setAiCompanionChatBackgroundPhoto(dataId, imageUrl);
+            }
             aiLoadHistory(popup, profileId);
 
             window.chats += 1;
@@ -385,6 +496,30 @@
             aiConversations[profileId] = null;
             aiLoadHistory(popup, profileId);
         };
+
+        // If MERGE_AI_INBOX is on (config/services.php), clicking an AI conversation in the
+        // header dropdown (available on every page, unlike this page's own inline JS) lands
+        // here via a plain link carrying these query params, since that's the one place the
+        // actual ai_inbox_open() function exists. Auto-opens it once on load, then strips the
+        // params from the URL so a refresh doesn't reopen it.
+        (function () {
+            var params = new URLSearchParams(window.location.search);
+            var profileId = params.get('open_ai_profile');
+            if (!profileId) { return; }
+            var fromUserId = params.get('open_ai_user');
+            var name = params.get('open_ai_name') || '';
+            var imageUrl = params.get('open_ai_image') || '';
+            document.addEventListener('DOMContentLoaded', function () {
+                window.ai_inbox_open(parseInt(profileId, 10), name, imageUrl, fromUserId ? parseInt(fromUserId, 10) : null);
+            });
+            params.delete('open_ai_profile');
+            params.delete('open_ai_user');
+            params.delete('open_ai_name');
+            params.delete('open_ai_image');
+            var newQuery = params.toString();
+            var newUrl = window.location.pathname + (newQuery ? '?' + newQuery : '') + window.location.hash;
+            window.history.replaceState(null, '', newUrl);
+        })();
 
         // Admin-only: opens (or focuses) the AI chat popup for the given AI profile already
         // switched to the given managed account ("AI Inbox" list above the page). Reuses

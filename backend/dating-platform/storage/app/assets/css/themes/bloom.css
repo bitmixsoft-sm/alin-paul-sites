@@ -1,0 +1,1649 @@
+/* Bloom theme - additive skin, only ever active under body.theme-bloom.
+   Loaded AFTER the base /assets/css/style.css, never replaces it. */
+
+/* Bright/warm by default (opposite of Aurora/Nordic/Volt/Velvet, which are all dark-first) -
+   same reasoning as Mosaic's aborted attempt: the site's dark/light toggle defaults to "dark"
+   for new visitors (theme-selector.js - isDark defaults true), which makes the BARE block
+   below (not the :not(.site-dark-mode) block further down) what most visitors see first - so
+   it holds this theme's signature cream/coral/teal look, and the override block holds a
+   secondary warm-dark "night" variant for whoever manually toggles away from it. Unlike
+   Mosaic, the NAV/HEADER STRUCTURE ITSELF is untouched here - same proven horizontal top nav
+   as every other theme in this family; only the color/type tokens and the card grid (see
+   "profile cards" further down) are different. */
+body.theme-bloom {
+    --bloom-bg: #FBF5EA;
+    --bloom-bg-2: #F3E9D6;
+    --bloom-surface: #FFFFFF;
+    --bloom-surface-2: #F2E4CE;
+    --bloom-line: rgba(34, 31, 26, 0.12);
+    --bloom-line-strong: rgba(34, 31, 26, 0.85);
+    --bloom-ink: #221F1A;
+    --bloom-coral: #FF6B4A;
+    --bloom-coral-bright: #E0502F;
+    --bloom-teal: #1F8A82;
+    --bloom-teal-bright: #166B65;
+    --bloom-yellow: #FFC94A;
+    --bloom-text: #221F1A;
+    --bloom-text-dim: #6B6156;
+    --bloom-text-mute: #9C9184;
+    --bloom-online: #1F8A82;
+    --bloom-display: 'Poppins', 'Segoe UI', sans-serif;
+    --bloom-body: 'Karla', 'Segoe UI', sans-serif;
+    --bloom-mono: 'Red Hat Mono', 'Consolas', monospace;
+
+    background: var(--bloom-bg) !important;
+    color: var(--bloom-text) !important;
+    font-family: var(--bloom-body) !important;
+    /* Hard safety net against the whole page gaining a horizontal scrollbar - a mobile
+       dating feed should never need one, so clipping here is always safe regardless of what
+       child element (mobile nav dropdown, search box, a card) miscalculates its own width.
+       This whole file only ever loads when bloom is the active theme (see layout.blade.php),
+       so an unscoped `html` selector here is safe - it can never affect classic or another
+       theme. */
+    overflow-x: hidden;
+}
+html {
+    overflow-x: hidden;
+}
+
+/* "Night" variant, reached by manually toggling the site's dark/light switch away from this
+   theme's cream default (see the long comment on the bare block above). Every rule below only
+   ever uses the --bloom-* custom properties, so redefining them here is enough to re-skin the
+   whole theme without repeating every single color rule. --bloom-ink and --bloom-yellow are
+   deliberately NOT redefined here - same reasoning as the card-overlay text staying a fixed
+   white regardless of mode (see the "profile cards" section further down). */
+body.theme-bloom:not(.site-dark-mode) {
+    --bloom-bg: #17140F;
+    --bloom-bg-2: #201C15;
+    --bloom-surface: #241F17;
+    --bloom-surface-2: #2C2619;
+    --bloom-line: rgba(255, 201, 74, 0.14);
+    --bloom-line-strong: rgba(255, 201, 74, 0.4);
+    --bloom-coral: #FF8563;
+    --bloom-coral-bright: #FF6B4A;
+    --bloom-teal: #3FADA3;
+    --bloom-teal-bright: #2F8C83;
+    --bloom-text: #F3EFE6;
+    --bloom-text-dim: #B8AFA0;
+    --bloom-text-mute: #7D7566;
+    --bloom-online: #3FADA3;
+}
+/* The control-block icons (notifications/chat/friend-requests) have a hardcoded
+   `.control-icon.has-items { fill: #fff; }` in main.css (not part of this theme/repo) - white
+   icons that are invisible against a light background. Every other theme in this family is
+   dark-by-default, so they only need this fix in their OWN light (:not(.site-dark-mode))
+   variant - Bloom is the opposite (bright/cream by DEFAULT, see the long comment on the token
+   block above), so this has to run unconditionally instead of gated to :not(.site-dark-mode) -
+   gating it that way (an earlier version of this file did, copied unexamined from Velvet's
+   structure) left the header's icons/username invisible in Bloom's actual default state,
+   which is the bare block, not the override. --bloom-text-dim/--bloom-text already carry the
+   right shade for whichever of the two states is active, so applying this in both is safe -
+   it only changes dark "night" mode's icons from native white to this theme's muted tone,
+   which reads fine either way. */
+body.theme-bloom .control-block .control-icon,
+body.theme-bloom .control-block .control-icon.has-items {
+    fill: var(--bloom-text-dim) !important;
+}
+/* Same issue, same fix, for the profile avatar's name text next to it in the header
+   (components/header/profile-header.blade.php) - main.css hardcodes
+   `.control-block .author-title { color: #fff; svg { fill: #fff; } }`, invisible against a
+   light background. */
+body.theme-bloom .control-block .author-title,
+body.theme-bloom .control-block .author-subtitle {
+    color: var(--bloom-text) !important;
+}
+body.theme-bloom .control-block .author-title svg {
+    fill: var(--bloom-text) !important;
+}
+
+/* The page template's own base CSS (main.css, not part of this repo/theme) puts an opaque
+   light background on the content wrapper and/or its direct child container, which sits on
+   top of the body background above and would otherwise hide it almost entirely - force it
+   (and its likely direct-child wrapper, whatever exact class it uses) transparent so the dark
+   body background actually shows through. */
+body.theme-bloom #main-wrapper-content,
+body.theme-bloom #main-wrapper-content > * {
+    background: transparent !important;
+    background-color: transparent !important;
+}
+body.theme-bloom #main-wrapper-content,
+body.theme-bloom #main-wrapper-content h1,
+body.theme-bloom #main-wrapper-content h2,
+body.theme-bloom #main-wrapper-content h3,
+body.theme-bloom #main-wrapper-content h4,
+body.theme-bloom #main-wrapper-content h5,
+body.theme-bloom #main-wrapper-content h6 {
+    color: var(--bloom-text) !important;
+    font-family: var(--bloom-body) !important;
+}
+/* CMS pages (Terms of Use, Legal information, etc. - resources/views/cms_page.blade.php) put
+   their content inside .content_block, which has a permanently white background (style.css,
+   not part of this theme/repo) that never adapts to dark/light mode - the rule above forces
+   this theme's own (light, in dark mode) text color onto it, making it unreadable against
+   that always-white card. Force a fixed dark, readable color here instead, regardless of the
+   theme's own light/dark state - this card's background never changes, so neither should its
+   text color. */
+body.theme-bloom #main-wrapper-content .content_block,
+body.theme-bloom #main-wrapper-content .content_block h1,
+body.theme-bloom #main-wrapper-content .content_block h2,
+body.theme-bloom #main-wrapper-content .content_block h3,
+body.theme-bloom #main-wrapper-content .content_block h4,
+body.theme-bloom #main-wrapper-content .content_block h5,
+body.theme-bloom #main-wrapper-content .content_block h6,
+body.theme-bloom #main-wrapper-content #cms_header {
+    color: #2A2A2A !important;
+}
+
+/* ---------- nav / header ---------- */
+/* NOTE: uses --bloom-bg-2 (a theme variable) instead of a hardcoded dark rgba() - the old
+   hardcoded value never lightened in light mode (see the light-variant block up top), leaving
+   dark text on a permanently-dark header background. */
+/* CONFIRMED root cause (checked main.css directly, live, via curl): the site's original
+   layout is CSS-FLOAT based, not flexbox - .search-bar is `float:left; width:500px;
+   height:70px;` and .control-block is `float:right`, with NO clearfix on
+   .header-content-wrapper. A float-only parent with no clearfix collapses to near-zero
+   height (floats don't contribute to parent height), while the floated search bar keeps its
+   own native 70px height - that's what made it visually stick out above/below the
+   (collapsed) header background. min-height below guarantees the header never collapses
+   under that height regardless of width; the clearfix on header-content-wrapper (further
+   down) makes this robust even without it. */
+body.theme-bloom .header {
+    background: var(--bloom-bg-2) !important;
+    backdrop-filter: blur(16px) saturate(140%);
+    border-bottom: 1px solid var(--bloom-line);
+    min-height: 72px;
+}
+/* Classic clearfix - makes header-content-wrapper's height account for its floated children
+   (.search-bar, .control-block) at ANY width, not just the >=992px block below where we
+   override float with flex outright (flex items ignore float per spec, so this clearfix is
+   mainly what protects narrower/in-between widths). */
+body.theme-bloom .header-content-wrapper::after {
+    content: '';
+    display: table;
+    clear: both;
+}
+body.theme-bloom .header::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--bloom-coral), var(--bloom-teal-bright), var(--bloom-teal));
+    opacity: .7;
+}
+/* The page title (e.g. "Find Friends" as a big heading) isn't part of the reference nav at
+   all - the nav links themselves already show what page you're on (active underline). */
+body.theme-bloom .header .page-title {
+    display: none;
+}
+/* Force everything in the header onto one row, in a predictable order, instead of relying on
+   whatever flex rules main.css (not part of this repo) happens to apply - that's what was
+   causing the header to wrap onto two chaotic lines. Applied at ALL widths: the theme's own
+   .theme-nav-toggle hamburger (below) is the SOLE navigation at every width under this theme -
+   the native mobile tab header/drawer (header-responsive, fixed-sidebar-responsive) is hidden
+   unconditionally instead of being allowed to take over on narrow screens, so the mobile
+   experience always matches the new design instead of falling back to the classic look.
+   Kept a plain fixed 64px height here (mobile/hamburger range, <=991px) - .theme-nav is a
+   position:absolute dropdown at these widths (see the max-width:991px block further down), so
+   it's never actually part of this row's in-flow height and can't wrap it taller. The
+   height:auto+padding override for wrapping only applies >=992px below, where the *inline*
+   nav can genuinely need two lines - applying that unconditionally here previously added
+   needless extra height on mobile too, visibly crowding the page content right beneath the
+   header (it's position:fixed, so anything taller than the page's reserved .header-spacer
+   overlaps the content instead of pushing it down). */
+body.theme-bloom .header {
+    height: 64px;
+    display: flex;
+    align-items: center;
+}
+@media screen and (min-width: 1280px) {
+    body.theme-bloom .header {
+        height: auto;
+        padding: 10px 0;
+    }
+}
+body.theme-bloom .header-content-wrapper {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    align-items: center;
+    width: 100%;
+    /* box-sizing:border-box - without it this padding would add to the 100% width above and
+       overflow the header. */
+    box-sizing: border-box;
+    padding: 0 16px;
+    gap: 16px;
+}
+/* Hides BOTH the native mobile tab header (header-responsive, its own icon row/search/
+   Register-Login pair) AND the native mobile "Quick Links" drawer (fixed-sidebar-responsive,
+   the hamburger-triggered slide-in menu) - unconditionally, at every width. Without this the
+   mobile view falls back to the unthemed classic mobile UI instead of the new design. */
+body.theme-bloom .header-responsive,
+body.theme-bloom #site-header-responsive,
+body.theme-bloom .fixed-sidebar.fixed-sidebar-responsive {
+    display: none !important;
+}
+/* ---------- header search bar: one seamless rounded pill, icon has no button chrome of its
+   own (consolidated - this used to be split across several conflicting rule blocks from
+   earlier iterations, which is why the icon rendered as its own separate gray box). ---------- */
+body.theme-bloom .search-bar {
+    float: none !important;
+    width: auto !important;
+    height: auto !important;
+    background: transparent !important;
+    flex: 0 0 auto;
+    margin: 0;
+    /* align-self (not just the parent's align-items) - guarantees this flex item is
+       vertically centered against the nav text regardless of any other rule touching it. */
+    align-self: center;
+    display: flex;
+    align-items: center;
+}
+body.theme-bloom .search-bar .form-group {
+    position: relative;
+    width: 260px;
+    height: auto !important;
+    margin: 0;
+}
+/* Narrow screens: the header row is nowrap (see above) so a full 260px search box would
+   crowd out the hamburger toggle / control-block icons. CLOSED: just the small icon, no
+   visible footprint. OPEN: the <form class="search-bar"> element itself becomes the dropdown
+   panel - anchored to .header exactly the same way .theme-nav's own mobile dropdown already
+   is (position:absolute; top:100%; left/right:12px, same background/border/radius/shadow
+   tokens), since that pattern is already proven working. The earlier attempt made the INNER
+   .form-group try to become the panel while the outer .search-bar stayed a plain flex item -
+   two nested position/sizing contexts fighting each other is what produced the disconnected,
+   wrongly-colored shapes. Toggled by clicking the search icon again or clicking outside
+   (toggleThemeSearch(), theme-selector.js). */
+@media screen and (max-width: 767px) {
+    body.theme-bloom .search-bar .form-group {
+        width: 34px;
+        height: 34px;
+        overflow: visible;
+        border-radius: 50%;
+        background: transparent;
+    }
+    body.theme-bloom .search-bar input.form-control,
+    body.theme-bloom .search-bar .js-user-search {
+        display: none !important;
+    }
+    body.theme-search-open.theme-bloom .search-bar {
+        display: flex !important;
+        align-items: center;
+        position: absolute !important;
+        top: 100%;
+        left: 12px;
+        right: 12px;
+        margin-top: 8px;
+        background: var(--bloom-bg-2) !important;
+        border: 1px solid var(--bloom-line);
+        border-radius: 16px;
+        box-shadow: 0 20px 60px -15px rgba(0, 0, 0, 0.7);
+        padding: 10px 14px;
+        z-index: 1000;
+    }
+    body.theme-search-open.theme-bloom .search-bar .form-group {
+        width: 100%;
+        height: auto;
+        display: flex;
+        align-items: center;
+        overflow: visible;
+        border-radius: 0;
+    }
+    body.theme-search-open.theme-bloom .search-bar input.form-control {
+        display: block !important;
+        position: static;
+        flex: 1 1 auto;
+        width: auto;
+        height: 36px !important;
+        background: transparent !important;
+        border: none !important;
+        padding: 0 8px !important;
+    }
+    body.theme-search-open.theme-bloom .search-bar button {
+        position: static !important;
+        flex: 0 0 auto;
+        width: auto !important;
+        background: transparent !important;
+    }
+    /* The AJAX suggestion results panel (dating.js toggles its own inline display:block/none)
+       stays fully hidden while the search box is closed, and drops below the now-open panel. */
+    body.theme-search-open.theme-bloom .search-bar .js-user-search {
+        display: block !important;
+        position: absolute;
+        top: calc(100% + 8px) !important;
+        left: 0 !important;
+        right: 0;
+        width: 100% !important;
+    }
+}
+body.theme-bloom .search-bar input.form-control {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0 40px 0 18px !important;
+    height: 40px !important;
+    background: var(--bloom-surface) !important;
+    border: 1px solid var(--bloom-line) !important;
+    border-radius: 100px !important;
+    color: var(--bloom-text) !important;
+}
+body.theme-bloom .search-bar input.form-control::placeholder {
+    color: var(--bloom-text-mute);
+}
+body.theme-bloom .search-bar input.form-control:focus {
+    border-color: var(--bloom-coral) !important;
+    outline: none;
+}
+body.theme-bloom .search-bar button {
+    position: absolute !important;
+    right: 4px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: transparent !important;
+    border: none !important;
+    border-radius: 50% !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    outline: none !important;
+    -webkit-tap-highlight-color: transparent;
+}
+/* Tapping/clicking the icon (it's a real <button>) otherwise leaves the browser's default
+   focus ring visible as a persistent circle outline around it. */
+body.theme-bloom .search-bar button:focus,
+body.theme-bloom .search-bar button:focus-visible {
+    outline: none !important;
+    box-shadow: none !important;
+}
+/* The icon's own base CSS may set a hardcoded fill color rather than relying on
+   currentColor, so the button's "color" alone might not actually recolor it - set fill
+   explicitly to guarantee it matches the theme. */
+body.theme-bloom .search-bar button svg {
+    fill: var(--bloom-text-dim);
+    width: 16px;
+    height: 16px;
+}
+/* Search suggestions dropdown - matches the search bar's own width/style instead of the
+   inline 500px/light-theme default it otherwise renders with. */
+/* position:absolute - the site's own style.css only sets this (as !important, alongside the
+   fixed top:70px/left:0 this overrides) INSIDE its own `@media (max-width:768px)` block, never
+   for desktop widths - so at desktop widths, with no position set at all, this box used to
+   render in NORMAL FLOW and genuinely shove the header/nav row down every time a search
+   result appeared (regardless of theme - .header being position:fixed here, same as classic,
+   was never the issue; the missing position on THIS element was). Setting position:absolute
+   here, unconditionally, is what actually overlays it instead. */
+body.theme-bloom .search-bar .js-user-search {
+    position: absolute !important;
+    width: 100% !important;
+    left: 0 !important;
+    top: calc(100% + 6px) !important;
+    background: var(--bloom-surface) !important;
+    border: 1px solid var(--bloom-line) !important;
+    border-radius: 12px !important;
+    color: var(--bloom-text);
+}
+/* display:flex + centering (not inline-block) - the emoji glyph this button shows
+   (theme-selector.js sets its innerHTML to a moon/sun emoji) has unusual line-height metrics
+   of its own that don't vertically center against the surrounding text with inline-block,
+   which is why it looked slightly misaligned with the nav row next to it. */
+body.theme-bloom #theme-toggler {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    font-size: 18px;
+    line-height: 1;
+    filter: hue-rotate(200deg) saturate(1.4);
+}
+/* At desktop widths .control-block's children (notification/chat/credits icons) rely on
+   however main.css originally laid them out internally, so no display override is needed
+   there - margin-left:auto alone pushes the whole block right within the flex header row.
+   BELOW 768px though, main.css has its own rule forcing `.control-block { display:block;
+   padding:15px 20px 0; }` (meant for the native mobile tab header, which we hide entirely -
+   see above) - that turns every icon link into a full-width stacked block, which is the
+   vertically-stacked-icons / full-width red Packages button bug. Overriding display back to
+   flex at that same breakpoint fixes it. */
+body.theme-bloom .control-block {
+    flex: 0 0 auto;
+    margin-left: auto;
+}
+@media screen and (max-width: 767px) {
+    body.theme-bloom .control-block {
+        display: flex !important;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 10px;
+        height: auto !important;
+        padding: 0 !important;
+    }
+    body.theme-bloom .control-block > * {
+        flex: 0 0 auto;
+        width: auto !important;
+    }
+    /* Packages button + credits pill are redundant on mobile - every page with a Packages
+       button already shows its own full one further down, and dropping these two frees up
+       enough width for the notification/chat/friend-request icon badges (previously squeezed
+       off/invisible in this same row) to actually fit and show. */
+    body.theme-bloom .control-block .packages-top,
+    body.theme-bloom .control-block .theme-credits-pill {
+        display: none !important;
+    }
+}
+/* The profile avatar link+dropdown (components/header/profile-header.blade.php) is hidden
+   entirely on mobile (not just its :hover dropdown) - .theme-nav's own mobile-only Account/
+   Language/Log Out links (see header.blade.php) replace it there, so keeping the avatar link
+   around too was a redundant duplicate eating space in the icon row. Desktop keeps the avatar
+   link AND its native hover dropdown exactly as before - the dropdown works fine there with a
+   mouse; showing these same links inline in the desktop .theme-nav row too (tried previously)
+   just made that row wrap awkwardly against the credits/packages controls. */
+@media screen and (max-width: 1279px) {
+    body.theme-bloom .control-block .author-page {
+        display: none !important;
+    }
+}
+/* ---------- header icon dropdowns (notifications/chat/friend-requests/profile) - these
+   reuse the site's shared .more-dropdown component, which is hardcoded to a white classic
+   background/dark text/small border-radius regardless of theme. Restyled here to match the
+   exact same rounded-card look as the .theme-nav mobile dropdown (16px radius, same
+   background/border/shadow tokens) rather than just swapping colors on the old shape -
+   scoped to .control-block so only the header's own copies are touched (the same class is
+   reused elsewhere in the app - calendar, shop cart, etc. - which must stay untouched). ---------- */
+body.theme-bloom .control-block .more-dropdown {
+    background: var(--bloom-bg-2) !important;
+    border: 1px solid var(--bloom-line);
+    border-radius: 16px !important;
+    box-shadow: 0 20px 60px -15px rgba(0, 0, 0, 0.7);
+    padding: 12px !important;
+    overflow: hidden;
+}
+body.theme-bloom .control-block .more-dropdown .ui-block-title .title,
+body.theme-bloom .control-block .more-dropdown a,
+body.theme-bloom .control-block .more-dropdown .h6,
+body.theme-bloom .control-block .more-dropdown .notification-friend,
+body.theme-bloom .control-block .more-dropdown .author-title {
+    color: var(--bloom-text) !important;
+}
+body.theme-bloom .control-block .more-dropdown .chat-message-item,
+body.theme-bloom .control-block .more-dropdown .notification-date,
+body.theme-bloom .control-block .more-dropdown .author-subtitle,
+body.theme-bloom .control-block .more-dropdown .no-req {
+    color: var(--bloom-text-dim) !important;
+}
+body.theme-bloom .control-block .more-dropdown a:hover {
+    color: var(--bloom-coral) !important;
+}
+/* Unread/hover row states (notification-list li.message-unread/.un-read, .notification-list
+   li:hover - main.css, not part of this theme/repo) have their own hardcoded near-white
+   background, painted OVER the dark .more-dropdown background above for just that one row -
+   left unfixed, that made unread rows (which is most of them, in a busy inbox) show this
+   theme's light text on a near-white row, unreadable. Only rows with neither state showed
+   the correct dark background/light text. */
+body.theme-bloom .control-block .more-dropdown .notification-list li.message-unread,
+body.theme-bloom .control-block .more-dropdown .notification-list li.un-read,
+body.theme-bloom .control-block .more-dropdown .notification-list li:hover {
+    background: var(--bloom-surface-2) !important;
+}
+body.theme-bloom .control-block .more-dropdown input.form-control {
+    background: var(--bloom-surface) !important;
+    border: 1px solid var(--bloom-line) !important;
+    color: var(--bloom-text) !important;
+}
+body.theme-bloom .header .link-find-friend {
+    color: var(--bloom-text-dim);
+    font-weight: 600;
+}
+body.theme-bloom .header .link-find-friend:hover {
+    color: var(--bloom-text);
+}
+body.theme-bloom .theme-credits-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--bloom-surface-2);
+    border: 1px solid var(--bloom-line);
+    padding: 7px 14px;
+    border-radius: 999px;
+    font-family: var(--bloom-mono);
+    font-size: 13px;
+    color: var(--bloom-teal);
+}
+/* .packages-top (the "Packages" pill in the header) isn't themed by any of the rules above -
+   it uses its own hardcoded `background: var(--main-color)` (a site-wide admin setting,
+   currently a dark navy, completely independent of this theme's light/dark variables) - in
+   light mode that left the (also dark) --bloom-text-dim text nearly unreadable against it.
+   Giving it the same themed gradient + guaranteed-white text as the other buttons fixes that
+   in both modes, instead of depending on whatever --main-color happens to be. */
+body.theme-bloom .header .btn-purple,
+body.theme-bloom .header .btn-primary,
+body.theme-bloom .header .packages-top {
+    background: linear-gradient(120deg, var(--bloom-coral), var(--bloom-teal-bright)) !important;
+    border: none !important;
+    color: #fff !important;
+    font-family: var(--bloom-body);
+    font-weight: 700;
+}
+
+/* ---------- ambient glow (same technique as the hero's radial gradients, applied behind
+   the sidebars too so the whole chrome feels like one atmosphere, not just the hero).
+   NOT applied to .header any more - the glow's ::before used to bleed into/behind the search
+   and hamburger dropdown panels (visible as an ugly red blur).
+   IMPORTANT: this used to force position:relative on .header/.fixed-sidebar-left/
+   .fixed-sidebar-right (reasoning: the ::before overlay and the search/nav dropdowns need a
+   "positioned" ancestor to anchor to). That was unnecessary AND harmful - all three already
+   have a non-static native position (.header is position:fixed, both sidebars are
+   position:absolute - see main.css, not part of this theme/repo), which already satisfies
+   that requirement on its own. Overriding .header to position:relative silently broke its
+   native fixed/sticky-on-scroll behavior (it stayed in the page's normal flow and scrolled
+   away instead), and overriding .fixed-sidebar-right specifically broke its native small<->large
+   slide-open animation (base-init.js toggles a `.open` class that drives a CSS
+   `transform: translateX(...)` on these exact elements - forcing position:relative altered
+   their containing-block/stacking behavior enough to make the "large" (expanded, with names)
+   panel fail to slide into view correctly, reported as "the chat panel disappears instead of
+   opening" in every theme except classic, which never touched position here). Removed
+   entirely - the ::before below still anchors correctly to the native fixed/absolute position. */
+body.theme-bloom .fixed-sidebar-left::before,
+body.theme-bloom .fixed-sidebar-right::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+        radial-gradient(120% 140% at 0% 0%, rgba(255, 107, 74, 0.14), transparent 55%),
+        radial-gradient(120% 140% at 100% 100%, rgba(31, 138, 130, 0.12), transparent 55%);
+}
+
+/* ---------- left sidebar: permanently hidden - its real links (Find Friends, Newsfeed, CMS
+   pages, admin) now live in the header's own .theme-nav instead (see header.blade.php), which
+   is the sole nav at every width under this theme. NOTE: zeroing #main-wrapper-content's
+   margin-left is a best-effort attempt to reclaim the space the sidebar used to occupy - the
+   exact compensation rule lives in main.css (not part of this repo), so this may need
+   adjustment once seen live.
+   IMPORTANT: targets #sidebar-left/#sidebar-left-1 by ID, NOT the .fixed-sidebar-left CLASS -
+   components/sidebar-left.blade.php renders this desktop sidebar (#sidebar-left/#sidebar-left-1)
+   AND a wholly separate mobile drawer (#sidebar-left-responsive/#sidebar-left-1-responsive,
+   the classic theme's "Quick Links"/hamburger menu) sharing the same .fixed-sidebar-left class
+   - the mobile drawer is hidden separately, as a whole, via the
+   .fixed-sidebar.fixed-sidebar-responsive rule further up (next to header-responsive), so it
+   isn't accidentally caught by this ID-scoped rule (which fixed an earlier bug where the class
+   selector nuked both at once). */
+body.theme-bloom #sidebar-left,
+body.theme-bloom #sidebar-left-1 {
+    visibility: hidden !important;
+    width: 0 !important;
+    height: 0 !important;
+    overflow: visible !important;
+}
+body.theme-bloom #main-wrapper-content {
+    margin-left: 0 !important;
+}
+body.theme-bloom .fixed-sidebar-right .mCustomScrollbar {
+    background: transparent !important;
+}
+
+/* Pulls the "online users" flyout back into view (its own CSS assumed it'd be inside a
+   visible sidebar) - opened via the new .open_online_users link in .theme-nav, using the
+   exact same click handler as before (bound by class in dating.js, unchanged). top/left below
+   are just a fallback; theme-selector.js repositions this on every click to sit right under
+   whichever .open_online_users link was actually clicked (it can be in different places -
+   inline in the desktop nav, or in the mobile hamburger dropdown), instead of this fixed spot
+   that only ever matched the old sidebar toggle's position. */
+body.theme-bloom .fixed-sidebar-left #online_users_left {
+    visibility: visible !important;
+    position: fixed !important;
+    top: 70px;
+    left: 20px;
+    width: 280px;
+    max-height: 60vh;
+    overflow-y: auto;
+    background: var(--bloom-bg-2);
+    border: 1px solid var(--bloom-line);
+    border-radius: 16px;
+    box-shadow: 0 20px 60px -15px rgba(0, 0, 0, 0.7);
+    z-index: 999;
+}
+
+
+/* ---------- icon-free horizontal nav (matches the theme reference exactly) ---------- */
+body.theme-bloom .theme-nav {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px 28px;
+    flex: 1 1 auto;
+    justify-content: center;
+    margin: 0;
+}
+/* Account/Language section labels (desktop: small inline labels ahead of their group;
+   mobile: full-width block headers, see the max-width:991px block below) - these are what
+   visually separate "page links" from "account" from "language" in the single nav list. */
+body.theme-bloom .theme-nav-section-label {
+    color: var(--bloom-text-mute);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+}
+body.theme-bloom .theme-nav-link {
+    color: var(--bloom-text-dim);
+    font-weight: 600;
+    font-size: 14.5px;
+    position: relative;
+    padding-bottom: 4px;
+    transition: color .2s;
+}
+body.theme-bloom .theme-nav-link:hover {
+    color: var(--bloom-text);
+}
+body.theme-bloom .theme-nav-link.active {
+    color: var(--bloom-text);
+}
+body.theme-bloom .theme-nav-link.active::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -2px;
+    height: 2px;
+    border-radius: 2px;
+    background: linear-gradient(90deg, var(--bloom-coral), var(--bloom-teal));
+}
+/* Hamburger toggle - hidden on desktop, only shown at mobile widths (see media query below) */
+body.theme-bloom .theme-nav-toggle {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    color: var(--bloom-text-dim);
+    background: var(--bloom-surface-2);
+    border: 1px solid var(--bloom-line);
+}
+body.theme-bloom .theme-nav-toggle:hover,
+body.theme-bloom.theme-nav-dropdown-open .theme-nav-toggle {
+    color: var(--bloom-coral);
+}
+/* Hidden by default (desktop) - MUST come before the max-width:991px block below, not after:
+   an unscoped rule placed after a media query wins the cascade at equal specificity regardless
+   of the media query, which is exactly what silently hid these mobile-only links entirely. */
+body.theme-bloom .theme-nav-mobile-only {
+    display: none;
+}
+@media screen and (max-width: 1279px) {
+    body.theme-bloom .theme-nav-toggle {
+        display: inline-flex;
+    }
+    body.theme-bloom .theme-nav {
+        display: none;
+        /* position:absolute anchored to .header, which is already "positioned" (native
+           position:fixed - see main.css, not part of this theme/repo) so no extra position
+           override is needed on .header itself for this to anchor correctly. */
+        position: absolute;
+        top: 100%;
+        left: 12px;
+        right: 12px;
+        margin-top: 8px;
+        flex-direction: column;
+        /* flex-wrap:nowrap overrides the desktop rule's flex-wrap:wrap (unconditional, further
+           up) - with flex-direction:column, "wrap" doesn't overflow vertically at all, it
+           starts a SECOND COLUMN to the side once content exceeds max-height (wrapping happens
+           on the cross axis, which is horizontal here). That's what silently ate Deutsch/
+           Français/Español: they weren't missing, they'd wrapped into an invisible second
+           column that overflow-x:hidden then clipped, instead of the vertical scrollbar the
+           max-height+overflow-y:auto below was meant to produce. */
+        flex-wrap: nowrap;
+        align-items: flex-start;
+        gap: 4px;
+        margin: 0;
+        padding: 12px;
+        background: var(--bloom-bg-2);
+        border: 1px solid var(--bloom-line);
+        border-radius: 16px;
+        box-shadow: 0 20px 60px -15px rgba(0, 0, 0, 0.7);
+        z-index: 1000;
+    }
+    body.theme-bloom.theme-nav-dropdown-open .theme-nav {
+        display: flex;
+    }
+    body.theme-bloom .theme-nav-link {
+        padding: 10px 8px;
+        width: 100%;
+    }
+    /* Account/language/logout links (see header.blade.php) only exist for the mobile
+       dropdown - desktop keeps the profile avatar's own native hover dropdown for these. */
+    body.theme-bloom .theme-nav-mobile-only {
+        display: block;
+    }
+    /* The custom-status ("moto") form needs its input+button side by side, not the plain
+       block stacking .theme-nav-mobile-only gives everything else above. */
+    body.theme-bloom .theme-nav-status-form {
+        display: flex !important;
+        align-items: center;
+        gap: 8px;
+        width: 100%;
+        /* min-width:0 - a flex item's default min-width is "auto" (its own content size), not
+           0, which stopped this row from ever shrinking to fit the panel; the input inside
+           inherits the same problem and needs the same fix (below). This is what forced the
+           whole .theme-nav panel wider than the screen, breaking its column layout entirely
+           (multiple links squeezed per "row" instead of one each, requiring horizontal scroll
+           to see the rest - the "language above AND below" symptom reported). */
+        min-width: 0;
+        box-sizing: border-box;
+        padding: 4px 8px;
+    }
+    body.theme-bloom .theme-nav-status-form input.form-control {
+        flex: 1 1 auto;
+        width: auto;
+        min-width: 0;
+        max-width: 100%;
+        box-sizing: border-box;
+        height: 36px;
+        background: var(--bloom-surface);
+        border: 1px solid var(--bloom-line);
+        border-radius: 100px;
+        padding: 0 14px;
+        color: var(--bloom-text);
+    }
+    /* Native .form-group.with-button button (main.css, not part of this repo/theme, and NOT
+       scoped to .search-bar) forces `position:absolute; right:0; top:0; height:100%;` on any
+       button inside a .form-group.with-button - which this form's markup reuses. Left
+       unoverridden, that yanks the button out of the flex row entirely and pins it to the
+       corner of whatever positioned ancestor it lands on (.theme-nav itself), which is what
+       made it visibly stick out past the input. position:static neutralizes that. */
+    body.theme-bloom .theme-nav-status-form button {
+        position: static !important;
+        flex: 0 0 auto;
+        width: 32px;
+        height: 32px !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: none;
+        border-radius: 50%;
+        background: linear-gradient(120deg, var(--bloom-coral), var(--bloom-teal-bright));
+        fill: #fff;
+    }
+    /* Section labels become full-width block headers with a top divider/spacing in the
+       stacked mobile dropdown, instead of the small inline labels used in the desktop row. */
+    body.theme-bloom .theme-nav-section-label {
+        width: 100%;
+        padding: 10px 8px 0;
+        margin-top: 6px;
+        border-top: 1px solid var(--bloom-line);
+    }
+    body.theme-bloom .theme-nav-section-label:first-of-type {
+        margin-top: 0;
+    }
+    /* The extra account/language links can make the panel taller than the viewport - scroll
+       instead of overflowing off-screen. overflow-x:hidden is a safety net (not the actual
+       fix - that's the min-width:0 above) so a future child with its own unshrinkable min
+       width clips instead of forcing the whole panel wider than the screen again.
+       100vh (not dvh) reports the FULL screen height on many mobile browsers, including the
+       area their address bar/toolbar actually covers - the panel then computes a max-height
+       taller than what's really visible, so its bottom portion is invisible AND unreachable
+       (it's position:absolute, so the page itself has nothing extra to scroll to reveal it).
+       100dvh reflects the actual visible viewport instead - declared second so browsers that
+       don't support dvh yet simply keep the vh fallback above. */
+    body.theme-bloom .theme-nav {
+        max-height: calc(100vh - 100px);
+        max-height: calc(100dvh - 100px);
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        overflow-x: hidden;
+    }
+}
+
+/* ---------- right sidebar: same detached floating capsule treatment as the left one ---------- */
+/* NOTE: no margin/height override here (an earlier version had `margin: 16px 16px 16px 0;
+   height: calc(100% - 32px) !important;` for a "floating card" look) - main.css (not part of
+   this theme/repo) positions this element with BOTH top:0 and bottom:70px (no explicit
+   height), leaving its own height implicit; forcing an explicit height on top of that
+   over-constrains the box (per the CSS spec, that makes the browser ignore the native
+   bottom:70px), which threw off exactly where the fixed .search-friend/.olympus-chat footer
+   bars (both anchored with their own bottom:0/bottom:70px insets, relative to THIS box) ended
+   up landing - reported as "something is pushing the bottom part down". Border/radius/shadow
+   are still safe to override since they don't affect layout math. */
+body.theme-bloom .fixed-sidebar-right {
+    background: var(--bloom-bg-2) !important;
+    border-color: var(--bloom-line) !important;
+    box-shadow: 0 20px 50px -15px rgba(0, 0, 0, 0.6);
+}
+body.theme-bloom .fixed-sidebar-right .chat-users > li {
+    margin: 4px 10px;
+    padding: 8px;
+    border-radius: 14px;
+    transition: background .18s ease;
+}
+body.theme-bloom .fixed-sidebar-right .chat-users > li:hover {
+    background: var(--bloom-surface-2);
+}
+body.theme-bloom .fixed-sidebar-right .author-thumb .avatar {
+    border-radius: 12px;
+    box-shadow: 0 0 0 1px var(--bloom-line);
+}
+body.theme-bloom .fixed-sidebar-right .author-content .author-name,
+body.theme-bloom .fixed-sidebar-right .name {
+    color: var(--bloom-text);
+    font-family: var(--bloom-display);
+}
+/* Bottom of the right chat panel (components/sidebar-right.blade.php) - the search box and
+   the "TROMAVEQUI"/chat-icon footer bar below it are native, hardcoded to a fixed white/
+   purple regardless of theme (main.css, not part of this repo/theme). Restyled to match the
+   same soft rounded/glow language as the rest of Bloom. */
+body.theme-bloom .fixed-sidebar-right .search-friend {
+    background: var(--bloom-bg-2) !important;
+    box-shadow: none !important;
+    border-top: 1px solid var(--bloom-line);
+}
+body.theme-bloom .fixed-sidebar-right .search-friend input {
+    background: var(--bloom-surface);
+    border: 1px solid var(--bloom-line);
+    color: var(--bloom-text);
+    border-radius: 10px;
+}
+body.theme-bloom .fixed-sidebar-right .search-friend a {
+    fill: var(--bloom-text-dim);
+}
+body.theme-bloom .fixed-sidebar-right .search-friend a:hover {
+    fill: var(--bloom-coral);
+}
+body.theme-bloom .fixed-sidebar-right .olympus-chat {
+    background: linear-gradient(120deg, var(--bloom-coral), var(--bloom-teal-bright)) !important;
+    fill: #fff !important;
+}
+body.theme-bloom .fixed-sidebar-right .olympus-chat-title {
+    color: #fff !important;
+    font-family: var(--bloom-display);
+}
+
+/* ---------- hero / search / chips (theme-only markup, see find_friends.blade.php) ---------- */
+body.theme-bloom .theme-hero {
+    position: relative;
+    z-index: 2;
+    padding: 40px 12px 30px;
+    text-align: center;
+    max-width: 900px;
+    margin: 0 auto;
+}
+body.theme-bloom .theme-hero-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--bloom-mono);
+    font-size: 12px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--bloom-teal-bright);
+    background: rgba(31, 138, 130, 0.1);
+    border: 1px solid rgba(31, 138, 130, 0.3);
+    padding: 6px 14px;
+    border-radius: 100px;
+    margin-bottom: 18px;
+}
+body.theme-bloom .theme-pulse-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--bloom-online);
+    box-shadow: 0 0 8px var(--bloom-online);
+    animation: bloom-blink 1.6s infinite;
+}
+@keyframes bloom-blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: .35; }
+}
+body.theme-bloom .theme-hero-title {
+    font-family: var(--bloom-display);
+    font-weight: 700;
+    line-height: 1.08;
+    font-size: clamp(30px, 5vw, 46px);
+    letter-spacing: -0.01em;
+    color: var(--bloom-text);
+}
+body.theme-bloom .theme-hero-title em {
+    font-style: normal;
+    color: var(--bloom-coral);
+}
+body.theme-bloom .theme-hero-sub {
+    margin-top: 14px;
+    color: var(--bloom-text-dim);
+    font-size: 16px;
+    max-width: 520px;
+    margin-inline: auto;
+    line-height: 1.55;
+}
+body.theme-bloom .theme-searchbar {
+    margin: 26px auto 0;
+    max-width: 560px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--bloom-surface);
+    border: 1px solid var(--bloom-line);
+    border-radius: 100px;
+    padding: 8px 8px 8px 20px;
+    box-shadow: 0 20px 50px -20px rgba(0, 0, 0, 0.6);
+}
+body.theme-bloom .theme-searchbar input {
+    flex: 1;
+    background: none;
+    border: none;
+    outline: none;
+    color: var(--bloom-text);
+    font-family: var(--bloom-body);
+    font-size: 15px;
+}
+body.theme-bloom .theme-searchbar input::placeholder {
+    color: var(--bloom-text-mute);
+}
+body.theme-bloom .theme-searchbar button {
+    border: none;
+    cursor: pointer;
+    font-family: var(--bloom-mono);
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    font-weight: 700;
+    font-size: 12.5px;
+    padding: 12px 22px;
+    border-radius: 100px;
+    color: #fff;
+    background: var(--bloom-coral);
+    transition: transform .18s ease;
+}
+body.theme-bloom .theme-searchbar button:hover {
+    transform: translateY(-1px) scale(1.02);
+}
+body.theme-bloom .theme-chips {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 18px;
+}
+body.theme-bloom .find-friends-sort-chip {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--bloom-text-dim);
+    border: 1px solid var(--bloom-line);
+    padding: 8px 16px;
+    border-radius: 100px;
+    cursor: pointer;
+    background: var(--bloom-surface);
+    transition: all .18s;
+}
+body.theme-bloom .find-friends-sort-chip:hover,
+body.theme-bloom .find-friends-sort-chip.active {
+    color: var(--bloom-text);
+    background: var(--bloom-surface-2);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+}
+
+/* ---------- profile cards (find_friends grid - same classes for initial load AND the
+   controller's AJAX "load more" HTML, so both stay visually identical) ---------- */
+/* The structural difference from the other 5 themes: a CSS multi-column masonry grid,
+   spanning the FULL page width (no centered max-width column), instead of a uniform row of
+   fixed-width cards - plus a modern full-bleed overlay card (text/buttons on the photo itself,
+   scrim gradient, floating circular icon buttons) instead of a separate text panel below the
+   photo. Same top-nav/header as every other theme in this family (untouched, above). */
+/* find_friends.blade.php wraps its whole content (hero AND this grid) in a single Bootstrap
+   .container, which caps width around 1140-1200px - the grid needs to break OUT of that
+   container regardless of where it's centered, since un-containing the .container itself
+   would also stretch the hero (not asked for, and it reads better narrow). Left edge uses the
+   classic 50vw/-50vw trick (anchors to the viewport's left edge, past the container's own
+   gutter); the right edge deliberately stops short of the full viewport width instead of doing
+   the same trick both ways - the fixed right chat sidebar (.fixed-sidebar-right, native
+   position:fixed, always on top) would otherwise sit ON TOP of the grid's rightmost column,
+   hiding it underneath that panel. --bloom-chat-rail-w approximates that sidebar's own width
+   (its collapsed, icon-only state - it widens further when a chat is actually open, which this
+   can't react to, but leaving this much room keeps the common case clear). */
+body.theme-bloom #find_friends_results,
+body.theme-bloom #ai_friends_results {
+    --bloom-chat-rail-w: 90px;
+    display: block !important;
+    column-count: 5;
+    column-gap: 16px;
+    column-fill: balance;
+    margin: 0 !important;
+    padding: 0 20px;
+    position: relative;
+    left: 50%;
+    margin-left: -50vw !important;
+    width: calc(100vw - var(--bloom-chat-rail-w)) !important;
+    box-sizing: border-box;
+}
+@media screen and (max-width: 1500px) { body.theme-bloom #find_friends_results, body.theme-bloom #ai_friends_results { column-count: 4; } }
+@media screen and (max-width: 1100px) { body.theme-bloom #find_friends_results, body.theme-bloom #ai_friends_results { column-count: 3; } }
+@media screen and (max-width: 760px) { body.theme-bloom #find_friends_results, body.theme-bloom #ai_friends_results { column-count: 2; } }
+/* The AI Companions grid (#ai_friends_results) typically has far fewer cards than the real
+   user grid - Chrome doesn't actually implement `column-fill: balance` for a container without
+   an explicit/constrained height (a long-standing engine quirk, not something CSS alone can
+   fully work around), so it fills columns sequentially instead. With few cards and a high
+   column-count, that clusters them all into the first 1-2 columns and leaves the declared
+   remaining columns entirely empty - reading as "stuck on the left, not full width" even
+   though the CONTAINER genuinely is full width. Capping this section's own column-count lower
+   means there are fewer columns for a small card count to under-fill in the first place. */
+body.theme-bloom #ai_friends_results {
+    column-count: 3;
+}
+@media screen and (max-width: 1100px) { body.theme-bloom #ai_friends_results { column-count: 2; } }
+/* The native mobile chat drawer (not the desktop fixed rail) takes over at this width, so
+   there's no floating sidebar to leave room for here - reclaim that width. Single column
+   below 600px (not 480px) - cards this narrow (2-up under ~480px) left almost no room for the
+   name/buttons overlay, cramped against the "125 x 125" no-photo placeholder in particular. */
+@media screen and (max-width: 767px) {
+    /* The 50vw/-50vw breakout (used above the mobile chat drawer breakpoint to escape
+       .container's max-width) is unreliable at this width: mobile browsers can report `vw` as
+       the LAYOUT viewport (address bar chrome etc. included), which can be wider than what's
+       actually visible - the math that correctly re-centers this box on desktop then lands it
+       slightly off to one side here, clipping into the very padding meant to keep it off the
+       edge (the "stuck to the browser edge" report). There's also no meaningful container
+       gutter worth escaping on mobile - .container is already nearly edge-to-edge there. So
+       this breaks out entirely below 767px: back to a plain, normally-flowing block, sized and
+       positioned by its own (generous) padding instead of viewport math. */
+    body.theme-bloom #find_friends_results,
+    body.theme-bloom #ai_friends_results {
+        position: static !important;
+        left: auto !important;
+        width: auto !important;
+        margin: 0 !important;
+        padding: 0 16px !important;
+    }
+}
+@media screen and (max-width: 600px) { body.theme-bloom #find_friends_results, body.theme-bloom #ai_friends_results { column-count: 1; } }
+/* Overrides Bootstrap's .col-xl-3 etc. flex/width so each card becomes a plain block that
+   flows into the column layout above instead of a fixed-width flex cell in a row. */
+body.theme-bloom .find_friends_item {
+    display: inline-block;
+    width: 100%;
+    max-width: 100%;
+    flex: none !important;
+    break-inside: avoid;
+    padding: 0 !important;
+    margin-bottom: 16px;
+    transition: transform .28s cubic-bezier(.2, .7, .3, 1);
+}
+body.theme-bloom .find_friends_item:hover {
+    transform: translateY(-4px);
+}
+/* NOTE: deliberately no "background" override here - .ui-block's background is the
+   profile's actual photo, set as an inline style (background: url(...)) by the server.
+   Overriding it (even just background-color, since the shorthand resets everything) would
+   hide the photo behind a flat color. Height is freed from the server's inline height:415px
+   (!important overrides it) and instead cycles through a few fixed heights below, which is
+   what actually produces the masonry's staggered look (no client-side code reports each
+   photo's real aspect ratio, so a true per-photo masonry isn't possible here - this is the
+   closest CSS-only approximation, and still reads as a mosaic once several cards are on
+   screen). */
+body.theme-bloom .find_friends_item .ui-block {
+    border-radius: 18px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 1px 2px rgba(34, 31, 26, 0.06), 0 14px 28px -14px rgba(34, 31, 26, 0.28);
+    background-size: cover !important;
+    height: 250px !important;
+}
+body.theme-bloom .find_friends_item:nth-child(3n+2) .ui-block { height: 330px !important; }
+body.theme-bloom .find_friends_item:nth-child(4n+3) .ui-block { height: 290px !important; }
+body.theme-bloom .find_friends_item:nth-child(5n+1) .ui-block { height: 220px !important; }
+/* Scrim + name/age/buttons live directly on the photo, not in a separate white panel below. */
+body.theme-bloom #find_friends_results .friend-actions,
+body.theme-bloom #ai_friends_results .friend-actions {
+    position: absolute;
+    inset: 0;
+    background-image: linear-gradient(180deg, rgba(34, 31, 26, 0) 45%, rgba(34, 31, 26, 0.15) 68%, rgba(20, 18, 14, 0.86) 100%);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+}
+body.theme-bloom .friend-item .author-content {
+    padding: 0 100px 14px 14px;
+}
+/* Fixed light text on the card overlay - this sits on top of the profile PHOTO, not the page
+   background, so it must stay readable regardless of whether light or dark mode is active for
+   the rest of the site (unlike --bloom-text, which flips for light mode). */
+body.theme-bloom .friend-item .author-name,
+body.theme-bloom .friend-item .h5.author-name {
+    font-family: var(--bloom-display);
+    font-weight: 700 !important;
+    font-size: 17px !important;
+    color: #fff !important;
+    text-shadow: 0 1px 8px rgba(0, 0, 0, 0.4);
+}
+/* Floating circular icon buttons overlapping the bottom-right of the photo, replacing the
+   full-width text buttons every other theme in this family uses - text is hidden (font-size:0)
+   and a small background-image icon (eye = See Profile, chat bubble = Chat) takes its place. */
+body.theme-bloom .friend-item .control-block-button {
+    position: absolute;
+    right: 12px;
+    bottom: 14px;
+    left: auto;
+    top: auto;
+    width: auto;
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+}
+/* !important on every property style.css's own #find_friends_results .control-block-button
+   .btn-control / #ai_friends_results .control-block-button .btn-control rule also sets
+   (width/height/border-radius/font-size/padding/margin/display) - that rule is ID-scoped, so
+   it beats this class-only selector on specificity alone regardless of load order, which is
+   what left the buttons rectangular and their "See Profile"/"Chat" text visibly overlapping
+   the icon instead of hidden behind it. */
+body.theme-bloom .friend-item .btn-control {
+    width: 38px !important;
+    height: 38px !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    font-size: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none;
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.28);
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 16px 16px;
+    transition: transform .15s ease;
+}
+body.theme-bloom .friend-item .btn-control:hover {
+    transform: scale(1.08);
+}
+body.theme-bloom .friend-item .btn-control.bg-blue {
+    background-color: rgba(255, 255, 255, 0.92);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23221F1A' stroke-width='2.2'%3E%3Cpath d='M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z'/%3E%3Ccircle cx='12' cy='12' r='3'/%3E%3C/svg%3E");
+}
+body.theme-bloom .friend-item .btn-control.bg-purple {
+    background-color: var(--bloom-coral);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2.2'%3E%3Cpath d='M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z'/%3E%3C/svg%3E");
+}
+
+/* ---------- online/offline badges (rounded pill overlaid top-left of the photo - no markup
+   change needed, so this looks identical whether the card came from the initial page render
+   or the AJAX "load more" response) ---------- */
+/* NOTE: no "position" override here - .span-online is already position:absolute (set by the
+   base stylesheet, which is what overlays it onto the top-left of the photo). Overriding it
+   to "relative" (as an earlier version of a theme in this family did) breaks that entirely,
+   turning the badge into a full-width in-flow bar above the card instead of a small pill
+   overlaid on it. */
+body.theme-bloom .span-online,
+body.theme-bloom .find_friends_status.span-online {
+    background: rgba(255, 255, 255, 0.92) !important;
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+    color: var(--bloom-teal-bright) !important;
+    border-radius: 100px;
+    padding: 5px 11px 5px 9px !important;
+    font-family: var(--bloom-mono);
+    font-size: 10.5px;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+body.theme-bloom .span-online::before {
+    content: '';
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    margin-right: 5px;
+    border-radius: 50%;
+    background: var(--bloom-teal);
+    box-shadow: 0 0 0 0 rgba(31, 138, 130, 0.6);
+    animation: bloom-ring 1.8s ease-out infinite;
+}
+@keyframes bloom-ring {
+    0% { box-shadow: 0 0 0 0 rgba(31, 138, 130, 0.55); }
+    70% { box-shadow: 0 0 0 7px rgba(31, 138, 130, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(31, 138, 130, 0); }
+}
+body.theme-bloom .span-offline,
+body.theme-bloom .find_friends_status.span-offline {
+    background: rgba(255, 255, 255, 0.92) !important;
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+    color: var(--bloom-text-mute) !important;
+    border-radius: 100px;
+    padding: 5px 11px !important;
+    font-family: var(--bloom-mono);
+    font-size: 10.5px;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+}
+body.theme-bloom .icon-status.online {
+    background: var(--bloom-teal) !important;
+    box-shadow: 0 0 0 0 rgba(31, 138, 130, 0.6);
+    animation: bloom-ring 1.8s ease-out infinite;
+}
+
+/* ---------- chat popup (light touch - keep functional layout, just recolor) ---------- */
+body.theme-bloom .popup-chat .ui-block-title {
+    background: var(--bloom-surface-2);
+}
+/* The title bar's own icons (msgtoggle eye-slash, the little "X" close button) are plain
+   Font Awesome/inline-SVG icons with no color of their own set anywhere in this repo, so they
+   render at the browser/native default (black text color, or white depending on inherited
+   .popup-chat text color elsewhere) - invisible or barely visible against this bar's own
+   background in Bloom's light-by-default state (see the long comment on the token block up
+   top - every other theme in this family is dark-by-default, so this never came up for them).
+   .videocallicon isn't included here - that one's colored green/independent of text color via
+   its own native rule and is already visible. */
+body.theme-bloom .popup-chat .ui-block-title .msgtoggle i,
+body.theme-bloom .popup-chat .ui-block-title .js-chat-close {
+    color: var(--bloom-text-dim);
+    fill: var(--bloom-text-dim);
+}
+body.theme-bloom .popup-chat .ui-block-title .msgtoggle i:hover,
+body.theme-bloom .popup-chat .ui-block-title .js-chat-close:hover {
+    color: var(--bloom-text);
+    fill: var(--bloom-text);
+    cursor: pointer;
+}
+body.theme-bloom .popup-chat .mCustomScrollbar {
+    background-color: var(--bloom-bg-2);
+}
+body.theme-bloom .popup-chat .notification-list li .notification-event .chat-message-item {
+    background: var(--bloom-surface);
+    color: var(--bloom-text);
+}
+/* Admin-only chat controls: managed-account switcher, per-user language, translate toggle
+   (components/chat.blade.php) - plain native <select> elements, unstyled/white by default. */
+body.theme-bloom #popup-chat .row.m-0 > div {
+    padding: 0 4px;
+}
+body.theme-bloom .popup-chat select#admin_account,
+body.theme-bloom .popup-chat select.lang_for_user,
+body.theme-bloom .popup-chat select.auto_translate {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    box-sizing: border-box;
+    margin: 6px 0;
+    padding: 8px 30px 8px 14px;
+    background-color: var(--bloom-surface);
+    background-image:
+        linear-gradient(45deg, transparent 50%, var(--bloom-teal) 50%),
+        linear-gradient(135deg, var(--bloom-teal) 50%, transparent 50%);
+    background-position: calc(100% - 18px) center, calc(100% - 13px) center;
+    background-size: 5px 5px, 5px 5px;
+    background-repeat: no-repeat;
+    border: 1px solid var(--bloom-line);
+    border-radius: 100px;
+    color: var(--bloom-text);
+    font-size: 13px;
+    font-family: var(--bloom-body);
+}
+body.theme-bloom .popup-chat select#admin_account:focus,
+body.theme-bloom .popup-chat select.lang_for_user:focus,
+body.theme-bloom .popup-chat select.auto_translate:focus {
+    border-color: var(--bloom-teal);
+    outline: none;
+}
+body.theme-bloom .popup-chat select#admin_account option,
+body.theme-bloom .popup-chat select.lang_for_user option,
+body.theme-bloom .popup-chat select.auto_translate option {
+    background: var(--bloom-surface);
+    color: var(--bloom-text);
+}
+body.theme-bloom .popup-chat select#admin_account::-ms-expand,
+body.theme-bloom .popup-chat select.lang_for_user::-ms-expand,
+body.theme-bloom .popup-chat select.auto_translate::-ms-expand {
+    display: none;
+}
+
+/* ---------- profile page (resources/views/profile/profile.blade.php,
+   components/top-header-profile.blade.php) - same soft rounded/glow language as the header
+   and find_friends cards. ---------- */
+body.theme-bloom .top-header {
+    background: var(--bloom-bg-2);
+    border: 1px solid var(--bloom-line);
+    border-radius: 24px;
+    overflow: hidden;
+}
+body.theme-bloom .top-header-thumb {
+    background: var(--bloom-surface);
+}
+body.theme-bloom .profile-section {
+    background: var(--bloom-bg-2);
+}
+body.theme-bloom .profile-menu a {
+    color: var(--bloom-text-dim) !important;
+    font-family: var(--bloom-body);
+}
+body.theme-bloom .profile-menu a:hover,
+body.theme-bloom .profile-menu a.active {
+    color: var(--bloom-text) !important;
+}
+body.theme-bloom .top-header-author .author-thumb img {
+    border-radius: 50%;
+    box-shadow: 0 0 0 4px var(--bloom-bg-2), 0 0 0 5px var(--bloom-line);
+}
+body.theme-bloom .top-header-author .author-name {
+    color: var(--bloom-text) !important;
+    font-family: var(--bloom-display);
+    font-weight: 700;
+}
+/* Add Friend / Chat / settings gear on the profile cover - same pill-gradient treatment as
+   the find_friends card buttons (body.theme-bloom .friend-item .btn-control.bg-blue/.bg-purple
+   further up), extended to this page's own .control-block-button context. */
+/* fill (not just color) is required - the "Accept"/"Add Friend" button's own inline
+   <svg class="olymp-happy-face-icon"><use .../></svg> icon (components/top-header-profile.
+   blade.php) doesn't use fill:currentColor internally, so `color` alone (which only affects
+   the "Accept" text next to it) left the icon on its own native white, invisible against this
+   surface-2 background - the same underlying issue as the header control-icons fixed further
+   up, just a different icon/button this time. */
+body.theme-bloom .top-header .control-block-button .btn-control.bg-blue {
+    background: var(--bloom-surface-2) !important;
+    border: 1px solid var(--bloom-line) !important;
+    border-radius: 100px !important;
+    color: var(--bloom-text) !important;
+    fill: var(--bloom-text) !important;
+}
+body.theme-bloom .top-header .control-block-button .btn-control.bg-purple,
+body.theme-bloom .top-header .control-block-button .btn-control.bg-primary {
+    background: linear-gradient(120deg, var(--bloom-coral), var(--bloom-teal-bright)) !important;
+    border: none !important;
+    border-radius: 100px !important;
+    color: #fff !important;
+    fill: #fff !important;
+}
+/* .ui-block is the generic "card" wrapper reused across the whole site (Profile Intro, Last
+   Photos, Friends boxes here; Account/Personal Information on the settings page below) - its
+   native background is a hardcoded white (style.css, not part of this theme/repo), same class
+   of issue as the CMS .content_block fix above, but here the card should actually adopt the
+   theme instead of staying a fixed white document look.
+   :not([style]) is required - the find_friends grid (and the AI Companions grid on the same
+   page) ALSO uses .ui-block, but sets the profile photo as an inline `style="background:
+   url(...)"` attribute (FindFriendsController.php). An earlier version of this rule used a
+   bare .ui-block selector, whose !important background overrode that inline photo and made
+   every card photo disappear across the whole site. Cards with a real photo always carry an
+   inline style attribute; cards that don't (Profile Intro, Account Info, and find_friends
+   cards for users with no photo) don't, so this cleanly targets only the latter. */
+body.theme-bloom .ui-block:not([style]) {
+    background: var(--bloom-surface) !important;
+    border: 1px solid var(--bloom-line) !important;
+    border-radius: 20px !important;
+}
+body.theme-bloom .ui-block-title {
+    border-bottom: 1px solid var(--bloom-line) !important;
+}
+body.theme-bloom .ui-block-title .title,
+body.theme-bloom .ui-block .widget .title,
+body.theme-bloom .ui-block .widget .text {
+    color: var(--bloom-text) !important;
+    font-family: var(--bloom-body);
+}
+body.theme-bloom .ui-block .widget .title {
+    color: var(--bloom-text-dim) !important;
+}
+/* Timeline posts (same .ui-block card, plus their own author/date row) */
+body.theme-bloom .hentry.post .post__author-name,
+body.theme-bloom .hentry.post p {
+    color: var(--bloom-text) !important;
+}
+body.theme-bloom .hentry.post .post__date time {
+    color: var(--bloom-text-mute) !important;
+}
+body.theme-bloom .hentry.post .likes.post-add-icon {
+    color: var(--bloom-text-dim) !important;
+    fill: var(--bloom-text-dim) !important;
+}
+body.theme-bloom .hentry.post .likes.post-add-icon.active {
+    color: var(--bloom-coral) !important;
+    fill: var(--bloom-coral) !important;
+}
+
+/* ---------- profile settings / account dashboard page
+   (resources/views/profile/profile-info.blade.php) ---------- */
+body.theme-bloom .main-header {
+    background: var(--bloom-bg-2);
+    border-bottom: 1px solid var(--bloom-line);
+}
+body.theme-bloom .main-header .content-bg-wrap {
+    opacity: .35;
+}
+body.theme-bloom .main-header-content h1 {
+    color: var(--bloom-text) !important;
+    font-family: var(--bloom-display);
+    font-weight: 700;
+}
+body.theme-bloom .main-header-content p {
+    color: var(--bloom-text-dim) !important;
+}
+body.theme-bloom .form-group.label-floating .control-label {
+    color: var(--bloom-text-mute) !important;
+}
+body.theme-bloom .form-group .form-control,
+body.theme-bloom .form-group input,
+body.theme-bloom .form-group textarea {
+    background: var(--bloom-surface) !important;
+    border: 1px solid var(--bloom-line) !important;
+    border-radius: 12px !important;
+    color: var(--bloom-text) !important;
+}
+body.theme-bloom .your-profile .title,
+body.theme-bloom .your-profile-menu a {
+    color: var(--bloom-text-dim) !important;
+}
+body.theme-bloom .your-profile-menu a:hover {
+    color: var(--bloom-text) !important;
+}
+body.theme-bloom .your-profile .card {
+    background: transparent !important;
+    border: none !important;
+}
+body.theme-bloom .your-profile .card-header a {
+    color: var(--bloom-text) !important;
+    font-family: var(--bloom-body);
+}
+body.theme-bloom .btn-primary,
+body.theme-bloom .btn-secondary {
+    border-radius: 100px !important;
+    font-family: var(--bloom-body);
+    font-weight: 700;
+}
+body.theme-bloom .btn-primary {
+    background: linear-gradient(120deg, var(--bloom-coral), var(--bloom-teal-bright)) !important;
+    border: none !important;
+    color: #fff !important;
+}
+body.theme-bloom .btn-secondary {
+    background: var(--bloom-surface-2) !important;
+    border: 1px solid var(--bloom-line) !important;
+    color: var(--bloom-text) !important;
+}
+
+/* ---------- packages page (resources/views/packages.blade.php) - .generic_price_table cards
+   are permanently white/gray (style.css, not part of this theme/repo), same class of issue
+   as .content_block and .ui-block above. Restyled with the same soft rounded/glow language
+   as the rest of Bloom, keeping a tier accent (Silver/Gold/VIP -> the theme's own teal/coral
+   tokens) on the diagonal header instead of the native gray/blue/green. ---------- */
+body.theme-bloom .price-heading h1 {
+    color: var(--bloom-text) !important;
+    font-family: var(--bloom-display);
+    font-weight: 700;
+}
+body.theme-bloom .generic_content {
+    background: var(--bloom-surface) !important;
+    border-radius: 20px;
+    overflow: hidden;
+}
+body.theme-bloom .generic_head_price {
+    background: var(--bloom-surface-2) !important;
+}
+body.theme-bloom .generic_price_tag .price,
+body.theme-bloom .generic_price_tag .sign,
+body.theme-bloom .generic_price_tag .currency,
+body.theme-bloom .generic_price_tag .cent {
+    color: var(--bloom-text) !important;
+}
+body.theme-bloom .generic_feature_list ul li {
+    color: var(--bloom-text-mute) !important;
+}
+body.theme-bloom .generic_feature_list ul li span {
+    color: var(--bloom-text-dim) !important;
+}
+body.theme-bloom .generic_feature_list ul li:hover {
+    background: var(--bloom-surface-2) !important;
+    border-left-color: var(--bloom-coral) !important;
+}
+/* Tier accent on the diagonal header - teal (entry tier) -> coral (mid) -> teal again (top),
+   replacing the native gray/blue/green, for both the Subscriptions (pk1_*) and Credits
+   (pk2_*) card sets. */
+body.theme-bloom .generic_content.pk1_1 .head_bg,
+body.theme-bloom .generic_content.pk2_1 .head_bg {
+    border-color: var(--bloom-teal-bright) transparent transparent var(--bloom-teal-bright) !important;
+}
+body.theme-bloom .generic_content.pk1_2 .head_bg,
+body.theme-bloom .generic_content.pk2_2 .head_bg {
+    border-color: var(--bloom-coral) transparent transparent var(--bloom-coral) !important;
+}
+body.theme-bloom .generic_content.pk1_3 .head_bg,
+body.theme-bloom .generic_content.pk2_3 .head_bg {
+    border-color: var(--bloom-teal) transparent transparent var(--bloom-teal) !important;
+}
+body.theme-bloom .generic_content.pk1_1 .head span,
+body.theme-bloom .generic_content.pk2_1 .head span,
+body.theme-bloom .generic_content.pk1_2 .head span,
+body.theme-bloom .generic_content.pk2_2 .head span,
+body.theme-bloom .generic_content.pk1_3 .head span,
+body.theme-bloom .generic_content.pk2_3 .head span,
+body.theme-bloom .generic_content.active .head span,
+body.theme-bloom .generic_content:hover .head span {
+    color: #fff !important;
+}
+body.theme-bloom .generic_content.active .head_bg,
+body.theme-bloom .generic_content:hover .head_bg {
+    border-color: var(--bloom-teal-bright) transparent transparent var(--bloom-teal-bright) !important;
+}
+/* Purchase/Claim/Unsubscribe button - same pill-gradient treatment as the rest of Bloom's
+   buttons, guaranteed via !important since the native color source here varies (plain
+   outlined by default, solid on hover/active). */
+body.theme-bloom .generic_price_btn a {
+    background: linear-gradient(120deg, var(--bloom-coral), var(--bloom-teal-bright)) !important;
+    border: none !important;
+    color: #fff !important;
+}
+body.theme-bloom .ribbon-red {
+    background: var(--bloom-coral) !important;
+}
+
+/* The "scroll to top" floating button (.back-to-top) is a plain circle with a white arrow
+   IMAGE (<img src="/svg-icons/back-to-top.svg">, not an inline SVG - confirmed by reading the
+   actual file: it's just the white arrow shape, no circle baked in) - fill/color can't recolor
+   an <img>, so instead of trying to recolor the white arrow itself, give the circle behind it
+   a solid theme color, which is what actually made it invisible (native background reads as
+   white/near-white too, blending into this theme's light page background). Every background-
+   related longhand is covered with !important, since a first attempt at just `background`
+   didn't visibly change anything - the native rule apparently sets at least one of these with
+   enough specificity/!important of its own to still win otherwise. */
+body.theme-bloom .back-to-top {
+    background-color: var(--bloom-coral) !important;
+    background-image: none !important;
+    border: none !important;
+    box-shadow: 0 8px 20px -8px rgba(34, 31, 26, 0.4) !important;
+}
+
+/* ---------- page-load preloader (layouts/layout.blade.php, #hellopreloader) - shown full-
+   screen while the page/assets are still loading, hardcoded to the site's brand color
+   (var(--main-color), an unrelated admin setting) regardless of theme. The spinner icon's own
+   stroke color (an SVG presentation attribute, inline in the markup) is overridden here via a
+   normal CSS rule, since presentation attributes always lose to any CSS rule regardless of
+   specificity - no !important needed for that part. */
+body.theme-bloom #hellopreloader {
+    background: var(--bloom-bg) !important;
+}
+body.theme-bloom .preloader svg {
+    stroke: var(--bloom-coral);
+}
+body.theme-bloom .preloader .text {
+    color: var(--bloom-text) !important;
+}
+
+/* ---------- AI Inbox panel (find_friends.blade.php, admin-only "managed accounts" list) -
+   uses plain Bootstrap .list-group/.list-group-item, permanently white/black regardless of
+   theme (Bootstrap's own defaults, not part of this theme/repo). Restyled to match the rest
+   of Bloom. Kept simple/light-touch since the client may ask to fold this into the main
+   chat inbox later - not worth a deeper redesign yet. */
+body.theme-bloom .ai-inbox-panel h4 {
+    color: var(--bloom-text) !important;
+    font-family: var(--bloom-display);
+}
+body.theme-bloom .ai-inbox-panel h4 .text-muted {
+    color: var(--bloom-text-mute) !important;
+}
+body.theme-bloom .ai-inbox-panel .list-group {
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid var(--bloom-line);
+}
+body.theme-bloom .ai-inbox-panel .list-group-item {
+    background: var(--bloom-surface) !important;
+    border-color: var(--bloom-line) !important;
+    color: var(--bloom-text) !important;
+}
+body.theme-bloom .ai-inbox-panel .list-group-item:hover,
+body.theme-bloom .ai-inbox-panel .list-group-item-action:hover {
+    background: var(--bloom-surface-2) !important;
+}
+body.theme-bloom .ai-inbox-panel .list-group-item .text-muted,
+body.theme-bloom .ai-inbox-panel .list-group-item small {
+    color: var(--bloom-text-mute) !important;
+}
+
+/* ---------- "load more" trigger (find_friends.blade.php's #load_more_find_friends, the
+   three-dots circle below the grid) - permanently a plain light-gray circle regardless of
+   theme (style.css/vendor CSS, not part of this repo). Bloom is bright-by-default, so this
+   was already close in tone, but got its own accent color/border for consistency with the
+   rest of this family. */
+body.theme-bloom #load_more_find_friends {
+    background: var(--bloom-surface) !important;
+    border: 1px solid var(--bloom-line-strong) !important;
+    box-shadow: 0 8px 20px -8px rgba(34, 31, 26, 0.35);
+}
+body.theme-bloom #load_more_find_friends .olymp-three-dots-icon {
+    fill: var(--bloom-coral) !important;
+}
+body.theme-bloom #load_more_find_friends:hover {
+    background: var(--bloom-coral) !important;
+    border-color: var(--bloom-coral) !important;
+}
+body.theme-bloom #load_more_find_friends:hover .olymp-three-dots-icon {
+    fill: #fff !important;
+}
+
+/* ---------- "livefeed" popup toast (layouts/layout.blade.php, #livefeed_container -
+   "X purchased a Y subscription!" / "X is now Online!", shown periodically via dating.js's
+   get_livefeed()) - permanently white/#333 (style.css, not part of this theme/repo) regardless
+   of theme or light/dark mode. Restyled to use this theme's own surface/text tokens, so it
+   reads correctly in both of Bloom's states instead of being stuck looking like classic. */
+body.theme-bloom #livefeed_container {
+    background: var(--bloom-surface) !important;
+    border: 1px solid var(--bloom-line) !important;
+    border-radius: 14px !important;
+    color: var(--bloom-text) !important;
+    box-shadow: 0 20px 40px -18px rgba(34, 31, 26, 0.35);
+}
+body.theme-bloom #livefeed_name {
+    color: var(--bloom-coral) !important;
+}
+body.theme-bloom #livefeed_pack {
+    color: var(--bloom-teal-bright) !important;
+}
+body.theme-bloom #livefeed_time_container {
+    color: var(--bloom-text-mute) !important;
+}
+body.theme-bloom #livefeed_close {
+    background: var(--bloom-ink) !important;
+    color: #fff !important;
+}
+body.theme-bloom #livefeed_close:hover {
+    background: var(--bloom-coral) !important;
+}

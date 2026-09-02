@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\AIProfile;
 use App\AISetting;
 use App\Conversation;
+use App\Support\ActiveTheme;
 use App\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -21,10 +22,29 @@ class FindFriendsController extends Controller
     {
         $title = l('Find Friends');
 
+        // Optional theme-hero search/sort (only sent by the aurora/nordic themed search bar
+        // - absent for the classic theme, so its query/order stays byte-identical to before).
+        $searchTerm = trim((string) $request->input('q', ''));
+        $sort = $request->input('sort');
+
         if (Auth::check() && Auth::user()->isAdmin()) {
-            $users = User::where('gender', 'male')->with('images')->orderby('status', 'desc')->orderby('created_at', 'desc')->orderBy('gender', 'desc')->take(20)->get();
+            $query = User::with('images');
+            $this->applyFindFriendsGenderScope($query);
+            $this->applyFindFriendsSearch($query, $searchTerm);
+            if ($sort === 'newest') {
+                $query->orderBy('created_at', 'desc');
+            } else {
+                $query->orderby('status', 'desc')->orderby('created_at', 'desc')->orderBy('gender', 'desc');
+            }
+            $users = $query->take(20)->get();
         } else {
-            $users = User::where('gender', 'female')->with('images')->take(20)->get();
+            $query = User::with('images');
+            $this->applyFindFriendsGenderScope($query);
+            $this->applyFindFriendsSearch($query, $searchTerm);
+            if ($sort === 'newest') {
+                $query->orderBy('created_at', 'desc');
+            }
+            $users = $query->take(20)->get();
         }
 
         $aiProfiles = AIProfile::where('is_active', true)->orderBy('name')->take(8)->get();
@@ -74,11 +94,9 @@ class FindFriendsController extends Controller
         if($id == Auth::id()){
             return response()->json(false);
         }
-        if (Auth::check() && Auth::user()->isAdmin()) {
-            $user = User::where('gender', 'male')->with('images')->where('id', $id)->firstOrFail();
-        } else {
-            $user = User::where('gender', 'female')->with('images')->where('id', $id)->firstOrFail();
-        }
+        $query = User::with('images')->where('id', $id);
+        $this->applyFindFriendsGenderScope($query);
+        $user = $query->firstOrFail();
 
         $tpl = '<div data-user-id="' . $user->id . '" class="col col-xl-3 col-lg-6 col-md-6 col-sm-6 col-12 find_friends_item">
                         <div class="ui-block" data-mh="friend-groups-item"
@@ -161,10 +179,29 @@ class FindFriendsController extends Controller
             $items = $request->items;
         }
 
+        // Same optional theme-hero search/sort as index() - absent for classic, so infinite
+        // scroll there keeps loading pages in the exact same order/filter as before.
+        $searchTerm = trim((string) $request->input('q', ''));
+        $sort = $request->input('sort');
+
         if (Auth::check() && Auth::user()->isAdmin()) {
-            $users = User::where('gender', 'male')->orderby('status', 'desc')->orderby('created_at', 'desc')->orderBy('gender', 'desc')->skip($items)->take(20)->get();
+            $query = User::query();
+            $this->applyFindFriendsGenderScope($query);
+            $this->applyFindFriendsSearch($query, $searchTerm);
+            if ($sort === 'newest') {
+                $query->orderBy('created_at', 'desc');
+            } else {
+                $query->orderby('status', 'desc')->orderby('created_at', 'desc')->orderBy('gender', 'desc');
+            }
+            $users = $query->skip($items)->take(20)->get();
         } else {
-            $users = User::where('gender', 'female')->skip($items)->take(20)->get();
+            $query = User::query();
+            $this->applyFindFriendsGenderScope($query);
+            $this->applyFindFriendsSearch($query, $searchTerm);
+            if ($sort === 'newest') {
+                $query->orderBy('created_at', 'desc');
+            }
+            $users = $query->skip($items)->take(20)->get();
         }
 
         $tpl = '';
@@ -172,6 +209,10 @@ class FindFriendsController extends Controller
             $tpl = '<div class="find-friends-no-result"><span>No results</span></div>';
             return response()->json(['tpl' => $tpl, 'results' => 0]);
         }
+        // Only read/branched on for the 'binder' theme's real 3D card flip (see themes/
+        // binder.css's "collectible-card" section) - every other theme (classic included)
+        // takes the exact same code path as before this was added, byte-for-byte.
+        $activeTheme = ActiveTheme::current();
         foreach ($users as $user) {
             $com = '';
             if (Auth::check()) {
@@ -182,6 +223,64 @@ class FindFriendsController extends Controller
                                 </a>
                             </li>';
                 }
+            }
+            if ($activeTheme === 'binder') {
+                // Mirrors find_friends.blade.php's own @if($activeTheme === 'binder') branch
+                // for the real (initial page load) cards - a real front/back flip needs a
+                // second "back face" element (name + actual See Profile/Chat links again),
+                // not just CSS, so this AJAX "load more"/search path needs the same structural
+                // branch to keep infinite-scroll-loaded cards visually identical to the ones
+                // rendered on first load (the same principle every theme in this project
+                // follows for the plain, non-flip card look).
+                $tpl .= '<div class="col col-xl-3 col-lg-6 col-md-6 col-sm-6 col-12 find_friends_item">
+            <div class="ui-block" data-mh="friend-groups-item" ';
+                if ($user->images->count() > 0) {
+                    $tpl .= 'style="background: url(\'/storage/images/' . $user->images->take(1)[0]->name . '\');"';
+                }
+                $tpl .= '>';
+                if ($user->status == 'online' || $user->gender == 'female') {
+                    $tpl .= '<span class="find_friends_status span-online">Online</span>';
+                } else {
+                    $tpl .= '<span class="find_friends_status span-offline">Offline</span>';
+                }
+                $tpl .= '<div class="friend-item friend-groups binder-flip">
+                    <div class="friend-item-content">
+                        <div class="friend-avatar">
+                            <div class="author-thumb find-friends-item">';
+                if ($user->images->count() == 0) {
+                    $tpl .= '<a href="/profile/' . $user->username . '"><img src="/storage/images/' . $user->profile_image() . '" alt="' . $user->name() . '"></a>';
+                }
+                $tpl .= '</div>
+                        </div>
+                        <div class="friend-actions" data-initial="' . strtoupper(substr($user->name(), 0, 1)) . '">
+                            <div class="author-content">
+                                <a href="/profile/' . $user->username . '" class="h5 author-name">' . $user->name();
+                if ($user->age() != 0) {
+                    $tpl .= ', ' . $user->age();
+                }
+                $tpl .= '</a>
+                            </div>
+                        </div>
+                        <div class="friend-actions-back">
+                            <div class="author-content">
+                                <a href="/profile/' . $user->username . '" class="h5 author-name">' . $user->name();
+                if ($user->age() != 0) {
+                    $tpl .= ', ' . $user->age();
+                }
+                $tpl .= '</a>
+                            </div>
+                            <div class="control-block-button">
+                                <a href="/profile/' . $user->username . '" class="  btn btn-control bg-blue" data-toggle="tooltip" data-placement="top" data-original-title="' . l("See Profile") . '">' . l("See Profile") . '</a>';
+                if (Auth::check()) {
+                    $tpl .= '<a href="#" data-id="' . $user->id . '" onclick="chat_open(this,event);" class="btn btn-control bg-purple" data-toggle="tooltip" data-placement="top" data-original-title="' . l("Start chatting") . '">' . l("Chat") . '</a>';
+                }
+                $tpl .= '</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>';
+                continue;
             }
             $tpl .= '<div class="col col-xl-3 col-lg-6 col-md-6 col-sm-6 col-12">
             <div class="ui-block" data-mh="friend-groups-item" ';
@@ -290,12 +389,60 @@ class FindFriendsController extends Controller
     {
         $title = l('Find Friends');
 
+        $query = User::where('status', 'online');
+        $this->applyFindFriendsGenderScope($query);
         if (Auth::check() && Auth::user()->isAdmin()) {
-            $users = User::where('gender', 'male')->where('status', 'online')->orderby('status', 'desc')->orderby('created_at', 'desc')->orderBy('gender', 'desc')->take(20)->get();
-        } else {
-            $users = User::where('gender', 'female')->where('status', 'online')->take(20)->get();
+            $query->orderby('status', 'desc')->orderby('created_at', 'desc')->orderBy('gender', 'desc');
         }
+        $users = $query->take(20)->get();
 
         return view('find_friends', compact('title', 'users'));
+    }
+
+    /**
+     * Restricts a users query by gender, matching the same visibility rule the header
+     * quick-search already uses (ProfileController::search(), which does NOT gate purely on
+     * isAdmin()): `(gender=male && isAdmin()) || (gender=female && role!=editor)`. Applied per
+     * role:
+     * - 'admin': no restriction at all - both genders visible (this is the actual behavior
+     *   change requested; previously this controller treated 'admin' the same as 'editor',
+     *   i.e. male-only, which made Find Friends inconsistent with the header search).
+     * - 'editor': male only (unchanged from before - isAdmin() is true for editors too, but
+     *   the header search's own female clause explicitly excludes them).
+     * - anyone else (regular user or guest): female only (unchanged).
+     */
+    private function applyFindFriendsGenderScope($query): void
+    {
+        $role = Auth::check() ? Auth::user()->role : null;
+
+        if ($role === 'admin') {
+            return;
+        }
+
+        if ($role === 'editor') {
+            $query->where('gender', 'male');
+            return;
+        }
+
+        $query->where('gender', 'female');
+    }
+
+    /**
+     * Applies the optional theme-hero search box's free-text filter (name/city) to a users
+     * query, in place. No-op when the search term is empty, so callers that never receive a
+     * `q` param (i.e. every request from the classic theme, which has no search box) behave
+     * exactly as before this method existed.
+     */
+    private function applyFindFriendsSearch($query, string $searchTerm): void
+    {
+        if ($searchTerm === '') {
+            return;
+        }
+
+        $query->where(function ($q) use ($searchTerm) {
+            $q->where('firstname', 'like', '%' . $searchTerm . '%')
+                ->orWhere('lastname', 'like', '%' . $searchTerm . '%')
+                ->orWhere('city', 'like', '%' . $searchTerm . '%');
+        });
     }
 }

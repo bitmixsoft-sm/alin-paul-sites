@@ -186,6 +186,9 @@ Route::post('/admin/ai-profiles/{aiProfile}/distill-style', 'AdminAIProfileContr
 Route::get('/admin/ai-settings', 'AdminAISettingController@index')->name('admin_ai_settings_index')->middleware(['auth', 'can:manage,App\\AIProfile']);
 Route::post('/admin/ai-settings', 'AdminAISettingController@update')->name('admin_ai_settings_update')->middleware(['auth', 'can:manage,App\\AIProfile']);
 
+Route::get('/admin/themes', 'AdminThemeController@index')->name('admin_themes_index')->middleware('auth');
+Route::post('/admin/themes', 'AdminThemeController@update')->name('admin_themes_update')->middleware('auth');
+
 //Payments
 Route::any('/payments', 'PaymentsController@newpayment')->name('new_payment')->middleware('auth');
 Route::get('/payments/accepted', 'PaymentsController@accepted')->name('accepted_payment');

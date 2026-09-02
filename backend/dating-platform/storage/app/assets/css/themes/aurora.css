@@ -1,0 +1,1476 @@
+/* Aurora theme - additive skin, only ever active under body.theme-aurora.
+   Loaded AFTER the base /assets/css/style.css, never replaces it. */
+
+body.theme-aurora {
+    --aurora-bg: #140F1F;
+    --aurora-bg-2: #1A1428;
+    --aurora-surface: #20182F;
+    --aurora-surface-2: #2A2140;
+    --aurora-line: rgba(243, 236, 255, 0.08);
+    --aurora-amber: #FFB562;
+    --aurora-pink: #FF6E97;
+    --aurora-violet: #8E7CFF;
+    --aurora-text: #F3ECFF;
+    --aurora-text-dim: #B6ABCF;
+    --aurora-text-mute: #786C93;
+    --aurora-online: #4ADE80;
+    --aurora-display: 'Manrope', sans-serif;
+    --aurora-body: 'Manrope', sans-serif;
+    --aurora-mono: 'JetBrains Mono', monospace;
+
+    background: var(--aurora-bg) !important;
+    color: var(--aurora-text) !important;
+    font-family: var(--aurora-body) !important;
+    /* Hard safety net against the whole page gaining a horizontal scrollbar - a mobile
+       dating feed should never need one, so clipping here is always safe regardless of what
+       child element (mobile nav dropdown, search box, a card) miscalculates its own width.
+       This whole file only ever loads when aurora is the active theme (see layout.blade.php),
+       so an unscoped `html` selector here is safe - it can never affect classic or another
+       theme. */
+    overflow-x: hidden;
+}
+html {
+    overflow-x: hidden;
+}
+
+/* Light variant - driven by the site's existing dark/light switch (the header's sun/moon
+   icon, storage/app/assets/js/theme-selector.js), which now also toggles body.site-dark-mode.
+   Every rule below only ever uses the --aurora-* custom properties, so redefining them here
+   is enough to re-skin the whole theme without repeating every single color rule. */
+body.theme-aurora:not(.site-dark-mode) {
+    --aurora-bg: #FBF7FF;
+    --aurora-bg-2: #F3ECFF;
+    --aurora-surface: #FFFFFF;
+    --aurora-surface-2: #F3E9FB;
+    --aurora-line: rgba(26, 16, 32, 0.10);
+    --aurora-amber: #E08A2E;
+    --aurora-pink: #E23A6B;
+    --aurora-violet: #6A57D6;
+    --aurora-text: #1A1020;
+    --aurora-text-dim: #5B4E70;
+    --aurora-text-mute: #8B7FA0;
+    --aurora-online: #1E9E5A;
+}
+/* The control-block icons (notifications/chat/friend-requests) have a hardcoded
+   `.control-icon.has-items { fill: #fff; }` in main.css (not part of this theme/repo) - white
+   icons that are invisible against this theme's light-mode background. Only overridden in
+   light mode - dark mode's white icons are exactly right there, against the dark header. */
+body.theme-aurora:not(.site-dark-mode) .control-block .control-icon,
+body.theme-aurora:not(.site-dark-mode) .control-block .control-icon.has-items {
+    fill: var(--aurora-text-dim) !important;
+}
+/* Same issue, same fix, for the profile avatar's name text next to it in the header
+   (components/header/profile-header.blade.php) - main.css hardcodes
+   `.control-block .author-title { color: #fff; svg { fill: #fff; } }`, invisible in light mode. */
+body.theme-aurora:not(.site-dark-mode) .control-block .author-title,
+body.theme-aurora:not(.site-dark-mode) .control-block .author-subtitle {
+    color: var(--aurora-text) !important;
+}
+body.theme-aurora:not(.site-dark-mode) .control-block .author-title svg {
+    fill: var(--aurora-text) !important;
+}
+/* Same issue again, for the chat popup's own title-bar icons (msgtoggle eye-slash, the little
+   "X" close button, components/chat.blade.php) - no color/fill set anywhere in this repo, so
+   they render at the browser default, invisible against this theme's light-mode popup
+   background. */
+body.theme-aurora:not(.site-dark-mode) .popup-chat .ui-block-title .msgtoggle i,
+body.theme-aurora:not(.site-dark-mode) .popup-chat .ui-block-title .js-chat-close {
+    color: var(--aurora-text-dim);
+    fill: var(--aurora-text-dim);
+}
+body.theme-aurora:not(.site-dark-mode) .popup-chat .ui-block-title .msgtoggle i:hover,
+body.theme-aurora:not(.site-dark-mode) .popup-chat .ui-block-title .js-chat-close:hover {
+    color: var(--aurora-text);
+    fill: var(--aurora-text);
+    cursor: pointer;
+}
+
+/* The page template's own base CSS (main.css, not part of this repo/theme) puts an opaque
+   light background on the content wrapper and/or its direct child container, which sits on
+   top of the body background above and would otherwise hide it almost entirely - force it
+   (and its likely direct-child wrapper, whatever exact class it uses) transparent so the dark
+   body background actually shows through. */
+body.theme-aurora #main-wrapper-content,
+body.theme-aurora #main-wrapper-content > * {
+    background: transparent !important;
+    background-color: transparent !important;
+}
+body.theme-aurora #main-wrapper-content,
+body.theme-aurora #main-wrapper-content h1,
+body.theme-aurora #main-wrapper-content h2,
+body.theme-aurora #main-wrapper-content h3,
+body.theme-aurora #main-wrapper-content h4,
+body.theme-aurora #main-wrapper-content h5,
+body.theme-aurora #main-wrapper-content h6 {
+    color: var(--aurora-text) !important;
+    font-family: var(--aurora-body) !important;
+}
+/* CMS pages (Terms of Use, Legal information, etc. - resources/views/cms_page.blade.php) put
+   their content inside .content_block, which has a permanently white background (style.css,
+   not part of this theme/repo) that never adapts to dark/light mode - the rule above forces
+   this theme's own (light, in dark mode) text color onto it, making it unreadable against
+   that always-white card. Force a fixed dark, readable color here instead, regardless of the
+   theme's own light/dark state - this card's background never changes, so neither should its
+   text color. */
+body.theme-aurora #main-wrapper-content .content_block,
+body.theme-aurora #main-wrapper-content .content_block h1,
+body.theme-aurora #main-wrapper-content .content_block h2,
+body.theme-aurora #main-wrapper-content .content_block h3,
+body.theme-aurora #main-wrapper-content .content_block h4,
+body.theme-aurora #main-wrapper-content .content_block h5,
+body.theme-aurora #main-wrapper-content .content_block h6,
+body.theme-aurora #main-wrapper-content #cms_header {
+    color: #2A2A2A !important;
+}
+
+/* ---------- nav / header ---------- */
+/* NOTE: uses --aurora-bg-2 (a theme variable) instead of a hardcoded dark rgba() - the old
+   hardcoded value never lightened in light mode (see the light-variant block up top), leaving
+   dark text on a permanently-dark header background. */
+/* CONFIRMED root cause (checked main.css directly, live, via curl): the site's original
+   layout is CSS-FLOAT based, not flexbox - .search-bar is `float:left; width:500px;
+   height:70px;` and .control-block is `float:right`, with NO clearfix on
+   .header-content-wrapper. A float-only parent with no clearfix collapses to near-zero
+   height (floats don't contribute to parent height), while the floated search bar keeps its
+   own native 70px height - that's what made it visually stick out above/below the
+   (collapsed) header background. min-height below guarantees the header never collapses
+   under that height regardless of width; the clearfix on header-content-wrapper (further
+   down) makes this robust even without it. */
+body.theme-aurora .header {
+    background: var(--aurora-bg-2) !important;
+    backdrop-filter: blur(16px) saturate(140%);
+    border-bottom: 1px solid var(--aurora-line);
+    min-height: 72px;
+}
+/* Classic clearfix - makes header-content-wrapper's height account for its floated children
+   (.search-bar, .control-block) at ANY width, not just the >=992px block below where we
+   override float with flex outright (flex items ignore float per spec, so this clearfix is
+   mainly what protects narrower/in-between widths). */
+body.theme-aurora .header-content-wrapper::after {
+    content: '';
+    display: table;
+    clear: both;
+}
+body.theme-aurora .header::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--aurora-pink), var(--aurora-violet), var(--aurora-amber));
+    opacity: .7;
+}
+/* The page title (e.g. "Find Friends" as a big heading) isn't part of the reference nav at
+   all - the nav links themselves already show what page you're on (active underline). */
+body.theme-aurora .header .page-title {
+    display: none;
+}
+/* Force everything in the header onto one row, in a predictable order, instead of relying on
+   whatever flex rules main.css (not part of this repo) happens to apply - that's what was
+   causing the header to wrap onto two chaotic lines. Applied at ALL widths: the theme's own
+   .theme-nav-toggle hamburger (below) is the SOLE navigation at every width under this theme -
+   the native mobile tab header/drawer (header-responsive, fixed-sidebar-responsive) is hidden
+   unconditionally instead of being allowed to take over on narrow screens, so the mobile
+   experience always matches the new design instead of falling back to the classic look.
+   Kept a plain fixed 64px height here (mobile/hamburger range, <=991px) - .theme-nav is a
+   position:absolute dropdown at these widths (see the max-width:991px block further down), so
+   it's never actually part of this row's in-flow height and can't wrap it taller. The
+   height:auto+padding override for wrapping only applies >=992px below, where the *inline*
+   nav can genuinely need two lines - applying that unconditionally here previously added
+   needless extra height on mobile too, visibly crowding the page content right beneath the
+   header (it's position:fixed, so anything taller than the page's reserved .header-spacer
+   overlaps the content instead of pushing it down). */
+body.theme-aurora .header {
+    height: 64px;
+    display: flex;
+    align-items: center;
+}
+@media screen and (min-width: 1280px) {
+    body.theme-aurora .header {
+        height: auto;
+        padding: 10px 0;
+    }
+}
+body.theme-aurora .header-content-wrapper {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    align-items: center;
+    width: 100%;
+    /* box-sizing:border-box - without it this padding would add to the 100% width above and
+       overflow the header. */
+    box-sizing: border-box;
+    padding: 0 16px;
+    gap: 16px;
+}
+/* Hides BOTH the native mobile tab header (header-responsive, its own icon row/search/
+   Register-Login pair) AND the native mobile "Quick Links" drawer (fixed-sidebar-responsive,
+   the hamburger-triggered slide-in menu) - unconditionally, at every width. Without this the
+   mobile view falls back to the unthemed classic mobile UI instead of the new design. */
+body.theme-aurora .header-responsive,
+body.theme-aurora #site-header-responsive,
+body.theme-aurora .fixed-sidebar.fixed-sidebar-responsive {
+    display: none !important;
+}
+/* ---------- header search bar: one seamless rounded pill, icon has no button chrome of its
+   own (consolidated - this used to be split across several conflicting rule blocks from
+   earlier iterations, which is why the icon rendered as its own separate gray box). ---------- */
+body.theme-aurora .search-bar {
+    float: none !important;
+    width: auto !important;
+    height: auto !important;
+    background: transparent !important;
+    flex: 0 0 auto;
+    margin: 0;
+    /* align-self (not just the parent's align-items) - guarantees this flex item is
+       vertically centered against the nav text regardless of any other rule touching it. */
+    align-self: center;
+    display: flex;
+    align-items: center;
+}
+body.theme-aurora .search-bar .form-group {
+    position: relative;
+    width: 260px;
+    height: auto !important;
+    margin: 0;
+}
+/* Narrow screens: the header row is nowrap (see above) so a full 260px search box would
+   crowd out the hamburger toggle / control-block icons. CLOSED: just the small icon, no
+   visible footprint. OPEN: the <form class="search-bar"> element itself becomes the dropdown
+   panel - anchored to .header exactly the same way .theme-nav's own mobile dropdown already
+   is (position:absolute; top:100%; left/right:12px, same background/border/radius/shadow
+   tokens), since that pattern is already proven working. The earlier attempt made the INNER
+   .form-group try to become the panel while the outer .search-bar stayed a plain flex item -
+   two nested position/sizing contexts fighting each other is what produced the disconnected,
+   wrongly-colored shapes. Toggled by clicking the search icon again or clicking outside
+   (toggleThemeSearch(), theme-selector.js). */
+@media screen and (max-width: 767px) {
+    body.theme-aurora .search-bar .form-group {
+        width: 34px;
+        height: 34px;
+        overflow: visible;
+        border-radius: 50%;
+        background: transparent;
+    }
+    body.theme-aurora .search-bar input.form-control,
+    body.theme-aurora .search-bar .js-user-search {
+        display: none !important;
+    }
+    body.theme-search-open.theme-aurora .search-bar {
+        display: flex !important;
+        align-items: center;
+        position: absolute !important;
+        top: 100%;
+        left: 12px;
+        right: 12px;
+        margin-top: 8px;
+        background: var(--aurora-bg-2) !important;
+        border: 1px solid var(--aurora-line);
+        border-radius: 16px;
+        box-shadow: 0 20px 60px -15px rgba(0, 0, 0, 0.7);
+        padding: 10px 14px;
+        z-index: 1000;
+    }
+    body.theme-search-open.theme-aurora .search-bar .form-group {
+        width: 100%;
+        height: auto;
+        display: flex;
+        align-items: center;
+        overflow: visible;
+        border-radius: 0;
+    }
+    body.theme-search-open.theme-aurora .search-bar input.form-control {
+        display: block !important;
+        position: static;
+        flex: 1 1 auto;
+        width: auto;
+        height: 36px !important;
+        background: transparent !important;
+        border: none !important;
+        padding: 0 8px !important;
+    }
+    body.theme-search-open.theme-aurora .search-bar button {
+        position: static !important;
+        flex: 0 0 auto;
+        width: auto !important;
+        background: transparent !important;
+    }
+    /* The AJAX suggestion results panel (dating.js toggles its own inline display:block/none)
+       stays fully hidden while the search box is closed, and drops below the now-open panel. */
+    body.theme-search-open.theme-aurora .search-bar .js-user-search {
+        display: block !important;
+        position: absolute;
+        top: calc(100% + 8px) !important;
+        left: 0 !important;
+        right: 0;
+        width: 100% !important;
+    }
+}
+body.theme-aurora .search-bar input.form-control {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0 40px 0 18px !important;
+    height: 40px !important;
+    background: var(--aurora-surface) !important;
+    border: 1px solid var(--aurora-line) !important;
+    border-radius: 100px !important;
+    color: var(--aurora-text) !important;
+}
+body.theme-aurora .search-bar input.form-control::placeholder {
+    color: var(--aurora-text-mute);
+}
+body.theme-aurora .search-bar input.form-control:focus {
+    border-color: var(--aurora-pink) !important;
+    outline: none;
+}
+body.theme-aurora .search-bar button {
+    position: absolute !important;
+    right: 4px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: transparent !important;
+    border: none !important;
+    border-radius: 50% !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    outline: none !important;
+    -webkit-tap-highlight-color: transparent;
+}
+/* Tapping/clicking the icon (it's a real <button>) otherwise leaves the browser's default
+   focus ring visible as a persistent circle outline around it. */
+body.theme-aurora .search-bar button:focus,
+body.theme-aurora .search-bar button:focus-visible {
+    outline: none !important;
+    box-shadow: none !important;
+}
+/* The icon's own base CSS may set a hardcoded fill color rather than relying on
+   currentColor, so the button's "color" alone might not actually recolor it - set fill
+   explicitly to guarantee it matches the theme. */
+body.theme-aurora .search-bar button svg {
+    fill: var(--aurora-text-dim);
+    width: 16px;
+    height: 16px;
+}
+/* Search suggestions dropdown - matches the search bar's own width/style instead of the
+   inline 500px/light-theme default it otherwise renders with. */
+/* position:absolute - the site's own style.css only sets this (as !important, alongside the
+   fixed top:70px/left:0 this overrides) INSIDE its own `@media (max-width:768px)` block, never
+   for desktop widths - so at desktop widths, with no position set at all, this box used to
+   render in NORMAL FLOW and genuinely shove the header/nav row down every time a search
+   result appeared (regardless of theme - .header being position:fixed here, same as classic,
+   was never the issue; the missing position on THIS element was). Setting position:absolute
+   here, unconditionally, is what actually overlays it instead. */
+body.theme-aurora .search-bar .js-user-search {
+    position: absolute !important;
+    width: 100% !important;
+    left: 0 !important;
+    top: calc(100% + 6px) !important;
+    background: var(--aurora-surface) !important;
+    border: 1px solid var(--aurora-line) !important;
+    border-radius: 12px !important;
+    color: var(--aurora-text);
+}
+/* display:flex + centering (not inline-block) - the emoji glyph this button shows
+   (theme-selector.js sets its innerHTML to a moon/sun emoji) has unusual line-height metrics
+   of its own that don't vertically center against the surrounding text with inline-block,
+   which is why it looked slightly misaligned with the nav row next to it. */
+body.theme-aurora #theme-toggler {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    font-size: 18px;
+    line-height: 1;
+    filter: hue-rotate(200deg) saturate(1.4);
+}
+/* At desktop widths .control-block's children (notification/chat/credits icons) rely on
+   however main.css originally laid them out internally, so no display override is needed
+   there - margin-left:auto alone pushes the whole block right within the flex header row.
+   BELOW 768px though, main.css has its own rule forcing `.control-block { display:block;
+   padding:15px 20px 0; }` (meant for the native mobile tab header, which we hide entirely -
+   see above) - that turns every icon link into a full-width stacked block, which is the
+   vertically-stacked-icons / full-width red Packages button bug. Overriding display back to
+   flex at that same breakpoint fixes it. */
+body.theme-aurora .control-block {
+    flex: 0 0 auto;
+    margin-left: auto;
+}
+@media screen and (max-width: 767px) {
+    body.theme-aurora .control-block {
+        display: flex !important;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 10px;
+        height: auto !important;
+        padding: 0 !important;
+    }
+    body.theme-aurora .control-block > * {
+        flex: 0 0 auto;
+        width: auto !important;
+    }
+    /* Packages button + credits pill are redundant on mobile - every page with a Packages
+       button already shows its own full one further down, and dropping these two frees up
+       enough width for the notification/chat/friend-request icon badges (previously squeezed
+       off/invisible in this same row) to actually fit and show. */
+    body.theme-aurora .control-block .packages-top,
+    body.theme-aurora .control-block .theme-credits-pill {
+        display: none !important;
+    }
+}
+/* The profile avatar link+dropdown (components/header/profile-header.blade.php) is hidden
+   entirely on mobile (not just its :hover dropdown) - .theme-nav's own mobile-only Account/
+   Language/Log Out links (see header.blade.php) replace it there, so keeping the avatar link
+   around too was a redundant duplicate eating space in the icon row. Desktop keeps the avatar
+   link AND its native hover dropdown exactly as before - the dropdown works fine there with a
+   mouse; showing these same links inline in the desktop .theme-nav row too (tried previously)
+   just made that row wrap awkwardly against the credits/packages controls. */
+@media screen and (max-width: 1279px) {
+    body.theme-aurora .control-block .author-page {
+        display: none !important;
+    }
+}
+/* ---------- header icon dropdowns (notifications/chat/friend-requests/profile) - these
+   reuse the site's shared .more-dropdown component, which is hardcoded to a white classic
+   background/dark text/small border-radius regardless of theme. Restyled here to match the
+   exact same rounded-card look as the .theme-nav mobile dropdown (16px radius, same
+   background/border/shadow tokens) rather than just swapping colors on the old shape -
+   scoped to .control-block so only the header's own copies are touched (the same class is
+   reused elsewhere in the app - calendar, shop cart, etc. - which must stay untouched). ---------- */
+body.theme-aurora .control-block .more-dropdown {
+    background: var(--aurora-bg-2) !important;
+    border: 1px solid var(--aurora-line);
+    border-radius: 16px !important;
+    box-shadow: 0 20px 60px -15px rgba(0, 0, 0, 0.7);
+    padding: 12px !important;
+    overflow: hidden;
+}
+body.theme-aurora .control-block .more-dropdown .ui-block-title .title,
+body.theme-aurora .control-block .more-dropdown a,
+body.theme-aurora .control-block .more-dropdown .h6,
+body.theme-aurora .control-block .more-dropdown .notification-friend,
+body.theme-aurora .control-block .more-dropdown .author-title {
+    color: var(--aurora-text) !important;
+}
+body.theme-aurora .control-block .more-dropdown .chat-message-item,
+body.theme-aurora .control-block .more-dropdown .notification-date,
+body.theme-aurora .control-block .more-dropdown .author-subtitle,
+body.theme-aurora .control-block .more-dropdown .no-req {
+    color: var(--aurora-text-dim) !important;
+}
+body.theme-aurora .control-block .more-dropdown a:hover {
+    color: var(--aurora-pink) !important;
+}
+/* Unread/hover row states (notification-list li.message-unread/.un-read, .notification-list
+   li:hover - main.css, not part of this theme/repo) have their own hardcoded near-white
+   background, painted OVER the dark .more-dropdown background above for just that one row -
+   left unfixed, that made unread rows (which is most of them, in a busy inbox) show this
+   theme's light text on a near-white row, unreadable. Only rows with neither state showed
+   the correct dark background/light text. */
+body.theme-aurora .control-block .more-dropdown .notification-list li.message-unread,
+body.theme-aurora .control-block .more-dropdown .notification-list li.un-read,
+body.theme-aurora .control-block .more-dropdown .notification-list li:hover {
+    background: var(--aurora-surface-2) !important;
+}
+body.theme-aurora .control-block .more-dropdown input.form-control {
+    background: var(--aurora-surface) !important;
+    border: 1px solid var(--aurora-line) !important;
+    color: var(--aurora-text) !important;
+}
+body.theme-aurora .header .link-find-friend {
+    color: var(--aurora-text-dim);
+    font-weight: 600;
+}
+body.theme-aurora .header .link-find-friend:hover {
+    color: var(--aurora-text);
+}
+body.theme-aurora .theme-credits-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--aurora-surface-2);
+    border: 1px solid var(--aurora-line);
+    padding: 7px 14px;
+    border-radius: 999px;
+    font-family: var(--aurora-mono);
+    font-size: 13px;
+    color: var(--aurora-amber);
+}
+/* .packages-top (the "Packages" pill in the header) isn't themed by any of the rules above -
+   it uses its own hardcoded `background: var(--main-color)` (a site-wide admin setting,
+   currently a dark navy, completely independent of this theme's light/dark variables) - in
+   light mode that left the (also dark) --aurora-text-dim text nearly unreadable against it.
+   Giving it the same themed gradient + guaranteed-white text as the other buttons fixes that
+   in both modes, instead of depending on whatever --main-color happens to be. */
+body.theme-aurora .header .btn-purple,
+body.theme-aurora .header .btn-primary,
+body.theme-aurora .header .packages-top {
+    background: linear-gradient(120deg, var(--aurora-pink), var(--aurora-violet)) !important;
+    border: none !important;
+    color: #fff !important;
+    font-family: var(--aurora-body);
+    font-weight: 700;
+}
+
+/* ---------- ambient glow (same technique as the hero's radial gradients, applied behind
+   the sidebars too so the whole chrome feels like one atmosphere, not just the hero).
+   NOT applied to .header any more - the glow's ::before used to bleed into/behind the search
+   and hamburger dropdown panels (visible as an ugly red blur).
+   IMPORTANT: this used to force position:relative on .header/.fixed-sidebar-left/
+   .fixed-sidebar-right (reasoning: the ::before overlay and the search/nav dropdowns need a
+   "positioned" ancestor to anchor to). That was unnecessary AND harmful - all three already
+   have a non-static native position (.header is position:fixed, both sidebars are
+   position:absolute - see main.css, not part of this theme/repo), which already satisfies
+   that requirement on its own. Overriding .header to position:relative silently broke its
+   native fixed/sticky-on-scroll behavior (it stayed in the page's normal flow and scrolled
+   away instead), and overriding .fixed-sidebar-right specifically broke its native small<->large
+   slide-open animation (base-init.js toggles a `.open` class that drives a CSS
+   `transform: translateX(...)` on these exact elements - forcing position:relative altered
+   their containing-block/stacking behavior enough to make the "large" (expanded, with names)
+   panel fail to slide into view correctly, reported as "the chat panel disappears instead of
+   opening" in every theme except classic, which never touched position here). Removed
+   entirely - the ::before below still anchors correctly to the native fixed/absolute position. */
+body.theme-aurora .fixed-sidebar-left::before,
+body.theme-aurora .fixed-sidebar-right::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+        radial-gradient(120% 140% at 0% 0%, rgba(255, 110, 151, 0.14), transparent 55%),
+        radial-gradient(120% 140% at 100% 100%, rgba(142, 124, 255, 0.12), transparent 55%);
+}
+
+/* ---------- left sidebar: permanently hidden - its real links (Find Friends, Newsfeed, CMS
+   pages, admin) now live in the header's own .theme-nav instead (see header.blade.php), which
+   is the sole nav at every width under this theme. NOTE: zeroing #main-wrapper-content's
+   margin-left is a best-effort attempt to reclaim the space the sidebar used to occupy - the
+   exact compensation rule lives in main.css (not part of this repo), so this may need
+   adjustment once seen live.
+   IMPORTANT: targets #sidebar-left/#sidebar-left-1 by ID, NOT the .fixed-sidebar-left CLASS -
+   components/sidebar-left.blade.php renders this desktop sidebar (#sidebar-left/#sidebar-left-1)
+   AND a wholly separate mobile drawer (#sidebar-left-responsive/#sidebar-left-1-responsive,
+   the classic theme's "Quick Links"/hamburger menu) sharing the same .fixed-sidebar-left class
+   - the mobile drawer is hidden separately, as a whole, via the
+   .fixed-sidebar.fixed-sidebar-responsive rule further up (next to header-responsive), so it
+   isn't accidentally caught by this ID-scoped rule (which fixed an earlier bug where the class
+   selector nuked both at once). */
+body.theme-aurora #sidebar-left,
+body.theme-aurora #sidebar-left-1 {
+    visibility: hidden !important;
+    width: 0 !important;
+    height: 0 !important;
+    overflow: visible !important;
+}
+body.theme-aurora #main-wrapper-content {
+    margin-left: 0 !important;
+}
+body.theme-aurora .fixed-sidebar-right .mCustomScrollbar {
+    background: transparent !important;
+}
+
+/* Pulls the "online users" flyout back into view (its own CSS assumed it'd be inside a
+   visible sidebar) - opened via the new .open_online_users link in .theme-nav, using the
+   exact same click handler as before (bound by class in dating.js, unchanged). top/left below
+   are just a fallback; theme-selector.js repositions this on every click to sit right under
+   whichever .open_online_users link was actually clicked (it can be in different places -
+   inline in the desktop nav, or in the mobile hamburger dropdown), instead of this fixed spot
+   that only ever matched the old sidebar toggle's position. */
+body.theme-aurora .fixed-sidebar-left #online_users_left {
+    visibility: visible !important;
+    position: fixed !important;
+    top: 70px;
+    left: 20px;
+    width: 280px;
+    max-height: 60vh;
+    overflow-y: auto;
+    background: var(--aurora-bg-2);
+    border: 1px solid var(--aurora-line);
+    border-radius: 16px;
+    box-shadow: 0 20px 60px -15px rgba(0, 0, 0, 0.7);
+    z-index: 999;
+}
+
+
+/* ---------- icon-free horizontal nav (matches the theme reference exactly) ---------- */
+body.theme-aurora .theme-nav {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px 28px;
+    flex: 1 1 auto;
+    justify-content: center;
+    margin: 0;
+}
+/* Account/Language section labels (desktop: small inline labels ahead of their group;
+   mobile: full-width block headers, see the max-width:991px block below) - these are what
+   visually separate "page links" from "account" from "language" in the single nav list. */
+body.theme-aurora .theme-nav-section-label {
+    color: var(--aurora-text-mute);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+}
+body.theme-aurora .theme-nav-link {
+    color: var(--aurora-text-dim);
+    font-weight: 600;
+    font-size: 14.5px;
+    position: relative;
+    padding-bottom: 4px;
+    transition: color .2s;
+}
+body.theme-aurora .theme-nav-link:hover {
+    color: var(--aurora-text);
+}
+body.theme-aurora .theme-nav-link.active {
+    color: var(--aurora-text);
+}
+body.theme-aurora .theme-nav-link.active::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -2px;
+    height: 2px;
+    border-radius: 2px;
+    background: linear-gradient(90deg, var(--aurora-pink), var(--aurora-amber));
+}
+/* Hamburger toggle - hidden on desktop, only shown at mobile widths (see media query below) */
+body.theme-aurora .theme-nav-toggle {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    color: var(--aurora-text-dim);
+    background: var(--aurora-surface-2);
+    border: 1px solid var(--aurora-line);
+}
+body.theme-aurora .theme-nav-toggle:hover,
+body.theme-aurora.theme-nav-dropdown-open .theme-nav-toggle {
+    color: var(--aurora-pink);
+}
+/* Hidden by default (desktop) - MUST come before the max-width:991px block below, not after:
+   an unscoped rule placed after a media query wins the cascade at equal specificity regardless
+   of the media query, which is exactly what silently hid these mobile-only links entirely. */
+body.theme-aurora .theme-nav-mobile-only {
+    display: none;
+}
+@media screen and (max-width: 1279px) {
+    body.theme-aurora .theme-nav-toggle {
+        display: inline-flex;
+    }
+    body.theme-aurora .theme-nav {
+        display: none;
+        /* position:absolute anchored to .header, which is already "positioned" (native
+           position:fixed - see main.css, not part of this theme/repo) so no extra position
+           override is needed on .header itself for this to anchor correctly. */
+        position: absolute;
+        top: 100%;
+        left: 12px;
+        right: 12px;
+        margin-top: 8px;
+        flex-direction: column;
+        /* flex-wrap:nowrap overrides the desktop rule's flex-wrap:wrap (unconditional, further
+           up) - with flex-direction:column, "wrap" doesn't overflow vertically at all, it
+           starts a SECOND COLUMN to the side once content exceeds max-height (wrapping happens
+           on the cross axis, which is horizontal here). That's what silently ate Deutsch/
+           Français/Español: they weren't missing, they'd wrapped into an invisible second
+           column that overflow-x:hidden then clipped, instead of the vertical scrollbar the
+           max-height+overflow-y:auto below was meant to produce. */
+        flex-wrap: nowrap;
+        align-items: flex-start;
+        gap: 4px;
+        margin: 0;
+        padding: 12px;
+        background: var(--aurora-bg-2);
+        border: 1px solid var(--aurora-line);
+        border-radius: 16px;
+        box-shadow: 0 20px 60px -15px rgba(0, 0, 0, 0.7);
+        z-index: 1000;
+    }
+    body.theme-aurora.theme-nav-dropdown-open .theme-nav {
+        display: flex;
+    }
+    body.theme-aurora .theme-nav-link {
+        padding: 10px 8px;
+        width: 100%;
+    }
+    /* Account/language/logout links (see header.blade.php) only exist for the mobile
+       dropdown - desktop keeps the profile avatar's own native hover dropdown for these. */
+    body.theme-aurora .theme-nav-mobile-only {
+        display: block;
+    }
+    /* The custom-status ("moto") form needs its input+button side by side, not the plain
+       block stacking .theme-nav-mobile-only gives everything else above. */
+    body.theme-aurora .theme-nav-status-form {
+        display: flex !important;
+        align-items: center;
+        gap: 8px;
+        width: 100%;
+        /* min-width:0 - a flex item's default min-width is "auto" (its own content size), not
+           0, which stopped this row from ever shrinking to fit the panel; the input inside
+           inherits the same problem and needs the same fix (below). This is what forced the
+           whole .theme-nav panel wider than the screen, breaking its column layout entirely
+           (multiple links squeezed per "row" instead of one each, requiring horizontal scroll
+           to see the rest - the "language above AND below" symptom reported). */
+        min-width: 0;
+        box-sizing: border-box;
+        padding: 4px 8px;
+    }
+    body.theme-aurora .theme-nav-status-form input.form-control {
+        flex: 1 1 auto;
+        width: auto;
+        min-width: 0;
+        max-width: 100%;
+        box-sizing: border-box;
+        height: 36px;
+        background: var(--aurora-surface);
+        border: 1px solid var(--aurora-line);
+        border-radius: 100px;
+        padding: 0 14px;
+        color: var(--aurora-text);
+    }
+    /* Native .form-group.with-button button (main.css, not part of this repo/theme, and NOT
+       scoped to .search-bar) forces `position:absolute; right:0; top:0; height:100%;` on any
+       button inside a .form-group.with-button - which this form's markup reuses. Left
+       unoverridden, that yanks the button out of the flex row entirely and pins it to the
+       corner of whatever positioned ancestor it lands on (.theme-nav itself), which is what
+       made it visibly stick out past the input. position:static neutralizes that. */
+    body.theme-aurora .theme-nav-status-form button {
+        position: static !important;
+        flex: 0 0 auto;
+        width: 32px;
+        height: 32px !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: none;
+        border-radius: 50%;
+        background: linear-gradient(120deg, var(--aurora-pink), var(--aurora-violet));
+        fill: #fff;
+    }
+    /* Section labels become full-width block headers with a top divider/spacing in the
+       stacked mobile dropdown, instead of the small inline labels used in the desktop row. */
+    body.theme-aurora .theme-nav-section-label {
+        width: 100%;
+        padding: 10px 8px 0;
+        margin-top: 6px;
+        border-top: 1px solid var(--aurora-line);
+    }
+    body.theme-aurora .theme-nav-section-label:first-of-type {
+        margin-top: 0;
+    }
+    /* The extra account/language links can make the panel taller than the viewport - scroll
+       instead of overflowing off-screen. overflow-x:hidden is a safety net (not the actual
+       fix - that's the min-width:0 above) so a future child with its own unshrinkable min
+       width clips instead of forcing the whole panel wider than the screen again.
+       100vh (not dvh) reports the FULL screen height on many mobile browsers, including the
+       area their address bar/toolbar actually covers - the panel then computes a max-height
+       taller than what's really visible, so its bottom portion is invisible AND unreachable
+       (it's position:absolute, so the page itself has nothing extra to scroll to reveal it).
+       100dvh reflects the actual visible viewport instead - declared second so browsers that
+       don't support dvh yet simply keep the vh fallback above. */
+    body.theme-aurora .theme-nav {
+        max-height: calc(100vh - 100px);
+        max-height: calc(100dvh - 100px);
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        overflow-x: hidden;
+    }
+}
+
+/* ---------- right sidebar: same detached floating capsule treatment as the left one ---------- */
+/* NOTE: no margin/height override here (an earlier version had `margin: 16px 16px 16px 0;
+   height: calc(100% - 32px) !important;` for a "floating card" look) - main.css (not part of
+   this theme/repo) positions this element with BOTH top:0 and bottom:70px (no explicit
+   height), leaving its own height implicit; forcing an explicit height on top of that
+   over-constrains the box (per the CSS spec, that makes the browser ignore the native
+   bottom:70px), which threw off exactly where the fixed .search-friend/.olympus-chat footer
+   bars (both anchored with their own bottom:0/bottom:70px insets, relative to THIS box) ended
+   up landing - reported as "something is pushing the bottom part down". Border/radius/shadow
+   are still safe to override since they don't affect layout math. */
+body.theme-aurora .fixed-sidebar-right {
+    background: var(--aurora-bg-2) !important;
+    border-color: var(--aurora-line) !important;
+    box-shadow: 0 20px 50px -15px rgba(0, 0, 0, 0.6);
+}
+body.theme-aurora .fixed-sidebar-right .chat-users > li {
+    margin: 4px 10px;
+    padding: 8px;
+    border-radius: 14px;
+    transition: background .18s ease;
+}
+body.theme-aurora .fixed-sidebar-right .chat-users > li:hover {
+    background: var(--aurora-surface-2);
+}
+body.theme-aurora .fixed-sidebar-right .author-thumb .avatar {
+    border-radius: 12px;
+    box-shadow: 0 0 0 1px var(--aurora-line);
+}
+body.theme-aurora .fixed-sidebar-right .author-content .author-name,
+body.theme-aurora .fixed-sidebar-right .name {
+    color: var(--aurora-text);
+    font-family: var(--aurora-display);
+}
+/* Bottom of the right chat panel (components/sidebar-right.blade.php) - the search box and
+   the "TROMAVEQUI"/chat-icon footer bar below it are native, hardcoded to a fixed white/
+   purple regardless of theme (main.css, not part of this repo/theme). Restyled to match the
+   same soft rounded/glow language as the rest of Aurora. */
+body.theme-aurora .fixed-sidebar-right .search-friend {
+    background: var(--aurora-bg-2) !important;
+    box-shadow: none !important;
+    border-top: 1px solid var(--aurora-line);
+}
+body.theme-aurora .fixed-sidebar-right .search-friend input {
+    background: var(--aurora-surface);
+    border: 1px solid var(--aurora-line);
+    color: var(--aurora-text);
+    border-radius: 10px;
+}
+body.theme-aurora .fixed-sidebar-right .search-friend a {
+    fill: var(--aurora-text-dim);
+}
+body.theme-aurora .fixed-sidebar-right .search-friend a:hover {
+    fill: var(--aurora-pink);
+}
+body.theme-aurora .fixed-sidebar-right .olympus-chat {
+    background: linear-gradient(120deg, var(--aurora-pink), var(--aurora-violet)) !important;
+    fill: #fff !important;
+}
+body.theme-aurora .fixed-sidebar-right .olympus-chat-title {
+    color: #fff !important;
+    font-family: var(--aurora-display);
+}
+
+/* ---------- hero / search / chips (theme-only markup, see find_friends.blade.php) ---------- */
+body.theme-aurora .theme-hero {
+    position: relative;
+    z-index: 2;
+    padding: 40px 12px 30px;
+    text-align: center;
+    max-width: 900px;
+    margin: 0 auto;
+}
+body.theme-aurora .theme-hero-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--aurora-mono);
+    font-size: 12px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--aurora-online);
+    background: rgba(74, 222, 128, 0.08);
+    border: 1px solid rgba(74, 222, 128, 0.25);
+    padding: 6px 14px;
+    border-radius: 100px;
+    margin-bottom: 18px;
+}
+body.theme-aurora .theme-pulse-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--aurora-online);
+    box-shadow: 0 0 8px var(--aurora-online);
+    animation: aurora-blink 1.6s infinite;
+}
+@keyframes aurora-blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: .35; }
+}
+body.theme-aurora .theme-hero-title {
+    font-family: var(--aurora-display);
+    font-weight: 600;
+    line-height: 1.08;
+    font-size: clamp(30px, 5vw, 48px);
+    letter-spacing: -0.01em;
+    color: var(--aurora-text);
+}
+body.theme-aurora .theme-hero-title em {
+    font-style: italic;
+    font-weight: 500;
+    background: linear-gradient(100deg, var(--aurora-pink), var(--aurora-amber));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+body.theme-aurora .theme-hero-sub {
+    margin-top: 14px;
+    color: var(--aurora-text-dim);
+    font-size: 16px;
+    max-width: 520px;
+    margin-inline: auto;
+    line-height: 1.55;
+}
+body.theme-aurora .theme-searchbar {
+    margin: 26px auto 0;
+    max-width: 560px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--aurora-surface);
+    border: 1px solid var(--aurora-line);
+    border-radius: 100px;
+    padding: 8px 8px 8px 20px;
+    box-shadow: 0 20px 50px -20px rgba(0, 0, 0, 0.6);
+}
+body.theme-aurora .theme-searchbar input {
+    flex: 1;
+    background: none;
+    border: none;
+    outline: none;
+    color: var(--aurora-text);
+    font-family: var(--aurora-body);
+    font-size: 15px;
+}
+body.theme-aurora .theme-searchbar input::placeholder {
+    color: var(--aurora-text-mute);
+}
+body.theme-aurora .theme-searchbar button {
+    border: none;
+    cursor: pointer;
+    font-family: var(--aurora-body);
+    font-weight: 700;
+    font-size: 14px;
+    padding: 12px 22px;
+    border-radius: 100px;
+    color: #1A1020;
+    background: linear-gradient(120deg, var(--aurora-amber), var(--aurora-pink));
+    transition: transform .18s ease;
+}
+body.theme-aurora .theme-searchbar button:hover {
+    transform: translateY(-1px) scale(1.02);
+}
+body.theme-aurora .theme-chips {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 18px;
+}
+body.theme-aurora .find-friends-sort-chip {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--aurora-text-dim);
+    border: 1px solid var(--aurora-line);
+    padding: 8px 16px;
+    border-radius: 100px;
+    cursor: pointer;
+    background: var(--aurora-surface);
+    transition: all .18s;
+}
+body.theme-aurora .find-friends-sort-chip:hover,
+body.theme-aurora .find-friends-sort-chip.active {
+    color: var(--aurora-text);
+    background: var(--aurora-surface-2);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+}
+
+/* ---------- profile cards (find_friends grid - same classes for initial load AND the
+   controller's AJAX "load more" HTML, so both stay visually identical) ---------- */
+/* NOTE: deliberately no "background" override here - .ui-block's background is the
+   profile's actual photo, set as an inline style (background: url(...)) by the server.
+   Overriding it (even just background-color, since the shorthand resets everything) would
+   hide the photo behind a flat color. */
+body.theme-aurora .find_friends_item .ui-block {
+    border: 1px solid var(--aurora-line);
+    border-radius: 20px;
+    overflow: hidden;
+    transition: border-color .28s;
+    /* AI Companion cards set an inline `background-size: contain` (find_friends.blade.php),
+       which letterboxes the photo instead of filling the card edge-to-edge like real user
+       cards do (those have no inline background-size, so they use the browser default -
+       effectively "auto", which combined with the photo's own dimensions typically fills the
+       box). !important is required since inline styles otherwise always win. */
+    background-size: cover !important;
+}
+/* Lift-on-hover lives on the OUTER wrapper, not .ui-block itself - a "transform" on the
+   element that also has overflow:hidden + border-radius + an absolutely-positioned badge
+   child (the "Online" pill) can make some browsers recompute that child's position
+   incorrectly (a visible jump to the left, reported by the user). Moving the transform one
+   level up avoids ever combining transform with that specific set of properties. */
+body.theme-aurora .find_friends_item {
+    transition: transform .28s cubic-bezier(.2, .7, .3, 1);
+}
+body.theme-aurora .find_friends_item:hover {
+    transform: translateY(-6px);
+}
+body.theme-aurora .find_friends_item:hover .ui-block {
+    border-color: rgba(255, 255, 255, 0.16);
+}
+/* Taller, portrait-leaning cards with a colorful scrim (contrast Nordic's shorter, wider,
+   teal-tinted cards below) - overrides the server's inline height:415px. */
+body.theme-aurora .find_friends_item .ui-block {
+    height: 460px !important;
+}
+body.theme-aurora #find_friends_results .friend-actions,
+body.theme-aurora #ai_friends_results .friend-actions {
+    background-image: linear-gradient(rgba(20, 15, 31, 0), rgba(20, 15, 31, 0.4), rgba(46, 15, 40, 0.92));
+}
+/* Fixed light text/scrim on the card overlay - this sits on top of the profile PHOTO, not
+   the page background, so it must stay readable regardless of whether light or dark mode is
+   active for the rest of the site (unlike --aurora-text, which flips for light mode). */
+body.theme-aurora .friend-item .author-name,
+body.theme-aurora .friend-item .h5.author-name {
+    font-family: var(--aurora-display);
+    font-weight: 700 !important;
+    font-size: 20px !important;
+    color: #fff !important;
+    text-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
+}
+body.theme-aurora .friend-item .btn-control.bg-blue {
+    background: rgba(255, 255, 255, 0.14) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-radius: 11px !important;
+    color: #fff !important;
+    font-weight: 700 !important;
+    box-shadow: 0 4px 18px rgba(255, 110, 151, 0.25);
+}
+body.theme-aurora .friend-item .btn-control.bg-purple {
+    background: linear-gradient(120deg, var(--aurora-pink), var(--aurora-violet)) !important;
+    border: none !important;
+    border-radius: 11px !important;
+    color: #fff !important;
+    font-weight: 700 !important;
+    box-shadow: 0 4px 20px rgba(255, 110, 151, 0.45), 0 2px 10px rgba(142, 124, 255, 0.3);
+}
+
+/* ---------- online/offline badges (pure CSS pulse ring on the EXISTING elements - no
+   markup change needed, so this looks identical whether the card came from the initial
+   page render or the AJAX "load more" response) ---------- */
+/* NOTE: no "position" override here - .span-online is already position:absolute (set by the
+   base stylesheet, which is what overlays it onto the top-left of the photo). Overriding it
+   to "relative" (as an earlier version of this file did) breaks that entirely, turning the
+   badge into a full-width in-flow bar above the card instead of a small pill overlaid on it.
+   position:absolute already establishes its own containing block for the ::before ring below,
+   so nothing extra is needed here for that to work. */
+body.theme-aurora .span-online,
+body.theme-aurora .find_friends_status.span-online {
+    background: rgba(74, 222, 128, 0.12) !important;
+    color: var(--aurora-online) !important;
+    border-radius: 100px;
+    padding: 4px 10px 4px 8px !important;
+    font-family: var(--aurora-mono);
+    font-weight: 600;
+}
+body.theme-aurora .span-online::before {
+    content: '';
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    margin-right: 5px;
+    border-radius: 50%;
+    background: var(--aurora-online);
+    box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.6);
+    animation: aurora-ring 1.8s ease-out infinite;
+}
+@keyframes aurora-ring {
+    0% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.55); }
+    70% { box-shadow: 0 0 0 8px rgba(74, 222, 128, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
+}
+body.theme-aurora .span-offline,
+body.theme-aurora .find_friends_status.span-offline {
+    background: rgba(120, 108, 147, 0.15) !important;
+    color: var(--aurora-text-mute) !important;
+    border-radius: 100px;
+    padding: 4px 10px !important;
+    font-family: var(--aurora-mono);
+}
+body.theme-aurora .icon-status.online {
+    background: var(--aurora-online) !important;
+    box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.6);
+    animation: aurora-ring 1.8s ease-out infinite;
+}
+
+/* ---------- chat popup (light touch - keep functional layout, just recolor) ---------- */
+body.theme-aurora .popup-chat .ui-block-title {
+    background: var(--aurora-surface-2);
+}
+body.theme-aurora .popup-chat .mCustomScrollbar {
+    background-color: var(--aurora-bg-2);
+}
+body.theme-aurora .popup-chat .notification-list li .notification-event .chat-message-item {
+    background: var(--aurora-surface);
+    color: var(--aurora-text);
+}
+/* Admin-only chat controls: managed-account switcher, per-user language, translate toggle
+   (components/chat.blade.php) - plain native <select> elements, unstyled/white by default. */
+body.theme-aurora #popup-chat .row.m-0 > div {
+    padding: 0 4px;
+}
+body.theme-aurora .popup-chat select#admin_account,
+body.theme-aurora .popup-chat select.lang_for_user,
+body.theme-aurora .popup-chat select.auto_translate {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    box-sizing: border-box;
+    margin: 6px 0;
+    padding: 8px 30px 8px 14px;
+    background-color: var(--aurora-surface);
+    background-image:
+        linear-gradient(45deg, transparent 50%, var(--aurora-pink) 50%),
+        linear-gradient(135deg, var(--aurora-pink) 50%, transparent 50%);
+    background-position: calc(100% - 18px) center, calc(100% - 13px) center;
+    background-size: 5px 5px, 5px 5px;
+    background-repeat: no-repeat;
+    border: 1px solid var(--aurora-line);
+    border-radius: 100px;
+    color: var(--aurora-text);
+    font-size: 13px;
+    font-family: var(--aurora-body);
+}
+body.theme-aurora .popup-chat select#admin_account:focus,
+body.theme-aurora .popup-chat select.lang_for_user:focus,
+body.theme-aurora .popup-chat select.auto_translate:focus {
+    border-color: var(--aurora-pink);
+    outline: none;
+}
+body.theme-aurora .popup-chat select#admin_account option,
+body.theme-aurora .popup-chat select.lang_for_user option,
+body.theme-aurora .popup-chat select.auto_translate option {
+    background: var(--aurora-surface);
+    color: var(--aurora-text);
+}
+body.theme-aurora .popup-chat select#admin_account::-ms-expand,
+body.theme-aurora .popup-chat select.lang_for_user::-ms-expand,
+body.theme-aurora .popup-chat select.auto_translate::-ms-expand {
+    display: none;
+}
+
+/* ---------- profile page (resources/views/profile/profile.blade.php,
+   components/top-header-profile.blade.php) - same soft rounded/glow language as the header
+   and find_friends cards. ---------- */
+body.theme-aurora .top-header {
+    background: var(--aurora-bg-2);
+    border: 1px solid var(--aurora-line);
+    border-radius: 24px;
+    overflow: hidden;
+}
+body.theme-aurora .top-header-thumb {
+    background: var(--aurora-surface);
+}
+body.theme-aurora .profile-section {
+    background: var(--aurora-bg-2);
+}
+body.theme-aurora .profile-menu a {
+    color: var(--aurora-text-dim) !important;
+    font-family: var(--aurora-body);
+}
+body.theme-aurora .profile-menu a:hover,
+body.theme-aurora .profile-menu a.active {
+    color: var(--aurora-text) !important;
+}
+body.theme-aurora .top-header-author .author-thumb img {
+    border-radius: 50%;
+    box-shadow: 0 0 0 4px var(--aurora-bg-2), 0 0 0 5px var(--aurora-line);
+}
+body.theme-aurora .top-header-author .author-name {
+    color: var(--aurora-text) !important;
+    font-family: var(--aurora-display);
+    font-weight: 700;
+}
+/* Add Friend / Chat / settings gear on the profile cover - same pill-gradient treatment as
+   the find_friends card buttons (body.theme-aurora .friend-item .btn-control.bg-blue/.bg-purple
+   further up), extended to this page's own .control-block-button context. */
+body.theme-aurora .top-header .control-block-button .btn-control.bg-blue {
+    background: var(--aurora-surface-2) !important;
+    border: 1px solid var(--aurora-line) !important;
+    border-radius: 100px !important;
+    color: var(--aurora-text) !important;
+}
+body.theme-aurora .top-header .control-block-button .btn-control.bg-purple,
+body.theme-aurora .top-header .control-block-button .btn-control.bg-primary {
+    background: linear-gradient(120deg, var(--aurora-pink), var(--aurora-violet)) !important;
+    border: none !important;
+    border-radius: 100px !important;
+    color: #fff !important;
+}
+/* .ui-block is the generic "card" wrapper reused across the whole site (Profile Intro, Last
+   Photos, Friends boxes here; Account/Personal Information on the settings page below) - its
+   native background is a hardcoded white (style.css, not part of this theme/repo), same class
+   of issue as the CMS .content_block fix above, but here the card should actually adopt the
+   theme instead of staying a fixed white document look.
+   :not([style]) is required - the find_friends grid (and the AI Companions grid on the same
+   page) ALSO uses .ui-block, but sets the profile photo as an inline `style="background:
+   url(...)"` attribute (FindFriendsController.php). An earlier version of this rule used a
+   bare .ui-block selector, whose !important background overrode that inline photo and made
+   every card photo disappear across the whole site. Cards with a real photo always carry an
+   inline style attribute; cards that don't (Profile Intro, Account Info, and find_friends
+   cards for users with no photo) don't, so this cleanly targets only the latter. */
+body.theme-aurora .ui-block:not([style]) {
+    background: var(--aurora-surface) !important;
+    border: 1px solid var(--aurora-line) !important;
+    border-radius: 20px !important;
+}
+body.theme-aurora .ui-block-title {
+    border-bottom: 1px solid var(--aurora-line) !important;
+}
+body.theme-aurora .ui-block-title .title,
+body.theme-aurora .ui-block .widget .title,
+body.theme-aurora .ui-block .widget .text {
+    color: var(--aurora-text) !important;
+    font-family: var(--aurora-body);
+}
+body.theme-aurora .ui-block .widget .title {
+    color: var(--aurora-text-dim) !important;
+}
+/* Timeline posts (same .ui-block card, plus their own author/date row) */
+body.theme-aurora .hentry.post .post__author-name,
+body.theme-aurora .hentry.post p {
+    color: var(--aurora-text) !important;
+}
+body.theme-aurora .hentry.post .post__date time {
+    color: var(--aurora-text-mute) !important;
+}
+body.theme-aurora .hentry.post .likes.post-add-icon {
+    color: var(--aurora-text-dim) !important;
+    fill: var(--aurora-text-dim) !important;
+}
+body.theme-aurora .hentry.post .likes.post-add-icon.active {
+    color: var(--aurora-pink) !important;
+    fill: var(--aurora-pink) !important;
+}
+
+/* ---------- profile settings / account dashboard page
+   (resources/views/profile/profile-info.blade.php) ---------- */
+body.theme-aurora .main-header {
+    background: var(--aurora-bg-2);
+    border-bottom: 1px solid var(--aurora-line);
+}
+body.theme-aurora .main-header .content-bg-wrap {
+    opacity: .35;
+}
+body.theme-aurora .main-header-content h1 {
+    color: var(--aurora-text) !important;
+    font-family: var(--aurora-display);
+    font-weight: 700;
+}
+body.theme-aurora .main-header-content p {
+    color: var(--aurora-text-dim) !important;
+}
+body.theme-aurora .form-group.label-floating .control-label {
+    color: var(--aurora-text-mute) !important;
+}
+body.theme-aurora .form-group .form-control,
+body.theme-aurora .form-group input,
+body.theme-aurora .form-group textarea {
+    background: var(--aurora-surface) !important;
+    border: 1px solid var(--aurora-line) !important;
+    border-radius: 12px !important;
+    color: var(--aurora-text) !important;
+}
+body.theme-aurora .your-profile .title,
+body.theme-aurora .your-profile-menu a {
+    color: var(--aurora-text-dim) !important;
+}
+body.theme-aurora .your-profile-menu a:hover {
+    color: var(--aurora-text) !important;
+}
+body.theme-aurora .your-profile .card {
+    background: transparent !important;
+    border: none !important;
+}
+body.theme-aurora .your-profile .card-header a {
+    color: var(--aurora-text) !important;
+    font-family: var(--aurora-body);
+}
+body.theme-aurora .btn-primary,
+body.theme-aurora .btn-secondary {
+    border-radius: 100px !important;
+    font-family: var(--aurora-body);
+    font-weight: 700;
+}
+body.theme-aurora .btn-primary {
+    background: linear-gradient(120deg, var(--aurora-pink), var(--aurora-violet)) !important;
+    border: none !important;
+    color: #fff !important;
+}
+body.theme-aurora .btn-secondary {
+    background: var(--aurora-surface-2) !important;
+    border: 1px solid var(--aurora-line) !important;
+    color: var(--aurora-text) !important;
+}
+
+/* ---------- packages page (resources/views/packages.blade.php) - .generic_price_table cards
+   are permanently white/gray (style.css, not part of this theme/repo), same class of issue
+   as .content_block and .ui-block above. Restyled with the same soft rounded/glow language
+   as the rest of Aurora, keeping a tier accent (Silver/Gold/VIP -> the theme's own violet/
+   pink/amber tokens) on the diagonal header instead of the native gray/blue/green. ---------- */
+body.theme-aurora .price-heading h1 {
+    color: var(--aurora-text) !important;
+    font-family: var(--aurora-display);
+    font-weight: 700;
+}
+body.theme-aurora .generic_content {
+    background: var(--aurora-surface) !important;
+    border-radius: 20px;
+    overflow: hidden;
+}
+body.theme-aurora .generic_head_price {
+    background: var(--aurora-surface-2) !important;
+}
+body.theme-aurora .generic_price_tag .price,
+body.theme-aurora .generic_price_tag .sign,
+body.theme-aurora .generic_price_tag .currency,
+body.theme-aurora .generic_price_tag .cent {
+    color: var(--aurora-text) !important;
+}
+body.theme-aurora .generic_feature_list ul li {
+    color: var(--aurora-text-mute) !important;
+}
+body.theme-aurora .generic_feature_list ul li span {
+    color: var(--aurora-text-dim) !important;
+}
+body.theme-aurora .generic_feature_list ul li:hover {
+    background: var(--aurora-surface-2) !important;
+    border-left-color: var(--aurora-pink) !important;
+}
+/* Tier accent on the diagonal header - violet (entry tier) -> pink (mid) -> amber (top),
+   replacing the native gray/blue/green, for both the Subscriptions (pk1_*) and Credits
+   (pk2_*) card sets. */
+body.theme-aurora .generic_content.pk1_1 .head_bg,
+body.theme-aurora .generic_content.pk2_1 .head_bg {
+    border-color: var(--aurora-violet) transparent transparent var(--aurora-violet) !important;
+}
+body.theme-aurora .generic_content.pk1_2 .head_bg,
+body.theme-aurora .generic_content.pk2_2 .head_bg {
+    border-color: var(--aurora-pink) transparent transparent var(--aurora-pink) !important;
+}
+body.theme-aurora .generic_content.pk1_3 .head_bg,
+body.theme-aurora .generic_content.pk2_3 .head_bg {
+    border-color: var(--aurora-amber) transparent transparent var(--aurora-amber) !important;
+}
+body.theme-aurora .generic_content.pk1_1 .head span,
+body.theme-aurora .generic_content.pk2_1 .head span,
+body.theme-aurora .generic_content.pk1_2 .head span,
+body.theme-aurora .generic_content.pk2_2 .head span,
+body.theme-aurora .generic_content.pk1_3 .head span,
+body.theme-aurora .generic_content.pk2_3 .head span,
+body.theme-aurora .generic_content.active .head span,
+body.theme-aurora .generic_content:hover .head span {
+    color: #fff !important;
+}
+body.theme-aurora .generic_content.active .head_bg,
+body.theme-aurora .generic_content:hover .head_bg {
+    border-color: var(--aurora-violet) transparent transparent var(--aurora-violet) !important;
+}
+/* Purchase/Claim/Unsubscribe button - same pill-gradient treatment as the rest of Aurora's
+   buttons, guaranteed via !important since the native color source here varies (plain
+   outlined by default, solid on hover/active). */
+body.theme-aurora .generic_price_btn a {
+    background: linear-gradient(120deg, var(--aurora-pink), var(--aurora-violet)) !important;
+    border: none !important;
+    color: #fff !important;
+}
+body.theme-aurora .ribbon-red {
+    background: var(--aurora-pink) !important;
+}
+
+/* ---------- page-load preloader (layouts/layout.blade.php, #hellopreloader) - shown full-
+   screen while the page/assets are still loading, hardcoded to the site's brand color
+   (var(--main-color), an unrelated admin setting) regardless of theme. The spinner icon's own
+   stroke color (an SVG presentation attribute, inline in the markup) is overridden here via a
+   normal CSS rule, since presentation attributes always lose to any CSS rule regardless of
+   specificity - no !important needed for that part. */
+body.theme-aurora #hellopreloader {
+    background: var(--aurora-bg) !important;
+}
+body.theme-aurora .preloader svg {
+    stroke: var(--aurora-pink);
+}
+body.theme-aurora .preloader .text {
+    color: var(--aurora-text) !important;
+}
+
+/* ---------- AI Inbox panel (find_friends.blade.php, admin-only "managed accounts" list) -
+   uses plain Bootstrap .list-group/.list-group-item, permanently white/black regardless of
+   theme (Bootstrap's own defaults, not part of this theme/repo). Restyled to match the rest
+   of Aurora. Kept simple/light-touch since the client may ask to fold this into the main
+   chat inbox later - not worth a deeper redesign yet. */
+body.theme-aurora .ai-inbox-panel h4 {
+    color: var(--aurora-text) !important;
+    font-family: var(--aurora-display);
+}
+body.theme-aurora .ai-inbox-panel h4 .text-muted {
+    color: var(--aurora-text-mute) !important;
+}
+body.theme-aurora .ai-inbox-panel .list-group {
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid var(--aurora-line);
+}
+body.theme-aurora .ai-inbox-panel .list-group-item {
+    background: var(--aurora-surface) !important;
+    border-color: var(--aurora-line) !important;
+    color: var(--aurora-text) !important;
+}
+body.theme-aurora .ai-inbox-panel .list-group-item:hover,
+body.theme-aurora .ai-inbox-panel .list-group-item-action:hover {
+    background: var(--aurora-surface-2) !important;
+}
+body.theme-aurora .ai-inbox-panel .list-group-item .text-muted,
+body.theme-aurora .ai-inbox-panel .list-group-item small {
+    color: var(--aurora-text-mute) !important;
+}
+
+/* ---------- "load more" trigger (find_friends.blade.php's #load_more_find_friends, the
+   three-dots circle below the grid) - permanently a plain light-gray circle regardless of
+   theme (style.css/vendor CSS, not part of this repo), which read as a stray pale dot against
+   this theme's dark background. */
+body.theme-aurora #load_more_find_friends {
+    background: var(--aurora-surface) !important;
+    border: 1px solid var(--aurora-line) !important;
+    box-shadow: 0 8px 20px -8px rgba(0, 0, 0, 0.5);
+}
+body.theme-aurora #load_more_find_friends .olymp-three-dots-icon {
+    fill: var(--aurora-pink) !important;
+}
+body.theme-aurora #load_more_find_friends:hover {
+    background: var(--aurora-pink) !important;
+    border-color: var(--aurora-pink) !important;
+}
+body.theme-aurora #load_more_find_friends:hover .olymp-three-dots-icon {
+    fill: #fff !important;
+}
+
+/* ---------- "livefeed" popup toast (layouts/layout.blade.php, #livefeed_container -
+   "X purchased a Y subscription!" / "X is now Online!", shown periodically via dating.js's
+   get_livefeed()) - permanently white/#333 (style.css, not part of this theme/repo) regardless
+   of theme or light/dark mode. Restyled to use this theme's own surface/text tokens. */
+body.theme-aurora #livefeed_container {
+    background: var(--aurora-surface) !important;
+    border: 1px solid var(--aurora-line) !important;
+    border-radius: 14px !important;
+    color: var(--aurora-text) !important;
+    box-shadow: 0 20px 50px -20px rgba(0, 0, 0, 0.6);
+}
+body.theme-aurora #livefeed_name {
+    color: var(--aurora-pink) !important;
+}
+body.theme-aurora #livefeed_pack {
+    color: var(--aurora-amber) !important;
+}
+body.theme-aurora #livefeed_time_container {
+    color: var(--aurora-text-mute) !important;
+}
+body.theme-aurora #livefeed_close {
+    background: var(--aurora-surface-2) !important;
+    color: var(--aurora-text) !important;
+}
+body.theme-aurora #livefeed_close:hover {
+    background: var(--aurora-pink) !important;
+    color: #fff !important;
+}

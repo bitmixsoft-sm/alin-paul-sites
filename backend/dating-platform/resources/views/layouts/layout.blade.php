@@ -14,6 +14,16 @@
     @endphp
 @endif
 @if(Auth::check() && Auth::user()->banned == 'no' || $bypass_ban)
+@php
+    // Admin-switchable site skin (see AdminThemeController / resources/admin/themes.blade.php).
+    // "classic" is the current, untouched design - no extra CSS loads and no theme-* class
+    // does anything for it, so it stays byte-for-byte identical to before this feature existed.
+    // NOTE: Blade's "extends" directive renders the child view's sections before this layout
+    // runs, so any page that needs $activeTheme inside its own content section (not just here,
+    // or things this layout includes) must call \App\Support\ActiveTheme::current() itself too
+    // - see find_friends.blade.php.
+    $activeTheme = \App\Support\ActiveTheme::current();
+@endphp
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -51,6 +61,36 @@
     <link rel="stylesheet" type="text/css" href="https://cdn.rawgit.com/mervick/emojionearea/master/dist/emojionearea.min.css">
     <link rel="stylesheet" type="text/css" href="/assets/css/style.css?ver={{ is_file(storage_path('app/assets/css/style.css')) ? filemtime(storage_path('app/assets/css/style.css')) : '1' }}">
 
+    @if($activeTheme !== 'classic')
+        {{-- Theme CSS is purely additive - loaded AFTER the base stylesheet, only overrides
+             it (scoped under body.theme-{{ $activeTheme }}), never replaces it. --}}
+        @if($activeTheme === 'aurora')
+            <link rel="preconnect" href="https://fonts.googleapis.com">
+            <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+            <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+        @elseif($activeTheme === 'nordic')
+            <link rel="preconnect" href="https://fonts.googleapis.com">
+            <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+        @elseif($activeTheme === 'volt')
+            <link rel="preconnect" href="https://fonts.googleapis.com">
+            <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+            <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+        @elseif($activeTheme === 'velvet')
+            <link rel="preconnect" href="https://fonts.googleapis.com">
+            <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+            <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600;1,700&family=Jost:wght@400;500;600;700&display=swap" rel="stylesheet">
+        @elseif($activeTheme === 'bloom')
+            <link rel="preconnect" href="https://fonts.googleapis.com">
+            <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+            <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Karla:wght@400;500;600;700&family=Red+Hat+Mono&display=swap" rel="stylesheet">
+        @elseif($activeTheme === 'binder')
+            <link rel="preconnect" href="https://fonts.googleapis.com">
+            <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+            <link href="https://fonts.googleapis.com/css2?family=Bungee&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+        @endif
+        <link rel="stylesheet" type="text/css" href="/assets/css/themes/{{ $activeTheme }}.css?ver={{ is_file(storage_path('app/assets/css/themes/' . $activeTheme . '.css')) ? filemtime(storage_path('app/assets/css/themes/' . $activeTheme . '.css')) : '1' }}">
+    @endif
+
     @php
         $main_color = App\Settings::where('id', 1)->firstOrFail();
         $main_color_rgb = App\Settings::where('id', 5)->firstOrFail();
@@ -71,7 +111,7 @@
 
 </head>
 
-<body @if((Route::currentRouteName() === 'profile' || Route::currentRouteName() === 'user_profile') && !empty($user->background_image)) style="background-image: url({{ asset('storage/' . $user->background_image) }}); background-repeat: no-repeat; background-size: cover;" @endif>
+<body class="theme-{{ $activeTheme }}" @if((Route::currentRouteName() === 'profile' || Route::currentRouteName() === 'user_profile') && !empty($user->background_image)) style="background-image: url({{ asset('storage/' . $user->background_image) }}); background-repeat: no-repeat; background-size: cover;" @endif>
 <!-- Legacy hidden CSRF field: online.js/dating.js (and the Pusher presence-channel auth
      they set up) still read the token via $('input[name="_token"]').val()' instead of the
      <meta name="csrf-token"> tag above - without this, those requests (e.g. /pusher/auth)
@@ -103,6 +143,11 @@
 </div>
 
 <!-- ... end Preloader -->
+@auth
+    @if(Auth::user()->isAdmin())
+        @include('components.theme-quickswitch')
+    @endif
+@endauth
 @include('components.sidebar-left')
 @include('components.sidebar-right')
 @include('components.header')

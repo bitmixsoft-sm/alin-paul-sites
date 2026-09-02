@@ -12,7 +12,7 @@
                 @if(Auth::user()->role == 'admin')
                     <li @if($on_page == 'Dashboard') class="active" @endif>
                         <a href="/admin">
-                            <i class="fas fa-tachometer-alt"></i>Statistici</a>
+                            <i class="fas fa-chart-bar"></i>Statistici</a>
                     </li>
                     <li @if($on_page == 'Administratori' || $on_page == 'Editor') class="active" @endif>
                         <a href="/admin/editors">
@@ -79,6 +79,10 @@
                     <li @if($on_page == 'Setari') class="active" @endif>
                         <a href="/admin/settings">
                             <i class="fas fa-gears"></i>Setari</a>
+                    </li>
+                    <li @if($on_page == 'Aspect') class="active" @endif>
+                        <a href="/admin/themes">
+                            <i class="fas fa-paint-brush"></i>Aspect</a>
                     </li>
                 @endif
             </ul>

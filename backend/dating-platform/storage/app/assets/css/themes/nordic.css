@@ -1,0 +1,1434 @@
+/* Nordic theme - additive skin, only ever active under body.theme-nordic.
+   Loaded AFTER the base /assets/css/style.css, never replaces it. */
+
+body.theme-nordic {
+    --nordic-bg: #14101F;
+    --nordic-bg-deep: #0D0A16;
+    --nordic-surface: #1E1830;
+    --nordic-surface-2: #26203C;
+    --nordic-border: rgba(241, 236, 251, 0.08);
+    --nordic-border-strong: rgba(241, 236, 251, 0.16);
+    --nordic-text: #F1ECFB;
+    --nordic-text-muted: #A69BC4;
+    --nordic-pink: #FF5C8A;
+    --nordic-pink-deep: #C93A66;
+    --nordic-teal: #4CE0C7;
+    --nordic-gold: #F2B84B;
+    --nordic-display: 'Sora', sans-serif;
+    --nordic-body: 'Inter', sans-serif;
+    --nordic-mono: 'Space Mono', monospace;
+
+    background: var(--nordic-bg) !important;
+    color: var(--nordic-text) !important;
+    font-family: var(--nordic-body) !important;
+    /* Hard safety net against the whole page gaining a horizontal scrollbar - a mobile
+       dating feed should never need one, so clipping here is always safe regardless of what
+       child element (mobile nav dropdown, search box, a card) miscalculates its own width.
+       This whole file only ever loads when nordic is the active theme (see layout.blade.php),
+       so an unscoped `html` selector here is safe - it can never affect classic or another
+       theme. */
+    overflow-x: hidden;
+}
+html {
+    overflow-x: hidden;
+}
+
+/* Light variant - driven by the site's existing dark/light switch (the header's sun/moon
+   icon, storage/app/assets/js/theme-selector.js), which now also toggles body.site-dark-mode.
+   Every rule below only ever uses the --nordic-* custom properties, so redefining them here
+   is enough to re-skin the whole theme without repeating every single color rule. */
+body.theme-nordic:not(.site-dark-mode) {
+    --nordic-bg: #F5F3FA;
+    --nordic-bg-deep: #EAE6F5;
+    --nordic-surface: #FFFFFF;
+    --nordic-surface-2: #EFEAFA;
+    --nordic-border: rgba(20, 16, 31, 0.08);
+    --nordic-border-strong: rgba(20, 16, 31, 0.16);
+    --nordic-text: #14101F;
+    --nordic-text-muted: #5B5470;
+    --nordic-pink: #D6396A;
+    --nordic-pink-deep: #A82650;
+    --nordic-teal: #128F79;
+    --nordic-gold: #A56C1B;
+}
+/* The control-block icons (notifications/chat/friend-requests) have a hardcoded
+   `.control-icon.has-items { fill: #fff; }` in main.css (not part of this theme/repo) - white
+   icons that are invisible against this theme's light-mode background. Only overridden in
+   light mode - dark mode's white icons are exactly right there, against the dark header. */
+body.theme-nordic:not(.site-dark-mode) .control-block .control-icon,
+body.theme-nordic:not(.site-dark-mode) .control-block .control-icon.has-items {
+    fill: var(--nordic-text-muted) !important;
+}
+/* Same issue, same fix, for the profile avatar's name text next to it in the header
+   (components/header/profile-header.blade.php) - main.css hardcodes
+   `.control-block .author-title { color: #fff; svg { fill: #fff; } }`, invisible in light mode. */
+body.theme-nordic:not(.site-dark-mode) .control-block .author-title,
+body.theme-nordic:not(.site-dark-mode) .control-block .author-subtitle {
+    color: var(--nordic-text) !important;
+}
+body.theme-nordic:not(.site-dark-mode) .control-block .author-title svg {
+    fill: var(--nordic-text) !important;
+}
+/* Same issue again, for the chat popup's own title-bar icons (msgtoggle eye-slash, the little
+   "X" close button, components/chat.blade.php) - no color/fill set anywhere in this repo, so
+   they render at the browser default, invisible against this theme's light-mode popup
+   background. */
+body.theme-nordic:not(.site-dark-mode) .popup-chat .ui-block-title .msgtoggle i,
+body.theme-nordic:not(.site-dark-mode) .popup-chat .ui-block-title .js-chat-close {
+    color: var(--nordic-text-muted);
+    fill: var(--nordic-text-muted);
+}
+body.theme-nordic:not(.site-dark-mode) .popup-chat .ui-block-title .msgtoggle i:hover,
+body.theme-nordic:not(.site-dark-mode) .popup-chat .ui-block-title .js-chat-close:hover {
+    color: var(--nordic-text);
+    fill: var(--nordic-text);
+    cursor: pointer;
+}
+
+/* The page template's own base CSS (main.css, not part of this repo/theme) puts an opaque
+   light background on the content wrapper and/or its direct child container, which sits on
+   top of the body background above and would otherwise hide it almost entirely - force it
+   (and its likely direct-child wrapper, whatever exact class it uses) transparent so the dark
+   body background actually shows through. */
+body.theme-nordic #main-wrapper-content,
+body.theme-nordic #main-wrapper-content > * {
+    background: transparent !important;
+    background-color: transparent !important;
+}
+body.theme-nordic #main-wrapper-content,
+body.theme-nordic #main-wrapper-content h1,
+body.theme-nordic #main-wrapper-content h2,
+body.theme-nordic #main-wrapper-content h3,
+body.theme-nordic #main-wrapper-content h4,
+body.theme-nordic #main-wrapper-content h5,
+body.theme-nordic #main-wrapper-content h6 {
+    color: var(--nordic-text) !important;
+    font-family: var(--nordic-body) !important;
+}
+/* CMS pages (Terms of Use, Legal information, etc. - resources/views/cms_page.blade.php) put
+   their content inside .content_block, which has a permanently white background (style.css,
+   not part of this theme/repo) that never adapts to dark/light mode - the rule above forces
+   this theme's own (light, in dark mode) text color onto it, making it unreadable against
+   that always-white card. Force a fixed dark, readable color here instead, regardless of the
+   theme's own light/dark state - this card's background never changes, so neither should its
+   text color. */
+body.theme-nordic #main-wrapper-content .content_block,
+body.theme-nordic #main-wrapper-content .content_block h1,
+body.theme-nordic #main-wrapper-content .content_block h2,
+body.theme-nordic #main-wrapper-content .content_block h3,
+body.theme-nordic #main-wrapper-content .content_block h4,
+body.theme-nordic #main-wrapper-content .content_block h5,
+body.theme-nordic #main-wrapper-content .content_block h6,
+body.theme-nordic #main-wrapper-content #cms_header {
+    color: #2A2A2A !important;
+}
+
+/* ---------- nav / header ---------- */
+/* NOTE: uses --nordic-bg-deep (a theme variable) instead of a hardcoded dark rgba() - the old
+   hardcoded value never lightened in light mode (see the light-variant block up top), leaving
+   dark text on a permanently-dark header background. */
+/* CONFIRMED root cause (checked main.css directly, live, via curl): the site's original
+   layout is CSS-FLOAT based, not flexbox - .search-bar is `float:left; width:500px;
+   height:70px;` and .control-block is `float:right`, with NO clearfix on
+   .header-content-wrapper. A float-only parent with no clearfix collapses to near-zero
+   height (floats don't contribute to parent height), while the floated search bar keeps its
+   own native 70px height - that's what made it visually stick out above/below the
+   (collapsed) header background. min-height below guarantees the header never collapses
+   under that height regardless of width; the clearfix on header-content-wrapper (further
+   down) makes this robust even without it. */
+body.theme-nordic .header {
+    background: var(--nordic-bg-deep) !important;
+    backdrop-filter: blur(14px);
+    border-bottom: 2px solid var(--nordic-teal);
+    min-height: 72px;
+}
+/* Classic clearfix - makes header-content-wrapper's height account for its floated children
+   (.search-bar, .control-block) at ANY width, not just the >=992px block below where we
+   override float with flex outright (flex items ignore float per spec, so this clearfix is
+   mainly what protects narrower/in-between widths). */
+body.theme-nordic .header-content-wrapper::after {
+    content: '';
+    display: table;
+    clear: both;
+}
+/* The page title (e.g. "Find Friends" as a big heading) isn't part of the reference nav at
+   all - the nav links themselves already show what page you're on (active/hover color). */
+body.theme-nordic .header .page-title {
+    display: none;
+}
+/* Force everything in the header onto one row, in a predictable order, instead of relying on
+   whatever flex rules main.css (not part of this repo) happens to apply - that's what was
+   causing the header to wrap onto two chaotic lines. Applied at ALL widths: the theme's own
+   .theme-nav-toggle hamburger (below) is the SOLE navigation at every width under this theme -
+   the native mobile tab header/drawer (header-responsive, fixed-sidebar-responsive) is hidden
+   unconditionally instead of being allowed to take over on narrow screens, so the mobile
+   experience always matches the new design instead of falling back to the classic look.
+   Kept a plain fixed 64px height here (mobile/hamburger range, <=991px) - .theme-nav is a
+   position:absolute dropdown at these widths (see the max-width:991px block further down), so
+   it's never actually part of this row's in-flow height and can't wrap it taller. The
+   height:auto+padding override for wrapping only applies >=992px below, where the *inline*
+   nav can genuinely need two lines - applying that unconditionally here previously added
+   needless extra height on mobile too, visibly crowding the page content right beneath the
+   header (it's position:fixed, so anything taller than the page's reserved .header-spacer
+   overlaps the content instead of pushing it down). */
+body.theme-nordic .header {
+    height: 64px;
+    display: flex;
+    align-items: center;
+}
+@media screen and (min-width: 1280px) {
+    body.theme-nordic .header {
+        height: auto;
+        padding: 10px 0;
+    }
+}
+body.theme-nordic .header-content-wrapper {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    align-items: center;
+    width: 100%;
+    /* box-sizing:border-box - without it this padding would add to the 100% width above and
+       overflow the header. */
+    box-sizing: border-box;
+    padding: 0 16px;
+    gap: 16px;
+}
+/* Hides BOTH the native mobile tab header (header-responsive, its own icon row/search/
+   Register-Login pair) AND the native mobile "Quick Links" drawer (fixed-sidebar-responsive,
+   the hamburger-triggered slide-in menu) - unconditionally, at every width. Without this the
+   mobile view falls back to the unthemed classic mobile UI instead of the new design. */
+body.theme-nordic .header-responsive,
+body.theme-nordic #site-header-responsive,
+body.theme-nordic .fixed-sidebar.fixed-sidebar-responsive {
+    display: none !important;
+}
+/* ---------- header search bar: one seamless rounded pill, icon has no button chrome of its
+   own (consolidated - this used to be split across several conflicting rule blocks from
+   earlier iterations, which is why the icon rendered as its own separate gray box). ---------- */
+body.theme-nordic .search-bar {
+    float: none !important;
+    width: auto !important;
+    height: auto !important;
+    background: transparent !important;
+    flex: 0 0 auto;
+    margin: 0;
+    /* align-self (not just the parent's align-items) - guarantees this flex item is
+       vertically centered against the nav text regardless of any other rule touching it. */
+    align-self: center;
+    display: flex;
+    align-items: center;
+}
+body.theme-nordic .search-bar .form-group {
+    position: relative;
+    width: 260px;
+    height: auto !important;
+    margin: 0;
+}
+/* Narrow screens: the header row is nowrap (see above) so a full 260px search box would
+   crowd out the hamburger toggle / control-block icons. CLOSED: just the small icon, no
+   visible footprint. OPEN: the <form class="search-bar"> element itself becomes the dropdown
+   panel - anchored to .header exactly the same way .theme-nav's own mobile dropdown already
+   is (position:absolute; top:100%; left/right:12px, same background/border/radius/shadow
+   tokens), since that pattern is already proven working. The earlier attempt made the INNER
+   .form-group try to become the panel while the outer .search-bar stayed a plain flex item -
+   two nested position/sizing contexts fighting each other is what produced the disconnected,
+   wrongly-colored shapes. Toggled by clicking the search icon again or clicking outside
+   (toggleThemeSearch(), theme-selector.js). */
+@media screen and (max-width: 767px) {
+    body.theme-nordic .search-bar .form-group {
+        width: 34px;
+        height: 34px;
+        overflow: visible;
+        background: transparent;
+    }
+    body.theme-nordic .search-bar input.form-control,
+    body.theme-nordic .search-bar .js-user-search {
+        display: none !important;
+    }
+    body.theme-search-open.theme-nordic .search-bar {
+        display: flex !important;
+        align-items: center;
+        position: absolute !important;
+        top: 100%;
+        left: 12px;
+        right: 12px;
+        margin-top: 8px;
+        background: var(--nordic-bg-deep) !important;
+        border: 1px solid var(--nordic-border-strong);
+        border-radius: 8px;
+        box-shadow: 0 20px 60px -15px rgba(0, 0, 0, 0.7);
+        padding: 10px 14px;
+        z-index: 1000;
+    }
+    body.theme-search-open.theme-nordic .search-bar .form-group {
+        width: 100%;
+        height: auto;
+        display: flex;
+        align-items: center;
+        overflow: visible;
+        border-radius: 0;
+    }
+    body.theme-search-open.theme-nordic .search-bar input.form-control {
+        display: block !important;
+        position: static;
+        flex: 1 1 auto;
+        width: auto;
+        height: 36px !important;
+        background: transparent !important;
+        border: none !important;
+        padding: 0 8px !important;
+    }
+    body.theme-search-open.theme-nordic .search-bar button {
+        position: static !important;
+        flex: 0 0 auto;
+        width: auto !important;
+        background: transparent !important;
+    }
+    /* The AJAX suggestion results panel (dating.js toggles its own inline display:block/none)
+       stays fully hidden while the search box is closed, and drops below the now-open panel. */
+    body.theme-search-open.theme-nordic .search-bar .js-user-search {
+        display: block !important;
+        position: absolute;
+        top: calc(100% + 8px) !important;
+        left: 0 !important;
+        right: 0;
+        width: 100% !important;
+    }
+}
+body.theme-nordic .search-bar input.form-control {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0 40px 0 18px !important;
+    height: 40px !important;
+    background: var(--nordic-surface) !important;
+    border: 1px solid var(--nordic-border-strong) !important;
+    border-radius: 8px !important;
+    color: var(--nordic-text) !important;
+}
+body.theme-nordic .search-bar input.form-control::placeholder {
+    color: var(--nordic-text-muted);
+}
+body.theme-nordic .search-bar input.form-control:focus {
+    border-color: var(--nordic-teal) !important;
+    outline: none;
+}
+body.theme-nordic .search-bar button {
+    position: absolute !important;
+    right: 4px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: transparent !important;
+    border: none !important;
+    border-radius: 50% !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    outline: none !important;
+    -webkit-tap-highlight-color: transparent;
+}
+/* Tapping/clicking the icon (it's a real <button>) otherwise leaves the browser's default
+   focus ring visible as a persistent circle outline around it. */
+body.theme-nordic .search-bar button:focus,
+body.theme-nordic .search-bar button:focus-visible {
+    outline: none !important;
+    box-shadow: none !important;
+}
+/* The icon's own base CSS may set a hardcoded fill color rather than relying on
+   currentColor, so the button's "color" alone might not actually recolor it - set fill
+   explicitly to guarantee it matches the theme. */
+body.theme-nordic .search-bar button svg {
+    fill: var(--nordic-text-muted);
+    width: 16px;
+    height: 16px;
+}
+/* Search suggestions dropdown - matches the search bar's own width/style instead of the
+   inline 500px/light-theme default it otherwise renders with. */
+/* position:absolute - the site's own style.css only sets this (as !important, alongside the
+   fixed top:70px/left:0 this overrides) INSIDE its own `@media (max-width:768px)` block, never
+   for desktop widths. That was invisible under classic because classic's .header is
+   position:fixed (floats over the page, so its content growing doesn't push anything else
+   down) - this theme's .header is position:relative instead (needed elsewhere, for the mobile
+   nav/search dropdowns to anchor correctly), so at desktop widths this box was rendering in
+   NORMAL FLOW and genuinely shoving the header/nav row down every time a search result
+   appeared. Setting position:absolute here, unconditionally, is what actually overlays it
+   instead. */
+body.theme-nordic .search-bar .js-user-search {
+    position: absolute !important;
+    width: 100% !important;
+    left: 0 !important;
+    top: calc(100% + 6px) !important;
+    background: var(--nordic-surface) !important;
+    border: 1px solid var(--nordic-border-strong) !important;
+    border-radius: 8px !important;
+    color: var(--nordic-text);
+}
+/* display:flex + centering (not inline-block) - the emoji glyph this button shows
+   (theme-selector.js sets its innerHTML to a moon/sun emoji) has unusual line-height metrics
+   of its own that don't vertically center against the surrounding text with inline-block,
+   which is why it looked slightly misaligned with the nav row next to it. */
+body.theme-nordic #theme-toggler {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    font-size: 18px;
+    line-height: 1;
+    filter: hue-rotate(150deg) saturate(1.3);
+}
+/* At desktop widths .control-block's children (notification/chat/credits icons) rely on
+   however main.css originally laid them out internally, so no display override is needed
+   there - margin-left:auto alone pushes the whole block right within the flex header row.
+   BELOW 768px though, main.css has its own rule forcing `.control-block { display:block;
+   padding:15px 20px 0; }` (meant for the native mobile tab header, which we hide entirely -
+   see above) - that turns every icon link into a full-width stacked block, which is the
+   vertically-stacked-icons / full-width red Packages button bug. Overriding display back to
+   flex at that same breakpoint fixes it. */
+body.theme-nordic .control-block {
+    flex: 0 0 auto;
+    margin-left: auto;
+}
+@media screen and (max-width: 767px) {
+    body.theme-nordic .control-block {
+        display: flex !important;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 10px;
+        height: auto !important;
+        padding: 0 !important;
+    }
+    body.theme-nordic .control-block > * {
+        flex: 0 0 auto;
+        width: auto !important;
+    }
+    /* Packages button + credits pill are redundant on mobile - every page with a Packages
+       button already shows its own full one further down, and dropping these two frees up
+       enough width for the notification/chat/friend-request icon badges (previously squeezed
+       off/invisible in this same row) to actually fit and show. */
+    body.theme-nordic .control-block .packages-top,
+    body.theme-nordic .control-block .theme-credits-pill {
+        display: none !important;
+    }
+}
+/* The profile avatar link+dropdown (components/header/profile-header.blade.php) is hidden
+   entirely on mobile (not just its :hover dropdown) - .theme-nav's own mobile-only Account/
+   Language/Log Out links (see header.blade.php) replace it there, so keeping the avatar link
+   around too was a redundant duplicate eating space in the icon row. Desktop keeps the avatar
+   link AND its native hover dropdown exactly as before - the dropdown works fine there with a
+   mouse; showing these same links inline in the desktop .theme-nav row too (tried previously)
+   just made that row wrap awkwardly against the credits/packages controls. */
+@media screen and (max-width: 1279px) {
+    body.theme-nordic .control-block .author-page {
+        display: none !important;
+    }
+}
+/* ---------- header icon dropdowns (notifications/chat/friend-requests/profile) - these
+   reuse the site's shared .more-dropdown component, which is hardcoded to a white classic
+   background/dark text/small border-radius regardless of theme. Restyled here to match the
+   exact same rounded-card look as the .theme-nav mobile dropdown (same radius/background/
+   border/shadow tokens) rather than just swapping colors on the old shape - scoped to
+   .control-block so only the header's own copies are touched (the same class is reused
+   elsewhere in the app - calendar, shop cart, etc. - which must stay untouched). ---------- */
+body.theme-nordic .control-block .more-dropdown {
+    background: var(--nordic-bg-deep) !important;
+    border: 1px solid var(--nordic-border-strong);
+    border-radius: 8px !important;
+    box-shadow: 0 20px 60px -15px rgba(0, 0, 0, 0.7);
+    padding: 12px !important;
+    overflow: hidden;
+}
+body.theme-nordic .control-block .more-dropdown .ui-block-title .title,
+body.theme-nordic .control-block .more-dropdown a,
+body.theme-nordic .control-block .more-dropdown .h6,
+body.theme-nordic .control-block .more-dropdown .notification-friend,
+body.theme-nordic .control-block .more-dropdown .author-title {
+    color: var(--nordic-text) !important;
+}
+body.theme-nordic .control-block .more-dropdown .chat-message-item,
+body.theme-nordic .control-block .more-dropdown .notification-date,
+body.theme-nordic .control-block .more-dropdown .author-subtitle,
+body.theme-nordic .control-block .more-dropdown .no-req {
+    color: var(--nordic-text-muted) !important;
+}
+body.theme-nordic .control-block .more-dropdown a:hover {
+    color: var(--nordic-teal) !important;
+}
+/* Unread/hover row states (notification-list li.message-unread/.un-read, .notification-list
+   li:hover - main.css, not part of this theme/repo) have their own hardcoded near-white
+   background, painted OVER the dark .more-dropdown background above for just that one row -
+   left unfixed, that made unread rows (which is most of them, in a busy inbox) show this
+   theme's light text on a near-white row, unreadable. Only rows with neither state showed
+   the correct dark background/light text. */
+body.theme-nordic .control-block .more-dropdown .notification-list li.message-unread,
+body.theme-nordic .control-block .more-dropdown .notification-list li.un-read,
+body.theme-nordic .control-block .more-dropdown .notification-list li:hover {
+    background: var(--nordic-surface-2) !important;
+}
+body.theme-nordic .control-block .more-dropdown input.form-control {
+    background: var(--nordic-surface) !important;
+    border: 1px solid var(--nordic-border-strong) !important;
+    color: var(--nordic-text) !important;
+}
+body.theme-nordic .header .link-find-friend {
+    color: var(--nordic-text-muted);
+    font-weight: 500;
+}
+body.theme-nordic .header .link-find-friend:hover {
+    color: var(--nordic-text);
+}
+body.theme-nordic .theme-credits-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--nordic-surface);
+    border: 1px solid var(--nordic-border-strong);
+    padding: 7px 14px;
+    border-radius: 999px;
+    font-family: var(--nordic-mono);
+    font-size: 13px;
+    color: var(--nordic-gold);
+}
+body.theme-nordic .theme-credits-pill::before {
+    content: '';
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--nordic-gold);
+    box-shadow: 0 0 6px var(--nordic-gold);
+}
+/* .packages-top (the "Packages" pill in the header) isn't themed by any of the rules above -
+   it uses its own hardcoded `background: var(--main-color)` (a site-wide admin setting,
+   currently a dark navy, completely independent of this theme's light/dark variables) - in
+   light mode that left the (also dark) text-muted color nearly unreadable against it. Giving
+   it the same themed gradient + guaranteed-white text as the other buttons fixes that in both
+   modes, instead of depending on whatever --main-color happens to be. */
+body.theme-nordic .header .btn-purple,
+body.theme-nordic .header .btn-primary,
+body.theme-nordic .header .packages-top {
+    background: linear-gradient(135deg, var(--nordic-pink), var(--nordic-pink-deep)) !important;
+    border: none !important;
+    color: #fff !important;
+    font-family: var(--nordic-display);
+    font-weight: 700;
+}
+
+/* ---------- left sidebar: permanently hidden - its real links (Find Friends, Newsfeed, CMS
+   pages, admin) now live in the header's own .theme-nav instead (see header.blade.php), which
+   is the sole nav at every width under this theme. NOTE: zeroing #main-wrapper-content's
+   margin-left is a best-effort attempt to reclaim the space the sidebar used to occupy - the
+   exact compensation rule lives in main.css (not part of this repo), so this may need
+   adjustment once seen live.
+   IMPORTANT: targets #sidebar-left/#sidebar-left-1 by ID, NOT the .fixed-sidebar-left CLASS -
+   components/sidebar-left.blade.php renders this desktop sidebar (#sidebar-left/#sidebar-left-1)
+   AND a wholly separate mobile drawer (#sidebar-left-responsive/#sidebar-left-1-responsive,
+   the classic theme's "Quick Links"/hamburger menu) sharing the same .fixed-sidebar-left class
+   - the mobile drawer is hidden separately, as a whole, via the
+   .fixed-sidebar.fixed-sidebar-responsive rule further up (next to header-responsive), so it
+   isn't accidentally caught by this ID-scoped rule (which fixed an earlier bug where the class
+   selector nuked both at once). */
+body.theme-nordic #sidebar-left,
+body.theme-nordic #sidebar-left-1 {
+    visibility: hidden !important;
+    width: 0 !important;
+    height: 0 !important;
+    overflow: visible !important;
+}
+body.theme-nordic #main-wrapper-content {
+    margin-left: 0 !important;
+}
+body.theme-nordic .fixed-sidebar-right .mCustomScrollbar {
+    background: transparent !important;
+}
+
+/* Pulls the "online users" flyout back into view (its own CSS assumed it'd be inside a
+   visible sidebar) - opened via the new .open_online_users link in .theme-nav, using the
+   exact same click handler as before (bound by class in dating.js, unchanged). top/left below
+   are just a fallback; theme-selector.js repositions this on every click to sit right under
+   whichever .open_online_users link was actually clicked (it can be in different places -
+   inline in the desktop nav, or in the mobile hamburger dropdown), instead of this fixed spot
+   that only ever matched the old sidebar toggle's position. */
+body.theme-nordic .fixed-sidebar-left #online_users_left {
+    visibility: visible !important;
+    position: fixed !important;
+    top: 70px;
+    left: 20px;
+    width: 280px;
+    max-height: 60vh;
+    overflow-y: auto;
+    background: var(--nordic-bg-deep);
+    border: 1px solid var(--nordic-border);
+    border-radius: 8px;
+    box-shadow: 0 20px 60px -15px rgba(0, 0, 0, 0.7);
+    z-index: 999;
+}
+
+
+/* ---------- icon-free horizontal nav (matches the theme reference exactly) ---------- */
+body.theme-nordic .theme-nav {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px 28px;
+    flex: 1 1 auto;
+    justify-content: center;
+    margin: 0;
+}
+/* Account/Language section labels (desktop: small inline labels ahead of their group;
+   mobile: full-width block headers, see the max-width:991px block below) - these are what
+   visually separate "page links" from "account" from "language" in the single nav list. */
+body.theme-nordic .theme-nav-section-label {
+    color: var(--nordic-text-muted);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+}
+body.theme-nordic .theme-nav-link {
+    color: var(--nordic-text-muted);
+    font-weight: 500;
+    font-size: 14px;
+    transition: color .2s;
+}
+body.theme-nordic .theme-nav-link:hover,
+body.theme-nordic .theme-nav-link.active {
+    color: var(--nordic-text);
+}
+/* Hamburger toggle - hidden on desktop, only shown at mobile widths (see media query below) */
+body.theme-nordic .theme-nav-toggle {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 4px;
+    color: var(--nordic-text-muted);
+    background: var(--nordic-surface);
+    border: 1px solid var(--nordic-border);
+}
+body.theme-nordic .theme-nav-toggle:hover,
+body.theme-nordic.theme-nav-dropdown-open .theme-nav-toggle {
+    color: var(--nordic-teal);
+    border-color: var(--nordic-teal);
+}
+/* Hidden by default (desktop) - MUST come before the max-width:991px block below, not after:
+   an unscoped rule placed after a media query wins the cascade at equal specificity regardless
+   of the media query, which is exactly what silently hid these mobile-only links entirely. */
+body.theme-nordic .theme-nav-mobile-only {
+    display: none;
+}
+@media screen and (max-width: 1279px) {
+    body.theme-nordic .theme-nav-toggle {
+        display: inline-flex;
+    }
+    body.theme-nordic .theme-nav {
+        display: none;
+        /* position:absolute anchored to .header (already position:relative, see the ambient-
+           glow rule below) instead of position:fixed - .header's own backdrop-filter makes it
+           the containing block for any position:fixed descendant regardless, which combined
+           with removing overflow:hidden above left the panel positioned unpredictably. Anchoring
+           it explicitly to the header's own box is the reliable way to place it right under
+           the header at every width. */
+        position: absolute;
+        top: 100%;
+        left: 12px;
+        right: 12px;
+        margin-top: 8px;
+        flex-direction: column;
+        /* flex-wrap:nowrap overrides the desktop rule's flex-wrap:wrap (unconditional, further
+           up) - with flex-direction:column, "wrap" doesn't overflow vertically at all, it
+           starts a SECOND COLUMN to the side once content exceeds max-height (wrapping happens
+           on the cross axis, which is horizontal here). That's what silently ate Deutsch/
+           Français/Español: they weren't missing, they'd wrapped into an invisible second
+           column that overflow-x:hidden then clipped, instead of the vertical scrollbar the
+           max-height+overflow-y:auto below was meant to produce. */
+        flex-wrap: nowrap;
+        align-items: flex-start;
+        gap: 4px;
+        margin: 0;
+        padding: 12px;
+        background: var(--nordic-bg-deep);
+        border: 1px solid var(--nordic-border);
+        border-radius: 8px;
+        box-shadow: 0 20px 60px -15px rgba(0, 0, 0, 0.7);
+        z-index: 1000;
+    }
+    body.theme-nordic.theme-nav-dropdown-open .theme-nav {
+        display: flex;
+    }
+    body.theme-nordic .theme-nav-link {
+        padding: 10px 8px;
+        width: 100%;
+    }
+    /* Account/language/logout links (see header.blade.php) only exist for the mobile
+       dropdown - desktop keeps the profile avatar's own native hover dropdown for these. */
+    body.theme-nordic .theme-nav-mobile-only {
+        display: block;
+    }
+    /* The custom-status ("moto") form needs its input+button side by side, not the plain
+       block stacking .theme-nav-mobile-only gives everything else above. */
+    body.theme-nordic .theme-nav-status-form {
+        display: flex !important;
+        align-items: center;
+        gap: 8px;
+        width: 100%;
+        /* min-width:0 - a flex item's default min-width is "auto" (its own content size), not
+           0, which stopped this row from ever shrinking to fit the panel; the input inside
+           inherits the same problem and needs the same fix (below). This is what forced the
+           whole .theme-nav panel wider than the screen, breaking its column layout entirely
+           (multiple links squeezed per "row" instead of one each, requiring horizontal scroll
+           to see the rest - the "language above AND below" symptom reported). */
+        min-width: 0;
+        box-sizing: border-box;
+        padding: 4px 8px;
+    }
+    body.theme-nordic .theme-nav-status-form input.form-control {
+        flex: 1 1 auto;
+        width: auto;
+        min-width: 0;
+        max-width: 100%;
+        box-sizing: border-box;
+        height: 36px;
+        background: var(--nordic-surface);
+        border: 1px solid var(--nordic-border-strong);
+        border-radius: 8px;
+        padding: 0 14px;
+        color: var(--nordic-text);
+    }
+    /* Native .form-group.with-button button (main.css, not part of this repo/theme, and NOT
+       scoped to .search-bar) forces `position:absolute; right:0; top:0; height:100%;` on any
+       button inside a .form-group.with-button - which this form's markup reuses. Left
+       unoverridden, that yanks the button out of the flex row entirely and pins it to the
+       corner of whatever positioned ancestor it lands on (.theme-nav itself), which is what
+       made it visibly stick out past the input. position:static neutralizes that. */
+    body.theme-nordic .theme-nav-status-form button {
+        position: static !important;
+        flex: 0 0 auto;
+        width: 32px;
+        height: 32px !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: none;
+        border-radius: 8px;
+        background: linear-gradient(135deg, var(--nordic-pink), var(--nordic-pink-deep));
+        fill: #fff;
+    }
+    /* Section labels become full-width block headers with a top divider/spacing in the
+       stacked mobile dropdown, instead of the small inline labels used in the desktop row. */
+    body.theme-nordic .theme-nav-section-label {
+        width: 100%;
+        padding: 10px 8px 0;
+        margin-top: 6px;
+        border-top: 1px solid var(--nordic-border);
+    }
+    body.theme-nordic .theme-nav-section-label:first-of-type {
+        margin-top: 0;
+    }
+    /* The extra account/language links can make the panel taller than the viewport - scroll
+       instead of overflowing off-screen. overflow-x:hidden is a safety net (not the actual
+       fix - that's the min-width:0 above) so a future child with its own unshrinkable min
+       width clips instead of forcing the whole panel wider than the screen again.
+       100vh (not dvh) reports the FULL screen height on many mobile browsers, including the
+       area their address bar/toolbar actually covers - the panel then computes a max-height
+       taller than what's really visible, so its bottom portion is invisible AND unreachable
+       (it's position:absolute, so the page itself has nothing extra to scroll to reveal it).
+       100dvh reflects the actual visible viewport instead - declared second so browsers that
+       don't support dvh yet simply keep the vh fallback above. */
+    body.theme-nordic .theme-nav {
+        max-height: calc(100vh - 100px);
+        max-height: calc(100dvh - 100px);
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        overflow-x: hidden;
+    }
+}
+
+/* ---------- right sidebar: squared-off conversation cards with a teal left accent bar ---------- */
+body.theme-nordic .fixed-sidebar-right {
+    background: var(--nordic-bg-deep) !important;
+    border-left: 1px solid var(--nordic-border);
+}
+body.theme-nordic .fixed-sidebar-right .chat-users > li {
+    margin: 2px 8px;
+    padding: 8px 8px 8px 12px;
+    border-left: 2px solid transparent;
+    transition: background .18s ease, border-color .18s ease;
+}
+body.theme-nordic .fixed-sidebar-right .chat-users > li:hover {
+    background: var(--nordic-surface);
+    border-left-color: var(--nordic-teal);
+}
+body.theme-nordic .fixed-sidebar-right .author-thumb .avatar {
+    border-radius: 8px;
+    box-shadow: 0 0 0 1px var(--nordic-border-strong);
+}
+body.theme-nordic .fixed-sidebar-right .author-content .author-name,
+body.theme-nordic .fixed-sidebar-right .name {
+    color: var(--nordic-text);
+    font-family: var(--nordic-display);
+    font-weight: 700;
+}
+/* Bottom of the right chat panel (components/sidebar-right.blade.php) - the search box and
+   the "TROMAVEQUI"/chat-icon footer bar below it are native, hardcoded to a fixed white/
+   purple regardless of theme (main.css, not part of this repo/theme). Restyled to match the
+   same squared, minimal teal/gold language as the rest of Nordic. */
+body.theme-nordic .fixed-sidebar-right .search-friend {
+    background: var(--nordic-bg-deep) !important;
+    box-shadow: none !important;
+    border-top: 1px solid var(--nordic-border-strong);
+}
+body.theme-nordic .fixed-sidebar-right .search-friend input {
+    background: var(--nordic-surface);
+    border: 1px solid var(--nordic-border-strong);
+    color: var(--nordic-text);
+    border-radius: 8px;
+}
+body.theme-nordic .fixed-sidebar-right .search-friend a {
+    fill: var(--nordic-text-muted);
+}
+body.theme-nordic .fixed-sidebar-right .search-friend a:hover {
+    fill: var(--nordic-teal);
+}
+body.theme-nordic .fixed-sidebar-right .olympus-chat {
+    background: var(--nordic-teal) !important;
+    fill: var(--nordic-bg-deep) !important;
+}
+body.theme-nordic .fixed-sidebar-right .olympus-chat-title {
+    color: var(--nordic-bg-deep) !important;
+    font-family: var(--nordic-display);
+    font-weight: 700;
+}
+
+/* ---------- hero / search / chips (theme-only markup, see find_friends.blade.php) ---------- */
+/* Deliberately left-aligned, edge-to-edge layout - the opposite structural rhythm from
+   Aurora's centered hero (and from classic's centered "Matches for you" heading), so the two
+   custom themes don't just look like recolors of the same page. */
+body.theme-nordic .theme-hero {
+    position: relative;
+    z-index: 1;
+    padding: 36px 0 28px;
+    max-width: 640px;
+    margin: 0;
+    text-align: left;
+    border-left: 3px solid var(--nordic-teal);
+    padding-left: 24px;
+}
+body.theme-nordic .theme-hero-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--nordic-mono);
+    font-size: 12px;
+    color: var(--nordic-teal);
+    background: rgba(76, 224, 199, 0.08);
+    border: 1px solid rgba(76, 224, 199, 0.25);
+    padding: 6px 12px;
+    border-radius: 999px;
+    margin-bottom: 18px;
+}
+body.theme-nordic .theme-pulse-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--nordic-teal);
+    box-shadow: 0 0 0 0 rgba(76, 224, 199, 0.6);
+    animation: nordic-pulse 1.8s infinite;
+}
+@keyframes nordic-pulse {
+    0% { box-shadow: 0 0 0 0 rgba(76, 224, 199, 0.55); }
+    70% { box-shadow: 0 0 0 9px rgba(76, 224, 199, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(76, 224, 199, 0); }
+}
+body.theme-nordic .theme-hero-title {
+    font-family: var(--nordic-display);
+    font-size: clamp(28px, 5vw, 42px);
+    line-height: 1.1;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--nordic-text);
+}
+body.theme-nordic .theme-hero-title em {
+    font-style: normal;
+    color: var(--nordic-pink);
+}
+body.theme-nordic .theme-hero-sub {
+    font-size: 16px;
+    color: var(--nordic-text-muted);
+    max-width: 480px;
+    margin: 14px 0 0;
+    line-height: 1.6;
+}
+/* Hero CTA buttons - matches the nordic reference design's own .hero-actions/.btn-primary/
+   .btn-ghost exactly (this reference uses buttons here instead of a search bar). */
+body.theme-nordic .theme-hero-actions {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    margin-top: 26px;
+    flex-wrap: wrap;
+}
+body.theme-nordic .theme-hero-btn-primary {
+    display: inline-block;
+    background: linear-gradient(135deg, var(--nordic-pink), var(--nordic-pink-deep));
+    color: #fff;
+    font-family: var(--nordic-display);
+    font-weight: 700;
+    font-size: 15px;
+    padding: 14px 26px;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 8px 24px rgba(255, 92, 138, 0.28);
+}
+body.theme-nordic .theme-hero-btn-ghost {
+    display: inline-block;
+    background: transparent;
+    color: var(--nordic-text);
+    font-weight: 600;
+    font-size: 15px;
+    padding: 14px 22px;
+    border-radius: 12px;
+    border: 1px solid var(--nordic-border-strong);
+    cursor: pointer;
+}
+body.theme-nordic .theme-searchbar-secondary {
+    margin-top: 18px;
+}
+body.theme-nordic .theme-searchbar {
+    margin: 26px 0 0;
+    max-width: 480px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--nordic-surface);
+    border: 1px solid var(--nordic-border-strong);
+    border-radius: 4px;
+    padding: 6px 6px 6px 18px;
+}
+body.theme-nordic .theme-searchbar input {
+    flex: 1;
+    background: none;
+    border: none;
+    outline: none;
+    color: var(--nordic-text);
+    font-family: var(--nordic-body);
+    font-size: 15px;
+}
+body.theme-nordic .theme-searchbar input::placeholder {
+    color: var(--nordic-text-muted);
+}
+body.theme-nordic .theme-searchbar button {
+    background: var(--nordic-teal);
+    color: #06231D;
+    font-family: var(--nordic-display);
+    font-weight: 800;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    padding: 10px 20px;
+    border-radius: 2px;
+    border: none;
+    cursor: pointer;
+}
+body.theme-nordic .theme-chips {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    margin-top: 20px;
+}
+body.theme-nordic .find-friends-sort-chip {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+    color: var(--nordic-text-muted);
+    background: var(--nordic-surface);
+    border: 1px solid var(--nordic-border);
+    padding: 9px 16px;
+    border-radius: 2px;
+    cursor: pointer;
+}
+body.theme-nordic .find-friends-sort-chip:hover,
+body.theme-nordic .find-friends-sort-chip.active {
+    color: var(--nordic-bg);
+    background: var(--nordic-teal);
+    border-color: var(--nordic-teal);
+}
+
+/* ---------- profile cards (find_friends grid - same classes for initial load AND the
+   controller's AJAX "load more" HTML, so both stay visually identical) ---------- */
+/* NOTE: deliberately no "background" override here - .ui-block's background is the
+   profile's actual photo, set as an inline style (background: url(...)) by the server.
+   Overriding it (even just background-color, since the shorthand resets everything) would
+   hide the photo behind a flat color. */
+body.theme-nordic .find_friends_item .ui-block {
+    border: 1px solid var(--nordic-border);
+    border-radius: 6px;
+    overflow: hidden;
+    transition: border-color .2s ease, box-shadow .2s ease;
+    /* AI Companion cards set an inline `background-size: contain` (find_friends.blade.php),
+       which letterboxes the photo instead of filling the card edge-to-edge like real user
+       cards do (those have no inline background-size, so they use the browser default -
+       effectively "auto", which combined with the photo's own dimensions typically fills the
+       box). !important is required since inline styles otherwise always win. */
+    background-size: cover !important;
+}
+body.theme-nordic .find_friends_item .ui-block:hover {
+    border-color: var(--nordic-teal);
+    box-shadow: 0 0 0 1px var(--nordic-teal);
+}
+/* Card scrim + text/buttons - fixed light colors (not the --nordic-text variable, which
+   flips for light mode) since this overlay always sits on top of a dark photo scrim,
+   regardless of whether the rest of the site is in light or dark mode. Closely follows the
+   original nordic reference design's own card treatment (rounded, side-by-side buttons). */
+body.theme-nordic #find_friends_results .friend-actions,
+body.theme-nordic #ai_friends_results .friend-actions {
+    background-image: linear-gradient(rgba(13, 10, 22, 0), rgba(13, 10, 22, 0.45), rgba(13, 10, 22, 0.92));
+}
+body.theme-nordic .friend-item .author-name,
+body.theme-nordic .friend-item .h5.author-name {
+    font-family: var(--nordic-display);
+    font-weight: 700 !important;
+    color: #fff !important;
+    text-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
+}
+body.theme-nordic .friend-item .btn-control.bg-blue {
+    background: rgba(255, 255, 255, 0.12) !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    border-radius: 9px !important;
+    color: #fff !important;
+    font-weight: 600 !important;
+}
+body.theme-nordic .friend-item .btn-control.bg-purple {
+    background: var(--nordic-pink) !important;
+    border: none !important;
+    border-radius: 9px !important;
+    color: #fff !important;
+    font-weight: 700 !important;
+}
+
+/* ---------- online/offline badges (pure CSS pulse on the EXISTING elements - no markup
+   change needed, so this looks identical whether the card came from the initial page render
+   or the AJAX "load more" response) ---------- */
+body.theme-nordic .span-online,
+body.theme-nordic .find_friends_status.span-online {
+    background: rgba(13, 10, 22, 0.6) !important;
+    color: var(--nordic-teal) !important;
+    border-radius: 999px;
+    padding: 5px 10px !important;
+    font-size: 11px;
+    font-weight: 600;
+}
+body.theme-nordic .span-online::before {
+    content: '';
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    margin-right: 5px;
+    border-radius: 50%;
+    background: currentColor;
+    box-shadow: 0 0 0 0 rgba(76, 224, 199, 0.6);
+    animation: nordic-pulse 1.8s infinite;
+}
+body.theme-nordic .span-offline,
+body.theme-nordic .find_friends_status.span-offline {
+    background: rgba(13, 10, 22, 0.6) !important;
+    color: var(--nordic-text-muted) !important;
+    border-radius: 999px;
+    padding: 5px 10px !important;
+    font-size: 11px;
+    font-weight: 600;
+}
+body.theme-nordic .icon-status.online {
+    background: var(--nordic-teal) !important;
+    box-shadow: 0 0 0 0 rgba(76, 224, 199, 0.6);
+    animation: nordic-pulse 1.8s infinite;
+}
+
+/* ---------- chat popup (light touch - keep functional layout, just recolor) ---------- */
+body.theme-nordic .popup-chat .ui-block-title {
+    background: var(--nordic-surface-2);
+}
+body.theme-nordic .popup-chat .mCustomScrollbar {
+    background-color: var(--nordic-bg-deep);
+}
+body.theme-nordic .popup-chat .notification-list li .notification-event .chat-message-item {
+    background: var(--nordic-surface);
+    color: var(--nordic-text);
+}
+/* Admin-only chat controls: managed-account switcher, per-user language, translate toggle
+   (components/chat.blade.php) - plain native <select> elements, unstyled/white by default. */
+body.theme-nordic #popup-chat .row.m-0 > div {
+    padding: 0 4px;
+}
+body.theme-nordic .popup-chat select#admin_account,
+body.theme-nordic .popup-chat select.lang_for_user,
+body.theme-nordic .popup-chat select.auto_translate {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    box-sizing: border-box;
+    margin: 6px 0;
+    padding: 8px 30px 8px 14px;
+    background-color: var(--nordic-surface);
+    background-image:
+        linear-gradient(45deg, transparent 50%, var(--nordic-teal) 50%),
+        linear-gradient(135deg, var(--nordic-teal) 50%, transparent 50%);
+    background-position: calc(100% - 18px) center, calc(100% - 13px) center;
+    background-size: 5px 5px, 5px 5px;
+    background-repeat: no-repeat;
+    border: 1px solid var(--nordic-border-strong);
+    border-radius: 8px;
+    color: var(--nordic-text);
+    font-size: 13px;
+    font-family: var(--nordic-body);
+}
+body.theme-nordic .popup-chat select#admin_account:focus,
+body.theme-nordic .popup-chat select.lang_for_user:focus,
+body.theme-nordic .popup-chat select.auto_translate:focus {
+    border-color: var(--nordic-teal);
+    outline: none;
+}
+body.theme-nordic .popup-chat select#admin_account option,
+body.theme-nordic .popup-chat select.lang_for_user option,
+body.theme-nordic .popup-chat select.auto_translate option {
+    background: var(--nordic-surface);
+    color: var(--nordic-text);
+}
+body.theme-nordic .popup-chat select#admin_account::-ms-expand,
+body.theme-nordic .popup-chat select.lang_for_user::-ms-expand,
+body.theme-nordic .popup-chat select.auto_translate::-ms-expand {
+    display: none;
+}
+
+/* ---------- profile page (resources/views/profile/profile.blade.php,
+   components/top-header-profile.blade.php) - same squared, minimal teal/gold language as the
+   header and find_friends cards. ---------- */
+body.theme-nordic .top-header {
+    background: var(--nordic-bg-deep);
+    border: 1px solid var(--nordic-border-strong);
+    border-radius: 8px;
+    overflow: hidden;
+}
+body.theme-nordic .top-header-thumb {
+    background: var(--nordic-surface);
+}
+body.theme-nordic .profile-section {
+    background: var(--nordic-bg-deep);
+}
+body.theme-nordic .profile-menu a {
+    color: var(--nordic-text-muted) !important;
+    font-family: var(--nordic-body);
+}
+body.theme-nordic .profile-menu a:hover,
+body.theme-nordic .profile-menu a.active {
+    color: var(--nordic-text) !important;
+}
+body.theme-nordic .top-header-author .author-thumb img {
+    border-radius: 8px;
+    box-shadow: 0 0 0 4px var(--nordic-bg-deep), 0 0 0 5px var(--nordic-border-strong);
+}
+body.theme-nordic .top-header-author .author-name {
+    color: var(--nordic-text) !important;
+    font-family: var(--nordic-display);
+    font-weight: 700;
+}
+/* Add Friend / Chat / settings gear on the profile cover - same squared treatment as the
+   find_friends card buttons (body.theme-nordic .friend-item .btn-control.bg-blue/.bg-purple
+   further up), extended to this page's own .control-block-button context. */
+body.theme-nordic .top-header .control-block-button .btn-control.bg-blue {
+    background: var(--nordic-surface-2) !important;
+    border: 1px solid var(--nordic-border-strong) !important;
+    border-radius: 6px !important;
+    color: var(--nordic-text) !important;
+}
+body.theme-nordic .top-header .control-block-button .btn-control.bg-purple,
+body.theme-nordic .top-header .control-block-button .btn-control.bg-primary {
+    background: linear-gradient(135deg, var(--nordic-pink), var(--nordic-pink-deep)) !important;
+    border: none !important;
+    border-radius: 6px !important;
+    color: #fff !important;
+}
+/* .ui-block is the generic "card" wrapper reused across the whole site (Profile Intro, Last
+   Photos, Friends boxes here; Account/Personal Information on the settings page below) - its
+   native background is a hardcoded white (style.css, not part of this theme/repo), same class
+   of issue as the CMS .content_block fix above, but here the card should actually adopt the
+   theme instead of staying a fixed white document look.
+   :not([style]) is required - the find_friends grid (and the AI Companions grid on the same
+   page) ALSO uses .ui-block, but sets the profile photo as an inline `style="background:
+   url(...)"` attribute (FindFriendsController.php). An earlier version of this rule used a
+   bare .ui-block selector, whose !important background overrode that inline photo and made
+   every card photo disappear across the whole site. Cards with a real photo always carry an
+   inline style attribute; cards that don't (Profile Intro, Account Info, and find_friends
+   cards for users with no photo) don't, so this cleanly targets only the latter. */
+body.theme-nordic .ui-block:not([style]) {
+    background: var(--nordic-surface) !important;
+    border: 1px solid var(--nordic-border-strong) !important;
+    border-radius: 8px !important;
+}
+body.theme-nordic .ui-block-title {
+    border-bottom: 1px solid var(--nordic-border-strong) !important;
+}
+body.theme-nordic .ui-block-title .title,
+body.theme-nordic .ui-block .widget .title,
+body.theme-nordic .ui-block .widget .text {
+    color: var(--nordic-text) !important;
+    font-family: var(--nordic-body);
+}
+body.theme-nordic .ui-block .widget .title {
+    color: var(--nordic-text-muted) !important;
+}
+/* Timeline posts (same .ui-block card, plus their own author/date row) */
+body.theme-nordic .hentry.post .post__author-name,
+body.theme-nordic .hentry.post p {
+    color: var(--nordic-text) !important;
+}
+body.theme-nordic .hentry.post .post__date time {
+    color: var(--nordic-text-muted) !important;
+}
+body.theme-nordic .hentry.post .likes.post-add-icon {
+    color: var(--nordic-text-muted) !important;
+    fill: var(--nordic-text-muted) !important;
+}
+body.theme-nordic .hentry.post .likes.post-add-icon.active {
+    color: var(--nordic-pink) !important;
+    fill: var(--nordic-pink) !important;
+}
+
+/* ---------- profile settings / account dashboard page
+   (resources/views/profile/profile-info.blade.php) ---------- */
+body.theme-nordic .main-header {
+    background: var(--nordic-bg-deep);
+    border-bottom: 1px solid var(--nordic-border-strong);
+}
+body.theme-nordic .main-header .content-bg-wrap {
+    opacity: .25;
+}
+body.theme-nordic .main-header-content h1 {
+    color: var(--nordic-text) !important;
+    font-family: var(--nordic-display);
+    font-weight: 700;
+}
+body.theme-nordic .main-header-content p {
+    color: var(--nordic-text-muted) !important;
+}
+body.theme-nordic .form-group.label-floating .control-label {
+    color: var(--nordic-text-muted) !important;
+}
+body.theme-nordic .form-group .form-control,
+body.theme-nordic .form-group input,
+body.theme-nordic .form-group textarea {
+    background: var(--nordic-surface) !important;
+    border: 1px solid var(--nordic-border-strong) !important;
+    border-radius: 6px !important;
+    color: var(--nordic-text) !important;
+}
+body.theme-nordic .your-profile .title,
+body.theme-nordic .your-profile-menu a {
+    color: var(--nordic-text-muted) !important;
+}
+body.theme-nordic .your-profile-menu a:hover {
+    color: var(--nordic-text) !important;
+}
+body.theme-nordic .your-profile .card {
+    background: transparent !important;
+    border: none !important;
+}
+body.theme-nordic .your-profile .card-header a {
+    color: var(--nordic-text) !important;
+    font-family: var(--nordic-body);
+}
+body.theme-nordic .btn-primary,
+body.theme-nordic .btn-secondary {
+    border-radius: 6px !important;
+    font-family: var(--nordic-body);
+    font-weight: 700;
+}
+body.theme-nordic .btn-primary {
+    background: linear-gradient(135deg, var(--nordic-pink), var(--nordic-pink-deep)) !important;
+    border: none !important;
+    color: #fff !important;
+}
+body.theme-nordic .btn-secondary {
+    background: var(--nordic-surface-2) !important;
+    border: 1px solid var(--nordic-border-strong) !important;
+    color: var(--nordic-text) !important;
+}
+
+/* ---------- packages page (resources/views/packages.blade.php) - .generic_price_table cards
+   are permanently white/gray (style.css, not part of this theme/repo), same class of issue
+   as .content_block and .ui-block above. Restyled with the same squared, minimal teal/gold
+   language as the rest of Nordic, keeping a tier accent (Silver/Gold/VIP -> the theme's own
+   teal/pink/gold tokens) on the diagonal header instead of the native gray/blue/green. ---------- */
+body.theme-nordic .price-heading h1 {
+    color: var(--nordic-text) !important;
+    font-family: var(--nordic-display);
+    font-weight: 700;
+}
+body.theme-nordic .generic_content {
+    background: var(--nordic-surface) !important;
+    border-radius: 8px;
+    overflow: hidden;
+}
+body.theme-nordic .generic_head_price {
+    background: var(--nordic-surface-2) !important;
+}
+body.theme-nordic .generic_price_tag .price,
+body.theme-nordic .generic_price_tag .sign,
+body.theme-nordic .generic_price_tag .currency,
+body.theme-nordic .generic_price_tag .cent {
+    color: var(--nordic-text) !important;
+}
+body.theme-nordic .generic_feature_list ul li {
+    color: var(--nordic-text-muted) !important;
+}
+body.theme-nordic .generic_feature_list ul li span {
+    color: var(--nordic-text) !important;
+}
+body.theme-nordic .generic_feature_list ul li:hover {
+    background: var(--nordic-surface-2) !important;
+    border-left-color: var(--nordic-teal) !important;
+}
+/* Tier accent on the diagonal header - teal (entry tier) -> gold (mid) -> pink (top),
+   replacing the native gray/blue/green, for both the Subscriptions (pk1_*) and Credits
+   (pk2_*) card sets. */
+body.theme-nordic .generic_content.pk1_1 .head_bg,
+body.theme-nordic .generic_content.pk2_1 .head_bg {
+    border-color: var(--nordic-teal) transparent transparent var(--nordic-teal) !important;
+}
+body.theme-nordic .generic_content.pk1_2 .head_bg,
+body.theme-nordic .generic_content.pk2_2 .head_bg {
+    border-color: var(--nordic-gold) transparent transparent var(--nordic-gold) !important;
+}
+body.theme-nordic .generic_content.pk1_3 .head_bg,
+body.theme-nordic .generic_content.pk2_3 .head_bg {
+    border-color: var(--nordic-pink) transparent transparent var(--nordic-pink) !important;
+}
+body.theme-nordic .generic_content.pk1_1 .head span,
+body.theme-nordic .generic_content.pk2_1 .head span,
+body.theme-nordic .generic_content.pk1_2 .head span,
+body.theme-nordic .generic_content.pk2_2 .head span,
+body.theme-nordic .generic_content.pk1_3 .head span,
+body.theme-nordic .generic_content.pk2_3 .head span,
+body.theme-nordic .generic_content.active .head span,
+body.theme-nordic .generic_content:hover .head span {
+    color: #fff !important;
+}
+body.theme-nordic .generic_content.active .head_bg,
+body.theme-nordic .generic_content:hover .head_bg {
+    border-color: var(--nordic-teal) transparent transparent var(--nordic-teal) !important;
+}
+/* Purchase/Claim/Unsubscribe button - same squared treatment as the rest of Nordic's buttons,
+   guaranteed via !important since the native color source here varies (plain outlined by
+   default, solid on hover/active). */
+body.theme-nordic .generic_price_btn a {
+    background: linear-gradient(135deg, var(--nordic-pink), var(--nordic-pink-deep)) !important;
+    border: none !important;
+    color: #fff !important;
+}
+body.theme-nordic .ribbon-red {
+    background: var(--nordic-pink) !important;
+}
+
+/* ---------- page-load preloader (layouts/layout.blade.php, #hellopreloader) - shown full-
+   screen while the page/assets are still loading, hardcoded to the site's brand color
+   (var(--main-color), an unrelated admin setting) regardless of theme. The spinner icon's own
+   stroke color (an SVG presentation attribute, inline in the markup) is overridden here via a
+   normal CSS rule, since presentation attributes always lose to any CSS rule regardless of
+   specificity - no !important needed for that part. */
+body.theme-nordic #hellopreloader {
+    background: var(--nordic-bg) !important;
+}
+body.theme-nordic .preloader svg {
+    stroke: var(--nordic-teal);
+}
+body.theme-nordic .preloader .text {
+    color: var(--nordic-text) !important;
+}
+
+/* ---------- AI Inbox panel (find_friends.blade.php, admin-only "managed accounts" list) -
+   uses plain Bootstrap .list-group/.list-group-item, permanently white/black regardless of
+   theme (Bootstrap's own defaults, not part of this theme/repo). Restyled to match the rest
+   of Nordic. Kept simple/light-touch since the client may ask to fold this into the main
+   chat inbox later - not worth a deeper redesign yet. */
+body.theme-nordic .ai-inbox-panel h4 {
+    color: var(--nordic-text) !important;
+    font-family: var(--nordic-display);
+}
+body.theme-nordic .ai-inbox-panel h4 .text-muted {
+    color: var(--nordic-text-muted) !important;
+}
+body.theme-nordic .ai-inbox-panel .list-group {
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--nordic-border-strong);
+}
+body.theme-nordic .ai-inbox-panel .list-group-item {
+    background: var(--nordic-surface) !important;
+    border-color: var(--nordic-border-strong) !important;
+    color: var(--nordic-text) !important;
+}
+body.theme-nordic .ai-inbox-panel .list-group-item:hover,
+body.theme-nordic .ai-inbox-panel .list-group-item-action:hover {
+    background: var(--nordic-surface-2) !important;
+}
+body.theme-nordic .ai-inbox-panel .list-group-item .text-muted,
+body.theme-nordic .ai-inbox-panel .list-group-item small {
+    color: var(--nordic-text-muted) !important;
+}
+
+/* ---------- "load more" trigger (find_friends.blade.php's #load_more_find_friends, the
+   three-dots circle below the grid) - permanently a plain light-gray circle regardless of
+   theme (style.css/vendor CSS, not part of this repo), which read as a stray pale dot against
+   this theme's dark background. */
+body.theme-nordic #load_more_find_friends {
+    background: var(--nordic-surface) !important;
+    border: 1px solid var(--nordic-border-strong) !important;
+    box-shadow: 0 8px 20px -8px rgba(0, 0, 0, 0.5);
+}
+body.theme-nordic #load_more_find_friends .olymp-three-dots-icon {
+    fill: var(--nordic-teal) !important;
+}
+body.theme-nordic #load_more_find_friends:hover {
+    background: var(--nordic-teal) !important;
+    border-color: var(--nordic-teal) !important;
+}
+body.theme-nordic #load_more_find_friends:hover .olymp-three-dots-icon {
+    fill: #14101F !important;
+}
+
+/* ---------- "livefeed" popup toast (layouts/layout.blade.php, #livefeed_container -
+   "X purchased a Y subscription!" / "X is now Online!", shown periodically via dating.js's
+   get_livefeed()) - permanently white/#333 (style.css, not part of this theme/repo) regardless
+   of theme or light/dark mode. Restyled to use this theme's own surface/text tokens. */
+body.theme-nordic #livefeed_container {
+    background: var(--nordic-surface) !important;
+    border: 1px solid var(--nordic-border-strong) !important;
+    border-radius: 8px !important;
+    color: var(--nordic-text) !important;
+    box-shadow: 0 20px 50px -20px rgba(0, 0, 0, 0.6);
+}
+body.theme-nordic #livefeed_name {
+    color: var(--nordic-pink) !important;
+}
+body.theme-nordic #livefeed_pack {
+    color: var(--nordic-teal) !important;
+}
+body.theme-nordic #livefeed_time_container {
+    color: var(--nordic-text-muted) !important;
+}
+body.theme-nordic #livefeed_close {
+    background: var(--nordic-surface-2) !important;
+    color: var(--nordic-text) !important;
+}
+body.theme-nordic #livefeed_close:hover {
+    background: var(--nordic-pink) !important;
+    color: #fff !important;
+}

@@ -2121,6 +2121,15 @@ select.ppselect{background: #fff !important;}
 
 .ElementsApp {font-size: 21px !important;}
 
+/* AI Companion cards (find_friends.blade.php) set an inline `background-size: contain` on
+   their .ui-block, which letterboxes the photo (leaves empty space) instead of filling the
+   card edge-to-edge like real user cards do. This applies site-wide (including classic),
+   since the theme CSS files only reach non-classic themes. !important is required since
+   inline styles otherwise always win. */
+#ai_friends_results .ui-block {
+    background-size: cover !important;
+}
+
 #find_friends_results .control-block-button .btn-control,
 #ai_friends_results .control-block-button .btn-control{
     border-radius: 5px;

@@ -98,4 +98,11 @@ return [
         'admin_email' => env('ADMIN_ALERT_EMAIL'),
     ],
 
+    // When true, the header's "Chat / Messages" dropdown (components/header/chat-header.blade.php)
+    // also shows AI Companion conversations interleaved with real chats, sorted by recency -
+    // clicking one navigates to Find Friends and opens it there via the existing AI popup.
+    // When false (default), that dropdown only ever shows real chats, and the AI Inbox stays
+    // its own separate panel on the Find Friends page (find_friends.blade.php's .ai-inbox-panel).
+    'merge_ai_inbox' => env('MERGE_AI_INBOX', false),
+
 ];
