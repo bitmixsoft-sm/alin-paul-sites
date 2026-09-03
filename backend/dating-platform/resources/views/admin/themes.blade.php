@@ -176,5 +176,14 @@
         background:
             conic-gradient(from 0deg, #FF4FA0, #FFC22E, #1FCB8C, #3E7BFF, #9B4FFF, #FF4FA0);
     }
+    /* Rosewood is a light boutique theme - a soft blush/rose-gold wash with a single pale
+       "arch window" highlight (echoing the rounded-top profile-card frame) and a thin gold
+       ring, instead of a dark nebula, hard stripe or masonry grid. */
+    .theme-swatch-rosewood{
+        background:
+            radial-gradient(60% 90% at 50% 0%, rgba(255,255,255,0.9), rgba(255,255,255,0) 70%) 30% -10% / 46% 130% no-repeat,
+            linear-gradient(160deg, #F3DFE1, #E7C7CC 55%, #C6A15A 130%);
+        box-shadow: inset 0 0 0 2px rgba(198,161,90,0.55);
+    }
 </style>
 @endsection

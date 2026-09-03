@@ -1,0 +1,1648 @@
+/* Rosewood theme - additive skin, only ever active under body.theme-rosewood.
+   Loaded AFTER the base /assets/css/style.css, never replaces it.
+   Concept: halvany rozsaszin-bezs (blush) alap, mely bordo-fekete tinta szoveg, arany akcentus -
+   butik/high-fashion hangulat, Italiana (display, nagybetus szerif) + Jost (body sans) tipo,
+   es a "signature" elem: boltiv (arch) alaku fotokeret a find_friends kartyakon. See
+   rosewood_concept.md / rosewood_concept.html (design brief) for the full source concept. */
+
+/* Light/blush by default (same family as Bloom - Aurora/Nordic/Volt/Velvet/Binder are all
+   dark-first). Same reasoning as bloom.css: the site's dark/light toggle defaults to "dark"
+   for new visitors (theme-selector.js - isDark defaults true), which makes the BARE block
+   below (not the :not(.site-dark-mode) block further down) what most visitors see first - so
+   it holds this theme's signature blush/gold boutique look, and the override block holds a
+   second, equally-designed dark plum/bordeaux "night" variant for whoever manually toggles
+   away from it (see rosewood_concept_dark.html - "ugyanaz a szerkezet, felepites es
+   interakcio, mint a vilagos verzional, csak sotet, mely bordo-fekete alapon"). The NAV/HEADER
+   STRUCTURE ITSELF is untouched here - same proven horizontal top nav as every other theme in
+   this family; only the color/type tokens and the card grid (see "profile cards" further down)
+   differ. */
+body.theme-rosewood {
+    --rosewood-bg: #FBF4F1;
+    --rosewood-bg-2: #F3E4E1;
+    --rosewood-surface: #FFFFFF;
+    --rosewood-surface-2: #F3DFE1;
+    --rosewood-line: rgba(43, 30, 34, 0.12);
+    --rosewood-line-strong: rgba(43, 30, 34, 0.85);
+    /* --rosewood-ink: a deliberately-fixed near-black, used as a solid "dark accent button"
+       background almost everywhere it appears (packages/purple CTAs, active toggles, chat
+       header, etc.), always paired with hardcoded white/light text on top - so, same reasoning
+       as Bloom's --bloom-ink staying fixed, it is NOT redefined in the dark night variant below:
+       those buttons stay a solid dark pill with light text in both modes, which still reads
+       fine (and matches the reference dark mockup's own hover states, which keep dark text/
+       fills on their own accent elements too). The couple of spots that instead use it as plain
+       FOREGROUND text/border color (the hero title, the searchbar's underline+button) use
+       --rosewood-text there instead, precisely because that one DOES need to invert per mode. */
+    --rosewood-ink: #2B1E22;
+    --rosewood-gold: #C6A15A;
+    --rosewood-gold-bright: #A9843F;
+    --rosewood-rose: #B9426B;
+    --rosewood-rose-bright: #9B3459;
+    --rosewood-text: #2B1E22;
+    --rosewood-text-dim: #8C7A7E;
+    --rosewood-text-mute: #AC9CA0;
+    --rosewood-online: #B9426B;
+    /* Frosted-glass chip background (online/offline badge) and its glow - white in light mode,
+       redefined to a dark frosted bubble + brighter glow for the night variant below. */
+    --rosewood-chip-bg: rgba(255, 255, 255, 0.94);
+    --rosewood-online-glow: rgba(185, 66, 107, 0.6);
+    /* Card hover glow (arch ring shadow, message FAB's own shadow) - a rose-tinted glow in
+       light mode, shifting to a more dramatic rose-gold-adjacent glow in the dark variant
+       ("a kartya koruli glow rozsaszin-arany izzasba megy at, sotetben meg dramaibb"). */
+    --rosewood-hover-glow: rgba(185, 66, 107, 0.4);
+    /* Fixed (NOT mode-aware) bright rose for the "See Profile" caption's hover color - it sits
+       on the photo's dark scrim, same reason the name text stays a hardcoded #fff regardless of
+       mode. Using the mode-aware --rosewood-rose-bright there was a real bug: in light mode
+       that token is a DARK rose (#9B3459), which on the same dark scrim reads as barely-visible
+       on hover - the opposite of the intended "highlight" effect. */
+    --rosewood-caption-accent: #FF9CB8;
+    --rosewood-display: 'Italiana', 'Playfair Display', serif;
+    --rosewood-body: 'Jost', 'Segoe UI', sans-serif;
+    --rosewood-mono: 'Jost', 'Segoe UI', sans-serif;
+
+    background: var(--rosewood-bg) !important;
+    color: var(--rosewood-text) !important;
+    font-family: var(--rosewood-body) !important;
+    /* Hard safety net against the whole page gaining a horizontal scrollbar - same technique
+       bloom.css uses (see its comment). This whole file only ever loads when rosewood is the
+       active theme (see layout.blade.php), so an unscoped `html` selector here is safe - it
+       can never affect classic or another theme. */
+    overflow-x: hidden;
+}
+html {
+    overflow-x: hidden;
+}
+
+/* "Night" variant, reached by manually toggling the site's dark/light switch away from this
+   theme's blush default (see the long comment on the bare block above) - deep plum-black
+   (#160F19) with rose/gold candlelight-like glow spots, dark frosted-glass chips instead of
+   white ones, a slightly lighter gold and a more vivid rose for contrast, per
+   rosewood_concept_dark.html. Every rule below only ever uses the --rosewood-* custom
+   properties, so redefining them here (plus the layered glow "background" override just below)
+   is enough to re-skin the whole theme without repeating every single color rule. */
+body.theme-rosewood:not(.site-dark-mode) {
+    /* TRYING: a middle ground between the original #160F19 and the card gradient's own tone
+       (#3E2432/#552E3E) - enough lift for warmth, while keeping the cards visually distinct
+       from the page instead of blending into it. */
+    --rosewood-bg: #241419;
+    --rosewood-bg-2: #2C1A21;
+    --rosewood-surface: #241924;
+    --rosewood-surface-2: #2C1B27;
+    --rosewood-line: rgba(246, 236, 238, 0.10);
+    --rosewood-line-strong: rgba(246, 236, 238, 0.32);
+    --rosewood-gold: #DDB876;
+    --rosewood-gold-bright: #F0CD98;
+    --rosewood-rose: #FF6F9E;
+    --rosewood-rose-bright: #FF8FB2;
+    --rosewood-text: #F6ECEE;
+    --rosewood-text-dim: #B79AA5;
+    --rosewood-text-mute: #8B7278;
+    --rosewood-online: #FF6F9E;
+    --rosewood-chip-bg: rgba(22, 15, 25, 0.72);
+    --rosewood-online-glow: rgba(255, 111, 158, 0.7);
+    --rosewood-hover-glow: rgba(255, 111, 158, 0.35);
+}
+/* Ambient warm glow behind the page ("mintha gyertyafenyben lenne az oldal") - two soft radial
+   gradients layered over the solid dark background, light-mode-only equivalent intentionally
+   omitted (the blush look has no such glow in the reference). NOT background-attachment:fixed -
+   an earlier version pinned the gradient layers to the viewport while the solid color layer
+   stayed scroll (mixed attachment values on one background shorthand), which is a well-known
+   trigger for scroll repaint/compositing glitches in Chromium - it rendered as huge diagonal
+   grey bars tearing across the page while scrolling. All layers now scroll normally with the
+   page - a static, always-scrolling glow instead of a viewport-pinned one, but with no tearing. */
+body.theme-rosewood:not(.site-dark-mode) {
+    background:
+        radial-gradient(45% 30% at 20% 0%, rgba(255, 111, 158, 0.10), transparent 60%),
+        radial-gradient(40% 28% at 85% 10%, rgba(221, 184, 118, 0.08), transparent 60%),
+        var(--rosewood-bg) !important;
+}
+/* The control-block icons (notifications/chat/friend-requests) have a hardcoded
+   `.control-icon.has-items { fill: #fff; }` in main.css (not part of this theme/repo) - white
+   icons that are invisible against a light background. Every dark-by-default theme in this
+   family only needs this fix in their own light (:not(.site-dark-mode)) variant - Rosewood is
+   the opposite (blush by DEFAULT, see the long comment on the token block above), so this has
+   to run unconditionally, same as Bloom. */
+body.theme-rosewood .control-block .control-icon,
+body.theme-rosewood .control-block .control-icon.has-items {
+    fill: var(--rosewood-text-dim) !important;
+}
+body.theme-rosewood .control-block .author-title,
+body.theme-rosewood .control-block .author-subtitle {
+    color: var(--rosewood-text) !important;
+}
+body.theme-rosewood .control-block .author-title svg {
+    fill: var(--rosewood-text) !important;
+}
+
+/* The page template's own base CSS (main.css, not part of this repo/theme) puts an opaque
+   light background on the content wrapper and/or its direct child container, which sits on
+   top of the body background above and would otherwise hide it almost entirely - force it
+   transparent so the theme's own body background actually shows through. */
+body.theme-rosewood #main-wrapper-content,
+body.theme-rosewood #main-wrapper-content > * {
+    background: transparent !important;
+    background-color: transparent !important;
+}
+body.theme-rosewood #main-wrapper-content,
+body.theme-rosewood #main-wrapper-content h1,
+body.theme-rosewood #main-wrapper-content h2,
+body.theme-rosewood #main-wrapper-content h3,
+body.theme-rosewood #main-wrapper-content h4,
+body.theme-rosewood #main-wrapper-content h5,
+body.theme-rosewood #main-wrapper-content h6 {
+    color: var(--rosewood-text) !important;
+    font-family: var(--rosewood-body) !important;
+}
+/* CMS pages (Terms of Use, Legal information, etc. - resources/views/cms_page.blade.php) put
+   their content inside .content_block, which has a permanently white background (style.css,
+   not part of this theme/repo) that never adapts to dark/light mode - the rule above forces
+   this theme's own (light, in night mode) text color onto it, making it unreadable against
+   that always-white card. Force a fixed dark, readable color here instead, regardless of the
+   theme's own light/dark state - this card's background never changes, so neither should its
+   text color. */
+body.theme-rosewood #main-wrapper-content .content_block,
+body.theme-rosewood #main-wrapper-content .content_block h1,
+body.theme-rosewood #main-wrapper-content .content_block h2,
+body.theme-rosewood #main-wrapper-content .content_block h3,
+body.theme-rosewood #main-wrapper-content .content_block h4,
+body.theme-rosewood #main-wrapper-content .content_block h5,
+body.theme-rosewood #main-wrapper-content .content_block h6,
+body.theme-rosewood #main-wrapper-content #cms_header {
+    color: #2A2A2A !important;
+}
+
+/* ---------- nav / header ---------- */
+body.theme-rosewood .header {
+    background: var(--rosewood-bg-2) !important;
+    backdrop-filter: blur(16px) saturate(140%);
+    border-bottom: 1px solid var(--rosewood-line);
+    min-height: 72px;
+}
+/* Classic clearfix - see bloom.css's comment: the site's original layout is CSS-FLOAT based
+   (.search-bar float:left, .control-block float:right, no clearfix on
+   .header-content-wrapper), which otherwise collapses the header's height. */
+body.theme-rosewood .header-content-wrapper::after {
+    content: '';
+    display: table;
+    clear: both;
+}
+body.theme-rosewood .header::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--rosewood-gold), transparent);
+    opacity: .8;
+}
+/* The page title (e.g. "Find Friends" as a big heading) isn't part of the reference nav at
+   all - the nav links themselves already show what page you're on (active underline). */
+body.theme-rosewood .header .page-title {
+    display: none;
+}
+body.theme-rosewood .header {
+    height: 64px;
+    display: flex;
+    align-items: center;
+}
+@media screen and (min-width: 1280px) {
+    body.theme-rosewood .header {
+        height: auto;
+        padding: 10px 0;
+    }
+}
+body.theme-rosewood .header-content-wrapper {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    align-items: center;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0 16px;
+    gap: 16px;
+}
+/* Hides BOTH the native mobile tab header AND the native mobile "Quick Links" drawer -
+   unconditionally, at every width - so the mobile view never falls back to the unthemed
+   classic mobile UI.
+   #sidebar-left-responsive/#sidebar-left-1-responsive (NOT the shared .fixed-sidebar.
+   fixed-sidebar-responsive class combo an earlier version used) - components/sidebar-left.
+   blade.php's OWN mobile-drawer wrapper AND components/sidebar-right.blade.php's mobile chat
+   sidebar wrapper both carry that exact same two-class combo on their outer <div> (only their
+   INNER id/class differs: #sidebar-left(-1)-responsive vs #sidebar-right(-1)-responsive), so
+   the broader selector hid the right-side chat sidebar's mobile drawer too - reported as an
+   empty gap on the right on mobile where Classic (untouched by this rule) still shows it. */
+body.theme-rosewood .header-responsive,
+body.theme-rosewood #site-header-responsive,
+body.theme-rosewood #sidebar-left-responsive,
+body.theme-rosewood #sidebar-left-1-responsive {
+    display: none !important;
+}
+/* ---------- header search bar: one seamless understated pill ---------- */
+body.theme-rosewood .search-bar {
+    float: none !important;
+    width: auto !important;
+    height: auto !important;
+    background: transparent !important;
+    flex: 0 0 auto;
+    margin: 0;
+    align-self: center;
+    display: flex;
+    align-items: center;
+}
+body.theme-rosewood .search-bar .form-group {
+    position: relative;
+    width: 260px;
+    height: auto !important;
+    margin: 0;
+}
+@media screen and (max-width: 767px) {
+    body.theme-rosewood .search-bar .form-group {
+        width: 34px;
+        height: 34px;
+        overflow: visible;
+        border-radius: 50%;
+        background: transparent;
+    }
+    body.theme-rosewood .search-bar input.form-control,
+    body.theme-rosewood .search-bar .js-user-search {
+        display: none !important;
+    }
+    body.theme-search-open.theme-rosewood .search-bar {
+        display: flex !important;
+        align-items: center;
+        position: absolute !important;
+        top: 100%;
+        left: 12px;
+        right: 12px;
+        margin-top: 8px;
+        background: var(--rosewood-bg-2) !important;
+        border: 1px solid var(--rosewood-line);
+        border-radius: 4px;
+        box-shadow: 0 20px 60px -15px rgba(43, 30, 34, 0.45);
+        padding: 10px 14px;
+        z-index: 1000;
+    }
+    body.theme-search-open.theme-rosewood .search-bar .form-group {
+        width: 100%;
+        height: auto;
+        display: flex;
+        align-items: center;
+        overflow: visible;
+        border-radius: 0;
+    }
+    body.theme-search-open.theme-rosewood .search-bar input.form-control {
+        display: block !important;
+        position: static;
+        flex: 1 1 auto;
+        width: auto;
+        height: 36px !important;
+        background: transparent !important;
+        border: none !important;
+        padding: 0 8px !important;
+    }
+    body.theme-search-open.theme-rosewood .search-bar button {
+        position: static !important;
+        flex: 0 0 auto;
+        width: auto !important;
+        background: transparent !important;
+    }
+    body.theme-search-open.theme-rosewood .search-bar .js-user-search {
+        display: block !important;
+        position: absolute;
+        top: calc(100% + 8px) !important;
+        left: 0 !important;
+        right: 0;
+        width: 100% !important;
+    }
+}
+body.theme-rosewood .search-bar input.form-control {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0 40px 0 18px !important;
+    height: 38px !important;
+    background: var(--rosewood-surface) !important;
+    border: 1px solid var(--rosewood-line) !important;
+    border-bottom: 1px solid var(--rosewood-gold) !important;
+    border-radius: 0 !important;
+    color: var(--rosewood-text) !important;
+    font-style: italic;
+}
+body.theme-rosewood .search-bar input.form-control::placeholder {
+    color: var(--rosewood-text-mute);
+}
+body.theme-rosewood .search-bar input.form-control:focus {
+    border-bottom-color: var(--rosewood-gold) !important;
+    outline: none;
+}
+body.theme-rosewood .search-bar button {
+    position: absolute !important;
+    right: 4px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: transparent !important;
+    border: none !important;
+    border-radius: 50% !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    outline: none !important;
+    -webkit-tap-highlight-color: transparent;
+}
+body.theme-rosewood .search-bar button:focus,
+body.theme-rosewood .search-bar button:focus-visible {
+    outline: none !important;
+    box-shadow: none !important;
+}
+body.theme-rosewood .search-bar button svg {
+    fill: var(--rosewood-text-dim);
+    width: 16px;
+    height: 16px;
+}
+body.theme-rosewood .search-bar .js-user-search {
+    position: absolute !important;
+    width: 100% !important;
+    left: 0 !important;
+    top: calc(100% + 6px) !important;
+    background: var(--rosewood-surface) !important;
+    border: 1px solid var(--rosewood-line) !important;
+    border-radius: 4px !important;
+    color: var(--rosewood-text);
+}
+body.theme-rosewood #theme-toggler {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    font-size: 18px;
+    line-height: 1;
+    filter: sepia(.4) saturate(2) hue-rotate(300deg);
+}
+body.theme-rosewood .control-block {
+    flex: 0 0 auto;
+    margin-left: auto;
+}
+@media screen and (max-width: 767px) {
+    body.theme-rosewood .control-block {
+        display: flex !important;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 10px;
+        height: auto !important;
+        padding: 0 !important;
+    }
+    body.theme-rosewood .control-block > * {
+        flex: 0 0 auto;
+        width: auto !important;
+    }
+    body.theme-rosewood .control-block .packages-top,
+    body.theme-rosewood .control-block .theme-credits-pill {
+        display: none !important;
+    }
+}
+@media screen and (max-width: 1279px) {
+    body.theme-rosewood .control-block .author-page {
+        display: none !important;
+    }
+}
+
+/* ---------- header icon dropdowns (notifications/chat/friend-requests/profile) ---------- */
+body.theme-rosewood .control-block .more-dropdown {
+    background: var(--rosewood-surface) !important;
+    border: 1px solid var(--rosewood-line);
+    border-radius: 4px !important;
+    box-shadow: 0 20px 60px -15px rgba(43, 30, 34, 0.4);
+    padding: 12px !important;
+    overflow: hidden;
+}
+body.theme-rosewood .control-block .more-dropdown .ui-block-title .title,
+body.theme-rosewood .control-block .more-dropdown a,
+body.theme-rosewood .control-block .more-dropdown .h6,
+body.theme-rosewood .control-block .more-dropdown .notification-friend,
+body.theme-rosewood .control-block .more-dropdown .author-title {
+    color: var(--rosewood-text) !important;
+}
+body.theme-rosewood .control-block .more-dropdown .chat-message-item,
+body.theme-rosewood .control-block .more-dropdown .notification-date,
+body.theme-rosewood .control-block .more-dropdown .author-subtitle,
+body.theme-rosewood .control-block .more-dropdown .no-req {
+    color: var(--rosewood-text-dim) !important;
+}
+body.theme-rosewood .control-block .more-dropdown a:hover {
+    color: var(--rosewood-rose) !important;
+}
+body.theme-rosewood .control-block .more-dropdown .notification-list li.message-unread,
+body.theme-rosewood .control-block .more-dropdown .notification-list li.un-read,
+body.theme-rosewood .control-block .more-dropdown .notification-list li:hover {
+    background: var(--rosewood-surface-2) !important;
+}
+body.theme-rosewood .control-block .more-dropdown input.form-control {
+    background: var(--rosewood-bg) !important;
+    border: 1px solid var(--rosewood-line) !important;
+    color: var(--rosewood-text) !important;
+}
+body.theme-rosewood .header .link-find-friend {
+    color: var(--rosewood-text-dim);
+    font-weight: 500;
+}
+body.theme-rosewood .header .link-find-friend:hover {
+    color: var(--rosewood-text);
+}
+body.theme-rosewood .theme-credits-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--rosewood-surface-2);
+    border: 1px solid var(--rosewood-line);
+    padding: 7px 16px;
+    border-radius: 999px;
+    font-family: var(--rosewood-mono);
+    font-size: 11px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: var(--rosewood-gold-bright);
+}
+/* .packages-top isn't themed by any of the rules above - see bloom.css's identical comment on
+   this same native quirk (it uses `background: var(--main-color)`, an unrelated admin
+   setting). */
+body.theme-rosewood .header .btn-purple,
+body.theme-rosewood .header .btn-primary,
+body.theme-rosewood .header .packages-top {
+    background: var(--rosewood-ink) !important;
+    border: 1px solid var(--rosewood-gold) !important;
+    color: #fff !important;
+    font-family: var(--rosewood-mono);
+    font-size: 12px;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+/* ---------- ambient glow behind the sidebars - see bloom.css's long comment on why NOT to
+   force position:relative on .header/.fixed-sidebar-left/.fixed-sidebar-right here (breaks
+   their native fixed/slide-open behavior); all three already have a non-static native
+   position, which is enough for this ::before to anchor to. ---------- */
+body.theme-rosewood .fixed-sidebar-left::before,
+body.theme-rosewood .fixed-sidebar-right::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+        radial-gradient(120% 140% at 0% 0%, rgba(185, 66, 107, 0.10), transparent 55%),
+        radial-gradient(120% 140% at 100% 100%, rgba(198, 161, 90, 0.10), transparent 55%);
+}
+
+/* ---------- left sidebar: permanently hidden - its real links now live in the header's own
+   .theme-nav instead (see header.blade.php), which is the sole nav at every width under this
+   theme. Targets #sidebar-left/#sidebar-left-1 by ID, NOT the .fixed-sidebar-left CLASS - see
+   bloom.css's comment for why (the mobile drawer sharing that class is hidden separately). */
+body.theme-rosewood #sidebar-left,
+body.theme-rosewood #sidebar-left-1 {
+    visibility: hidden !important;
+    width: 0 !important;
+    height: 0 !important;
+    overflow: visible !important;
+}
+body.theme-rosewood #main-wrapper-content {
+    margin-left: 0 !important;
+}
+body.theme-rosewood .fixed-sidebar-right .mCustomScrollbar {
+    background: transparent !important;
+}
+body.theme-rosewood .fixed-sidebar-left #online_users_left {
+    visibility: visible !important;
+    position: fixed !important;
+    top: 70px;
+    left: 20px;
+    width: 280px;
+    max-height: 60vh;
+    overflow-y: auto;
+    background: var(--rosewood-surface);
+    border: 1px solid var(--rosewood-line);
+    border-radius: 4px;
+    box-shadow: 0 20px 60px -15px rgba(43, 30, 34, 0.4);
+    z-index: 999;
+}
+
+/* ---------- minimal high-fashion horizontal nav: thin uppercase links, wide letter-spacing,
+   thin gold underline on the active link (matches the reference concept's "butik weboldal
+   fejlece" nav). ---------- */
+body.theme-rosewood .theme-nav {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 14px 32px;
+    flex: 1 1 auto;
+    justify-content: center;
+    margin: 0;
+}
+body.theme-rosewood .theme-nav-section-label {
+    color: var(--rosewood-text-mute);
+    font-size: 10.5px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .12em;
+}
+body.theme-rosewood .theme-nav-link {
+    color: var(--rosewood-text-dim);
+    font-weight: 500;
+    font-size: 11.5px;
+    text-transform: uppercase;
+    letter-spacing: .12em;
+    position: relative;
+    padding-bottom: 6px;
+    transition: color .2s;
+}
+body.theme-rosewood .theme-nav-link:hover {
+    color: var(--rosewood-text);
+}
+body.theme-rosewood .theme-nav-link.active {
+    color: var(--rosewood-text);
+}
+body.theme-rosewood .theme-nav-link.active::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -1px;
+    height: 1px;
+    background: var(--rosewood-gold);
+}
+body.theme-rosewood .theme-nav-toggle {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 4px;
+    color: var(--rosewood-text-dim);
+    background: var(--rosewood-surface-2);
+    border: 1px solid var(--rosewood-line);
+}
+body.theme-rosewood .theme-nav-toggle:hover,
+body.theme-rosewood.theme-nav-dropdown-open .theme-nav-toggle {
+    color: var(--rosewood-rose);
+}
+body.theme-rosewood .theme-nav-mobile-only {
+    display: none;
+}
+@media screen and (max-width: 1279px) {
+    body.theme-rosewood .theme-nav-toggle {
+        display: inline-flex;
+    }
+    body.theme-rosewood .theme-nav {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 12px;
+        right: 12px;
+        margin-top: 8px;
+        flex-direction: column;
+        flex-wrap: nowrap;
+        align-items: flex-start;
+        gap: 4px;
+        margin: 0;
+        padding: 12px;
+        background: var(--rosewood-bg-2);
+        border: 1px solid var(--rosewood-line);
+        border-radius: 4px;
+        box-shadow: 0 20px 60px -15px rgba(43, 30, 34, 0.4);
+        z-index: 1000;
+    }
+    body.theme-rosewood.theme-nav-dropdown-open .theme-nav {
+        display: flex;
+    }
+    body.theme-rosewood .theme-nav-link {
+        padding: 10px 8px;
+        width: 100%;
+    }
+    body.theme-rosewood .theme-nav-mobile-only {
+        display: block;
+    }
+    body.theme-rosewood .theme-nav-status-form {
+        display: flex !important;
+        align-items: center;
+        gap: 8px;
+        width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+        padding: 4px 8px;
+    }
+    body.theme-rosewood .theme-nav-status-form input.form-control {
+        flex: 1 1 auto;
+        width: auto;
+        min-width: 0;
+        max-width: 100%;
+        box-sizing: border-box;
+        height: 36px;
+        background: var(--rosewood-surface);
+        border: 1px solid var(--rosewood-line);
+        border-radius: 100px;
+        padding: 0 14px;
+        color: var(--rosewood-text);
+    }
+    body.theme-rosewood .theme-nav-status-form button {
+        position: static !important;
+        flex: 0 0 auto;
+        width: 32px;
+        height: 32px !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: none;
+        border-radius: 50%;
+        background: var(--rosewood-rose);
+        fill: #fff;
+    }
+    body.theme-rosewood .theme-nav-section-label {
+        width: 100%;
+        padding: 10px 8px 0;
+        margin-top: 6px;
+        border-top: 1px solid var(--rosewood-line);
+    }
+    body.theme-rosewood .theme-nav-section-label:first-of-type {
+        margin-top: 0;
+    }
+    body.theme-rosewood .theme-nav {
+        max-height: calc(100vh - 100px);
+        max-height: calc(100dvh - 100px);
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        overflow-x: hidden;
+    }
+}
+
+/* ---------- right sidebar: same detached capsule treatment used across the family - see
+   bloom.css's comment on why no margin/height override is safe here (over-constrains the
+   native top:0/bottom:70px box, throwing off the fixed footer bars anchored to it). ---------- */
+body.theme-rosewood .fixed-sidebar-right {
+    background: var(--rosewood-bg-2) !important;
+    border-color: var(--rosewood-line) !important;
+    box-shadow: 0 20px 50px -15px rgba(43, 30, 34, 0.35);
+}
+/* A "start below the header instead of at the very top" tweak was tried at every width range
+   (below 1280px, then again restricted to >=1280px) and reverted both times - .header's actual
+   rendered height depends not just on viewport width but on account state too (e.g. the Admin
+   nav link only exists for admin accounts, which alone can push a >=1280px header that would
+   otherwise fit on one row into wrapping onto two), so no single width-based breakpoint reliably
+   predicts its height. Left at the native top:0 rather than chasing a fixed pixel value that
+   would only be correct for some accounts/widths and wrong for others. A reliable fix here
+   would need to measure the header's actual rendered height (e.g. via a small JS ResizeObserver
+   setting a CSS custom property) rather than assuming it from the viewport width alone. */
+body.theme-rosewood .fixed-sidebar-right .chat-users > li {
+    margin: 4px 10px;
+    padding: 8px;
+    border-radius: 4px;
+    transition: background .18s ease;
+}
+body.theme-rosewood .fixed-sidebar-right .chat-users > li:hover {
+    background: var(--rosewood-surface-2);
+}
+body.theme-rosewood .fixed-sidebar-right .author-thumb .avatar {
+    border-radius: 4px;
+    box-shadow: 0 0 0 1px var(--rosewood-line);
+}
+/* .author-status .h6.author-name (NOT .author-content .author-name/.name, which don't exist
+   in this component's actual markup - see components/sidebar-right.blade.php) is the real
+   selector for the chat-user list's name link, in both the desktop and mobile-responsive
+   variants (they share the same partial structure) - the wrong selector here is why this text
+   stayed the base stylesheet's own (light-on-light-illegible) default color instead of picking
+   up this theme's. .status is the "moto" tagline underneath it. */
+body.theme-rosewood .fixed-sidebar-right .author-status .author-name,
+body.theme-rosewood .fixed-sidebar-right .author-content .author-name,
+body.theme-rosewood .fixed-sidebar-right .name {
+    color: var(--rosewood-text) !important;
+    font-family: var(--rosewood-display);
+}
+body.theme-rosewood .fixed-sidebar-right .author-status .status {
+    color: var(--rosewood-text-dim) !important;
+}
+body.theme-rosewood .fixed-sidebar-right .search-friend {
+    background: var(--rosewood-bg-2) !important;
+    box-shadow: none !important;
+    border-top: 1px solid var(--rosewood-line);
+}
+body.theme-rosewood .fixed-sidebar-right .search-friend input {
+    background: var(--rosewood-surface);
+    border: 1px solid var(--rosewood-line);
+    color: var(--rosewood-text);
+    border-radius: 4px;
+}
+body.theme-rosewood .fixed-sidebar-right .search-friend a {
+    fill: var(--rosewood-text-dim);
+}
+body.theme-rosewood .fixed-sidebar-right .search-friend a:hover {
+    fill: var(--rosewood-rose);
+}
+body.theme-rosewood .fixed-sidebar-right .olympus-chat {
+    background: var(--rosewood-ink) !important;
+    fill: var(--rosewood-gold) !important;
+}
+body.theme-rosewood .fixed-sidebar-right .olympus-chat-title {
+    color: #fff !important;
+    font-family: var(--rosewood-display);
+}
+
+/* ---------- hero / search / chips (theme-only markup, see find_friends.blade.php) ---------- */
+body.theme-rosewood .theme-hero {
+    position: relative;
+    z-index: 2;
+    padding: 56px 12px 24px;
+    text-align: center;
+    max-width: 760px;
+    margin: 0 auto;
+}
+body.theme-rosewood .theme-hero-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--rosewood-mono);
+    font-size: 11px;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    color: var(--rosewood-gold-bright);
+    background: none;
+    border: none;
+    padding: 0;
+    margin-bottom: 22px;
+}
+body.theme-rosewood .theme-pulse-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--rosewood-rose);
+    box-shadow: 0 0 8px var(--rosewood-rose);
+    animation: rosewood-blink 1.6s infinite;
+}
+@keyframes rosewood-blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: .35; }
+}
+body.theme-rosewood .theme-hero-title {
+    font-family: var(--rosewood-display);
+    font-weight: 400;
+    line-height: 1.14;
+    font-size: clamp(30px, 5vw, 48px);
+    letter-spacing: .01em;
+    /* --rosewood-text, not --rosewood-ink - this is plain foreground text sitting directly on
+       the page background, so it must invert per mode (unlike --rosewood-ink's fixed-dark
+       "solid button" role - see the note on that token). */
+    color: var(--rosewood-text);
+}
+body.theme-rosewood .theme-hero-title em {
+    font-family: var(--rosewood-body);
+    font-style: italic;
+    font-weight: 400;
+    color: var(--rosewood-rose);
+}
+body.theme-rosewood .theme-hero-sub {
+    margin-top: 16px;
+    color: var(--rosewood-text-dim);
+    font-size: 15px;
+    max-width: 460px;
+    margin-inline: auto;
+    line-height: 1.7;
+}
+body.theme-rosewood .theme-searchbar {
+    margin: 28px auto 0;
+    max-width: 440px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--rosewood-text);
+    border-radius: 0;
+    padding: 8px 4px;
+    box-shadow: none;
+}
+body.theme-rosewood .theme-searchbar input {
+    flex: 1;
+    background: none;
+    border: none;
+    outline: none;
+    color: var(--rosewood-text);
+    font-family: var(--rosewood-body);
+    font-style: italic;
+    font-size: 15px;
+    text-align: center;
+}
+body.theme-rosewood .theme-searchbar input::placeholder {
+    color: var(--rosewood-text-mute);
+}
+body.theme-rosewood .theme-searchbar button {
+    border: 1px solid var(--rosewood-text);
+    cursor: pointer;
+    font-family: var(--rosewood-mono);
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    font-weight: 500;
+    font-size: 11px;
+    padding: 9px 18px;
+    border-radius: 100px;
+    color: var(--rosewood-text);
+    background: transparent;
+    transition: all .2s ease;
+}
+body.theme-rosewood .theme-searchbar button:hover {
+    color: #fff;
+    background: var(--rosewood-ink);
+}
+body.theme-rosewood .theme-chips {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 26px;
+}
+/* !important throughout this rule and the two below it - style.css's own .find-friends-sort-chip
+   rule (base stylesheet, not part of this repo/theme) apparently wins the specificity/source-
+   order battle against a plain class selector here, since neither the resting label color/
+   background NOR the active/hover gold treatment was rendering at all on the live site despite
+   this file loading. !important guarantees this theme's own colors always win instead of
+   silently losing to whatever the base rule sets. */
+body.theme-rosewood .find-friends-sort-chip {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    /* --rosewood-text (not --rosewood-text-dim) - the dim tone was too low-contrast against
+       this chip's own --rosewood-surface background in the dark night variant, reported as
+       the resting (non-active) chip's label not being visible at all. */
+    color: var(--rosewood-text) !important;
+    border: 1px solid var(--rosewood-line-strong) !important;
+    padding: 9px 18px;
+    border-radius: 100px;
+    cursor: pointer;
+    background: var(--rosewood-surface) !important;
+    transition: all .18s;
+}
+/* Active/hover chip: light/blush mode goes dark-ink (matches rosewood_concept.html's
+   ".chip.on, .chip:hover{ color:var(--panel); background:var(--ink);}"); the dark plum night
+   variant instead goes GOLD (rosewood_concept_dark.html's own
+   ".chip.on, .chip:hover{ color:var(--bg); background:var(--gold);}") - a hue swap, not just a
+   lighter/darker shade of --rosewood-ink, so (same reasoning as the message FAB's hover above)
+   this needs its own rule per mode rather than relying on --rosewood-ink alone, which stays
+   fixed-dark and would otherwise render dark text on a dark chip in the night variant.
+   IMPORTANT: the BARE body.theme-rosewood block (no :not()) is the one that renders the BLUSH
+   palette (--rosewood-bg: #FBF4F1 etc. - see the token block's own long comment on why), and
+   :not(.site-dark-mode) is the one that renders the DARK PLUM palette - an earlier version had
+   this exactly backwards (ink tied to the :not() dark-plum selector, gold tied to the bare
+   blush one), which on an actual dark-plum page rendered a fixed-dark ink chip that was nearly
+   invisible against the already-dark background instead of gold - reported as "dark mode never
+   turns gold". Swapped below to match the mode each selector ACTUALLY renders. */
+body.theme-rosewood .find-friends-sort-chip:hover,
+body.theme-rosewood .find-friends-sort-chip.active {
+    color: var(--rosewood-bg) !important;
+    background: var(--rosewood-ink) !important;
+    border-color: var(--rosewood-ink) !important;
+}
+body.theme-rosewood:not(.site-dark-mode) .find-friends-sort-chip:hover,
+body.theme-rosewood:not(.site-dark-mode) .find-friends-sort-chip.active {
+    color: var(--rosewood-bg) !important;
+    background: var(--rosewood-gold) !important;
+    border-color: var(--rosewood-gold) !important;
+}
+
+/* ==========================================================================================
+   PROFILE CARDS (find_friends grid - same classes for initial load AND the controller's AJAX
+   "load more" HTML, so both stay visually identical). The signature Rosewood treatment: an
+   "arch window" photo frame (rounded top corners, straight bottom) sitting directly on the page
+   background (no separate card panel), staggered nth-child(even) offset for a boutique-catalog
+   feel, and hover-only gold ring / zoom / light-sweep, built entirely from the real DOM (no
+   invented markup):
+     .find_friends_item  -> a bare, transparent positioning wrapper only (no background/padding/
+                             radius/shadow of its own - see the note below on why an earlier
+                             version's "mount panel" here was wrong).
+     .ui-block            -> the actual photo (server sets `background: url(...)` inline) -
+                             reshaped via border-radius only, per the family's rule of never
+                             touching its background shorthand. Deliberately NOT overflow:hidden
+                             - border-radius already clips the BACKGROUND image on its own
+                             (no overflow needed for that), and leaving overflow visible is what
+                             lets the online badge (a child, absolutely positioned) sit above
+                             the arch curve without ever being clipped by it - directly matching
+                             the concept note "the badge must never be cut off by the frame's
+                             curve, whatever radius the corner gets" (rosewood_concept.md #9).
+                             The two corners the arch cuts away reveal whatever sits BEHIND
+                             .ui-block - in the reference mockup that's the plain page background
+                             (no separate card panel at all), so .find_friends_item is kept fully
+                             transparent for the exact same reason: an earlier version gave it its
+                             own visible surface-2 background/padding/radius/shadow as a "mount
+                             panel", which read as an ugly, mismatched rectangle behind the arch
+                             once real (non-placeholder) photos were in the corners - the box-
+                             shadow/radius that panel had now lives on .ui-block itself instead
+                             (below), so the lift/glow on hover correctly follows the ARCH shape,
+                             not a rectangle.
+     .span-online/-offline -> already absolutely positioned top-right by the base stylesheet.
+     .btn-control.bg-purple -> the "message" action -> styled as an always-visible circular
+                             rose FAB overlapping the card's bottom-right edge (concept #11).
+     .btn-control.bg-blue  -> the "See Profile" action -> styled as a small always-visible
+                             caption with a thin gold rule above it (matches the reference
+                             mockup's .caption/.msgtext exactly - only its color shifts on
+                             hover, concept #4).
+     Photo "zoom" on hover is done via background-size (not transform), since .ui-block also
+     contains the name/actions as real children - transform would zoom the text right along
+     with the photo, but the concept requires the name to stay in its own un-zoomed layer
+     (concept #13). Increasing background-size on hover achieves the same visual zoom while
+     leaving every child untouched. ========================================================== */
+/* .find_friends_item IS the Bootstrap grid column itself (.col.col-xl-3...find_friends_item -
+   see find_friends.blade.php), so its horizontal padding is Bootstrap's own column gutter, not
+   part of the "mount panel" this rule strips out - zeroing it too (an earlier version of this
+   rule did) collapses the gap between adjacent cards entirely, making them visually touch/merge
+   into one another. Keeping it is what gives the arch cards breathing room on either side. */
+body.theme-rosewood .find_friends_item {
+    padding: 0 10px 30px;
+    background: transparent;
+    transition: transform .35s cubic-bezier(.2, .8, .2, 1);
+}
+/* Sakktabla-szeru elrendezes (staggered grid) - even cards pushed down, per concept #5 / #14. */
+body.theme-rosewood .find_friends_item:nth-child(even) {
+    margin-top: 34px;
+}
+@media screen and (max-width: 767px) {
+    body.theme-rosewood .find_friends_item:nth-child(even) {
+        margin-top: 0;
+    }
+}
+body.theme-rosewood .find_friends_item:hover {
+    transform: translateY(-8px);
+}
+/* Thin gold focus line - keyboard navigation must still be visible even though the hover ring
+   only appears on :hover above. */
+body.theme-rosewood .find_friends_item:focus-within {
+    outline: 1px solid var(--rosewood-gold);
+    outline-offset: 3px;
+}
+/* NOTE: no "background" override on .ui-block itself - see the block comment above. Height is
+   freed from the server's inline height:415px (!important overrides it, same technique every
+   theme in this family uses) so the arch shape has consistent proportions. Default box-shadow
+   (matching the reference .archWindow) now lives HERE, not on .find_friends_item, so it hugs the
+   arch's own curve instead of drawing a rectangle behind it. */
+body.theme-rosewood .find_friends_item .ui-block {
+    position: relative;
+    height: 340px !important;
+    border-radius: 50% 50% 10px 10px / 30% 30% 10px 10px;
+    background-size: cover !important;
+    background-position: 50% 30% !important;
+    box-shadow: 0 18px 34px -22px rgba(43, 30, 34, 0.3);
+    transition: background-size .6s cubic-bezier(.2, .8, .2, 1), background-position .6s ease, box-shadow .4s ease;
+    -webkit-border-radius: 50% 50% 10px 10px / 30% 30% 10px 10px;
+    -moz-border-radius: 50% 50% 10px 10px / 30% 30% 10px 10px;
+    -ms-border-radius: 50% 50% 10px 10px / 30% 30% 10px 10px;
+    -o-border-radius: 50% 50% 10px 10px / 30% 30% 10px 10px;
+}
+/* Users with no uploaded photo: the server only ever writes `background: url(...)` into the
+   inline style when there IS an image (see find_friends.blade.php/FindFriendsController) - with
+   none, .ui-block falls back to the base stylesheet's own plain white card background (its
+   classic-theme default), which reads as a jarring blank rectangle against this theme's dark
+   palette. :not([style*="background"]) targets exactly that no-photo case (the inline style is
+   then just "height:415px;") without touching the has-photo case at all. */
+/* --rosewood-rose -> --rosewood-ink (not --rosewood-surface-2/--rosewood-bg-2) - those two
+   tokens are both very pale in the blush light variant, which left the name/caption text (a
+   fixed white/light color, since it assumes a dark photo scrim underneath) nearly illegible
+   against them. Rose fading to the always-fixed-dark ink gives a warm, on-brand gradient that
+   stays dark enough for white text to read clearly in both the light and dark variants. */
+body.theme-rosewood .find_friends_item .ui-block:not([style*="background"]) {
+    background: linear-gradient(160deg, var(--rosewood-rose), var(--rosewood-ink)) !important;
+}
+/* The .friend-actions scrim below exists to darken a PHOTO for text contrast - on this flat
+   gradient placeholder there's no photo to darken, so it just adds a visibly abrupt darker band
+   partway down the card where the gradient stops don't match ours. The name/caption text
+   already carries its own strong text-shadow (see further down) for contrast regardless of
+   background, so the scrim is simply dropped here. */
+body.theme-rosewood .find_friends_item .ui-block:not([style*="background"]) .friend-actions {
+    background-image: none !important;
+}
+body.theme-rosewood .find_friends_item:hover .ui-block {
+    background-size: 132% auto !important;
+}
+/* Diagonal "silk sweep" light wash on hover - a pure CSS pseudo-element, never touches the
+   inline background-image on .ui-block itself. .ui-block itself is still deliberately NOT
+   overflow:hidden (see the block comment above - the online badge, a separate child, must
+   never get clipped by the arch curve), and clip-path (inset(0 round <radius>), same radius
+   syntax as border-radius) keeps the sweep's own painted shape confined to the arch on its
+   own, without needing overflow:hidden on the shared parent.
+   NOTE: a translateX-based "slide across" version of this (moved from -120% to +120% on
+   hover) was tried and reverted - clip-path only shapes the element, it does NOT hide it when
+   translated outside its own box (that needs an overflow:hidden ANCESTOR, which .ui-block
+   deliberately doesn't have), so at rest (transform: translateX(-120%)) the still-visible,
+   still-clipped sweep just sat in the empty page background to the LEFT of the card instead of
+   being hidden - reported as a persistent diagonal bar stuck beside the card. Faded via opacity
+   instead: the element never moves from directly over the arch, so it can never render outside
+   the card's own footprint. */
+body.theme-rosewood .find_friends_item .ui-block::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+    clip-path: inset(0 round 50% 50% 10px 10px / 36% 36% 10px 10px);
+    background: linear-gradient(120deg, transparent 40%, rgba(255, 255, 255, 0.32) 50%, transparent 60%);
+    opacity: 0;
+    transition: opacity .5s ease;
+}
+body.theme-rosewood .find_friends_item:hover .ui-block::after {
+    opacity: 1;
+}
+/* Gold ring around the arch on hover (concept #12) - a box-shadow ring (not a border, so it
+   doesn't shift layout) that follows the same border-radius via the element's own shape. */
+body.theme-rosewood .find_friends_item:hover .ui-block {
+    box-shadow: 0 0 0 2px var(--rosewood-gold), 0 24px 48px -20px var(--rosewood-hover-glow);
+}
+/* Scrim + name live in .friend-actions, the same flex-bottom overlay the base stylesheet
+   already positions for every theme in this family (see style.css's
+   #find_friends_results .friend-actions rule) - just recolored/refined here. */
+/* overflow:visible !important - the base stylesheet clips overlay content to the card's own
+   box somewhere in the .friend-item > .friend-item-content > .friend-actions chain (exactly
+   which of the three wasn't clear from the outside, so all three are forced visible here,
+   belt-and-braces). The message FAB below is deliberately positioned to overlap OUTSIDE that
+   box (bottom offset, so it hangs off the card's bottom-right edge per the concept) - any one
+   of these clipping left only the top portion of the FAB rendered, worse on hover (scale/
+   rotate push even more of it into the clipped-away region) - reported as the icon "sinking
+   down and disappearing" on hover, then as still being cut off low on the card even after the
+   .friend-actions-only fix, confirming another ancestor in the chain was also clipping it. */
+body.theme-rosewood .friend-item,
+body.theme-rosewood .friend-item-content {
+    overflow: visible !important;
+}
+/* border-radius matching .ui-block's own arch shape - .friend-actions is a separate element
+   overlaid on top (same rectangular footprint as .ui-block, but border-radius does NOT
+   inherit from a parent), so without its own matching radius its scrim gradient paints as a
+   plain RECTANGLE, visibly squaring off the corners the arch curve is supposed to cut away -
+   reported as a hard black rectangle "sticking out" past the rounded photo underneath.
+   background-clip respects border-radius regardless of the overflow:visible above (that only
+   governs child CONTENT, not this element's own background paint), so this alone fixes it. */
+body.theme-rosewood #find_friends_results .friend-actions,
+body.theme-rosewood #ai_friends_results .friend-actions {
+    border-radius: 50% 50% 10px 10px / 36% 36% 10px 10px;
+    background-image: linear-gradient(180deg, rgba(20, 12, 15, 0) 40%, rgba(20, 12, 15, 0.55) 62%, rgba(12, 7, 9, 0.94) 100%);
+    padding: 55px 22px 18px;
+    overflow: visible !important;
+    transition: transform .35s ease;
+}
+body.theme-rosewood .find_friends_item:hover .friend-actions {
+    transform: translateY(-3px);
+}
+/* Fixed light text on the card overlay - sits on top of the photo, not the page background,
+   so it must stay readable regardless of light/night mode (unlike --rosewood-text, which
+   flips). Name in the display serif, per the concept, with its own text-shadow for contrast.
+   #find_friends_results/#ai_friends_results prefix - two size bumps (22px, then 27px) had NO
+   visible effect at all, confirming style.css's own ID-scoped rule for this element (same
+   category of bug as the sort-chip/message-FAB fixes above) was winning against a plain class
+   selector even with !important on our side - specificity among !important rules still follows
+   the normal ID > class rules, so a class-only selector's !important still loses to an
+   ID-scoped one's. Adding the ID here is what actually lets this theme's size win. */
+body.theme-rosewood #find_friends_results .friend-item .author-content .author-name,
+body.theme-rosewood #find_friends_results .friend-item .h5.author-name,
+body.theme-rosewood #ai_friends_results .friend-item .author-content .author-name,
+body.theme-rosewood #ai_friends_results .friend-item .h5.author-name {
+    font-family: var(--rosewood-display);
+    font-weight: 600 !important;
+    font-size: 24px !important;
+    letter-spacing: .01em;
+    color: #fff !important;
+    /* A tight, near-opaque shadow (readable edge on any photo) layered under the original soft
+       glow (depth) - the single soft shadow alone read as too weak against brighter photos. */
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9), 0 1px 4px rgba(0, 0, 0, 0.8), 0 2px 14px rgba(0, 0, 0, 0.5);
+}
+body.theme-rosewood .friend-item .author-content {
+    margin-bottom: 10px !important;
+}
+/* Buttons row - overridden with !important throughout, same as every other theme in this
+   family, since style.css's own #find_friends_results/#ai_friends_results .control-block-button
+   .btn-control rule is ID-scoped and otherwise beats a class-only selector regardless of load
+   order (see bloom.css's identical note on this). */
+body.theme-rosewood .friend-item .control-block-button {
+    position: static;
+    display: block !important;
+    width: auto !important;
+}
+/* "See Profile" -> a small uppercase caption with a thin gold rule above it, ALWAYS visible
+   (matches the reference mockup's .caption/.msgtext exactly - the concept note about it
+   "appearing" on hover is echoed by the COLOR shift only, below, not by hiding the caption
+   itself). Kept as real text (not an icon) since this button already IS one in the real markup. */
+body.theme-rosewood .friend-item .btn-control.bg-blue {
+    display: block !important;
+    width: auto !important;
+    height: auto !important;
+    padding: 0 !important;
+    margin: 0 0 10px !important;
+    background: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    font-size: 10.5px !important;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    font-weight: 600;
+    font-family: var(--rosewood-mono);
+    color: rgba(255, 255, 255, 0.85) !important;
+    text-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
+    text-align: left;
+    transition: color .25s ease;
+}
+body.theme-rosewood .friend-item .btn-control.bg-blue::before {
+    content: '';
+    display: block;
+    width: 26px;
+    height: 1px;
+    background: var(--rosewood-gold);
+    margin-bottom: 8px;
+}
+/* --rosewood-caption-accent (a fixed bright rose, not the mode-aware --rosewood-rose-bright) -
+   see its token comment: the mode-aware version is a DARK rose in light mode, which against
+   this same dark photo scrim read as the caption going nearly invisible on hover. */
+body.theme-rosewood .find_friends_item:hover .btn-control.bg-blue,
+body.theme-rosewood .friend-item .btn-control.bg-blue:hover {
+    color: var(--rosewood-caption-accent) !important;
+}
+/* "Chat"/message -> always-visible circular rose FAB overlapping the card's bottom-right edge
+   (concept #11: "mindig lathato gomb, ami atlog a kartya aljara"). */
+body.theme-rosewood .friend-item .btn-control.bg-purple {
+    position: absolute;
+    right: 16px;
+    /* Pulled up from -18px - less of the circle now hangs below the card's own bottom edge,
+       so it depends less on every ancestor in the chain (.friend-item/.friend-item-content/
+       .friend-actions) correctly staying overflow:visible to avoid re-clipping it. */
+    bottom: -8px;
+    left: auto;
+    top: auto;
+    z-index: 6;
+    width: 44px !important;
+    height: 44px !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50% !important;
+    font-size: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none;
+    background-color: var(--rosewood-rose);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2'%3E%3Cpath d='M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 17px 17px;
+    box-shadow: 0 10px 22px -8px var(--rosewood-hover-glow);
+    transition: transform .25s ease, background-color .25s ease, background-image .25s ease;
+}
+/* Hover target color differs by mode, not just tone: light mode "elforul es elsotetul" (turns
+   and darkens, to ink); the dark night variant instead turns GOLD (rosewood_concept_dark.html:
+   ".gcard:hover .msgfab{ background:var(--gold);}") - a swap this dramatic needs its own rules
+   per mode rather than a single token, since it's a different hue, not just a lighter/darker
+   shade of the same one.
+   !important on background-color/background-image - style.css's own base rule apparently has an
+   ID-scoped :hover selector for this button (same category of bug as the sort-chip's active/
+   hover colors above), which silently beat this theme's plain class selector and kept the
+   circle pink through hover instead of switching to ink/gold.
+   IMPORTANT: same mode/selector mix-up as the sort-chip fix above - the BARE block renders the
+   BLUSH palette and :not(.site-dark-mode) renders the DARK PLUM one (see the token block's own
+   comment), so ink belongs on the bare selector and gold on the :not() one; an earlier version
+   had these swapped, which made the FAB stay pink through hover on an actual dark-plum page
+   instead of turning gold. */
+body.theme-rosewood .find_friends_item:hover .btn-control.bg-purple {
+    transform: scale(1.08) rotate(-6deg);
+    background-color: var(--rosewood-ink) !important;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2'%3E%3Cpath d='M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z'/%3E%3C/svg%3E") !important;
+}
+body.theme-rosewood:not(.site-dark-mode) .find_friends_item:hover .btn-control.bg-purple {
+    transform: scale(1.08) rotate(-6deg);
+    background-color: var(--rosewood-gold) !important;
+    /* Icon stroke flips dark on the now-light gold fill, matching the dark reference's own
+       note ("sotet ikon-korvonal a most vilagos arany toltes kontrasztjahoz"). */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231A1116' stroke-width='2'%3E%3Cpath d='M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z'/%3E%3C/svg%3E") !important;
+}
+/* find_friends_item needs a positioned ancestor for the FAB's absolute offset above. */
+body.theme-rosewood .find_friends_item {
+    position: relative;
+}
+
+/* ---------- online/offline badges - floats ABOVE the arch (see the block comment up top for
+   why .ui-block deliberately isn't overflow:hidden). NOTE: no "position" override here -
+   .span-online is already position:absolute (set by the base stylesheet), same note as every
+   other theme in this family. ---------- */
+body.theme-rosewood .span-online,
+body.theme-rosewood .find_friends_status.span-online {
+    z-index: 5;
+    background: var(--rosewood-chip-bg) !important;
+    border: 1px solid var(--rosewood-line);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+    color: var(--rosewood-text) !important;
+    border-radius: 100px;
+    padding: 6px 12px 6px 10px !important;
+    font-family: var(--rosewood-mono);
+    font-size: 10px;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    font-weight: 600;
+    box-shadow: 0 6px 16px -6px rgba(0, 0, 0, 0.3);
+}
+body.theme-rosewood .span-online::before {
+    content: '';
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    margin-right: 6px;
+    border-radius: 50%;
+    background: var(--rosewood-online);
+    box-shadow: 0 0 5px var(--rosewood-online-glow);
+}
+body.theme-rosewood .span-offline,
+body.theme-rosewood .find_friends_status.span-offline {
+    z-index: 5;
+    background: var(--rosewood-chip-bg) !important;
+    border: 1px solid var(--rosewood-line);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+    color: var(--rosewood-text-mute) !important;
+    border-radius: 100px;
+    padding: 6px 12px !important;
+    font-family: var(--rosewood-mono);
+    font-size: 10px;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    box-shadow: 0 6px 16px -6px rgba(0, 0, 0, 0.3);
+}
+body.theme-rosewood .icon-status.online {
+    background: var(--rosewood-online) !important;
+}
+
+/* ---------- chat popup (light touch - keep functional layout, just recolor) ---------- */
+body.theme-rosewood .popup-chat .ui-block-title {
+    background: var(--rosewood-surface-2);
+}
+body.theme-rosewood .popup-chat .ui-block-title .msgtoggle i,
+body.theme-rosewood .popup-chat .ui-block-title .js-chat-close {
+    color: var(--rosewood-text-dim);
+    fill: var(--rosewood-text-dim);
+}
+body.theme-rosewood .popup-chat .ui-block-title .msgtoggle i:hover,
+body.theme-rosewood .popup-chat .ui-block-title .js-chat-close:hover {
+    color: var(--rosewood-text);
+    fill: var(--rosewood-text);
+    cursor: pointer;
+}
+body.theme-rosewood .popup-chat .mCustomScrollbar {
+    background-color: var(--rosewood-bg-2);
+}
+body.theme-rosewood .popup-chat .notification-list li .notification-event .chat-message-item {
+    background: var(--rosewood-surface);
+    color: var(--rosewood-text);
+}
+body.theme-rosewood #popup-chat .row.m-0 > div {
+    padding: 0 4px;
+}
+body.theme-rosewood .popup-chat select#admin_account,
+body.theme-rosewood .popup-chat select.lang_for_user,
+body.theme-rosewood .popup-chat select.auto_translate {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    box-sizing: border-box;
+    margin: 6px 0;
+    padding: 8px 30px 8px 14px;
+    background-color: var(--rosewood-surface);
+    background-image:
+        linear-gradient(45deg, transparent 50%, var(--rosewood-gold) 50%),
+        linear-gradient(135deg, var(--rosewood-gold) 50%, transparent 50%);
+    background-position: calc(100% - 18px) center, calc(100% - 13px) center;
+    background-size: 5px 5px, 5px 5px;
+    background-repeat: no-repeat;
+    border: 1px solid var(--rosewood-line);
+    border-radius: 100px;
+    color: var(--rosewood-text);
+    font-size: 13px;
+    font-family: var(--rosewood-body);
+}
+body.theme-rosewood .popup-chat select#admin_account:focus,
+body.theme-rosewood .popup-chat select.lang_for_user:focus,
+body.theme-rosewood .popup-chat select.auto_translate:focus {
+    border-color: var(--rosewood-gold);
+    outline: none;
+}
+body.theme-rosewood .popup-chat select#admin_account option,
+body.theme-rosewood .popup-chat select.lang_for_user option,
+body.theme-rosewood .popup-chat select.auto_translate option {
+    background: var(--rosewood-surface);
+    color: var(--rosewood-text);
+}
+body.theme-rosewood .popup-chat select#admin_account::-ms-expand,
+body.theme-rosewood .popup-chat select.lang_for_user::-ms-expand,
+body.theme-rosewood .popup-chat select.auto_translate::-ms-expand {
+    display: none;
+}
+
+/* ---------- profile page (resources/views/profile/profile.blade.php,
+   components/top-header-profile.blade.php) ---------- */
+body.theme-rosewood .top-header {
+    background: var(--rosewood-bg-2);
+    border: 1px solid var(--rosewood-line);
+    border-radius: 4px;
+    overflow: hidden;
+}
+body.theme-rosewood .top-header-thumb {
+    background: var(--rosewood-surface);
+}
+body.theme-rosewood .profile-section {
+    background: var(--rosewood-bg-2);
+}
+body.theme-rosewood .profile-menu a {
+    color: var(--rosewood-text-dim) !important;
+    font-family: var(--rosewood-mono);
+    font-size: 11.5px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+body.theme-rosewood .profile-menu a:hover,
+body.theme-rosewood .profile-menu a.active {
+    color: var(--rosewood-text) !important;
+}
+body.theme-rosewood .top-header-author .author-thumb img {
+    border-radius: 50%;
+    box-shadow: 0 0 0 4px var(--rosewood-bg-2), 0 0 0 5px var(--rosewood-gold);
+}
+body.theme-rosewood .top-header-author .author-name {
+    color: var(--rosewood-text) !important;
+    font-family: var(--rosewood-display);
+    font-weight: 400;
+}
+/* fill (not just color) is required - see bloom.css's identical note: the "Accept"/"Add
+   Friend" button's inline <svg><use ...></svg> icon doesn't use fill:currentColor internally. */
+body.theme-rosewood .top-header .control-block-button .btn-control.bg-blue {
+    background: var(--rosewood-surface-2) !important;
+    border: 1px solid var(--rosewood-line) !important;
+    border-radius: 100px !important;
+    color: var(--rosewood-text) !important;
+    fill: var(--rosewood-text) !important;
+}
+body.theme-rosewood .top-header .control-block-button .btn-control.bg-purple,
+body.theme-rosewood .top-header .control-block-button .btn-control.bg-primary {
+    background: var(--rosewood-ink) !important;
+    border: 1px solid var(--rosewood-gold) !important;
+    border-radius: 100px !important;
+    color: #fff !important;
+    fill: var(--rosewood-gold) !important;
+}
+/* .ui-block is the generic "card" wrapper reused across the whole site - :not([style]) is
+   required so this doesn't clobber the find_friends/AI Companions grid's own inline photo
+   background, same note as bloom.css's identical fix. */
+body.theme-rosewood .ui-block:not([style]) {
+    background: var(--rosewood-surface) !important;
+    border: 1px solid var(--rosewood-line) !important;
+    border-radius: 4px !important;
+}
+body.theme-rosewood .ui-block-title {
+    border-bottom: 1px solid var(--rosewood-line) !important;
+}
+body.theme-rosewood .ui-block-title .title,
+body.theme-rosewood .ui-block .widget .title,
+body.theme-rosewood .ui-block .widget .text {
+    color: var(--rosewood-text) !important;
+    font-family: var(--rosewood-body);
+}
+body.theme-rosewood .ui-block .widget .title {
+    color: var(--rosewood-text-dim) !important;
+}
+body.theme-rosewood .hentry.post .post__author-name,
+body.theme-rosewood .hentry.post p {
+    color: var(--rosewood-text) !important;
+}
+body.theme-rosewood .hentry.post .post__date time {
+    color: var(--rosewood-text-mute) !important;
+}
+body.theme-rosewood .hentry.post .likes.post-add-icon {
+    color: var(--rosewood-text-dim) !important;
+    fill: var(--rosewood-text-dim) !important;
+}
+body.theme-rosewood .hentry.post .likes.post-add-icon.active {
+    color: var(--rosewood-rose) !important;
+    fill: var(--rosewood-rose) !important;
+}
+
+/* ---------- profile settings / account dashboard page
+   (resources/views/profile/profile-info.blade.php) ---------- */
+body.theme-rosewood .main-header {
+    background: var(--rosewood-bg-2);
+    border-bottom: 1px solid var(--rosewood-line);
+}
+body.theme-rosewood .main-header .content-bg-wrap {
+    opacity: .3;
+}
+body.theme-rosewood .main-header-content h1 {
+    color: var(--rosewood-text) !important;
+    font-family: var(--rosewood-display);
+    font-weight: 400;
+}
+body.theme-rosewood .main-header-content p {
+    color: var(--rosewood-text-dim) !important;
+}
+body.theme-rosewood .form-group.label-floating .control-label {
+    color: var(--rosewood-text-mute) !important;
+}
+body.theme-rosewood .form-group .form-control,
+body.theme-rosewood .form-group input,
+body.theme-rosewood .form-group textarea {
+    background: var(--rosewood-surface) !important;
+    border: 1px solid var(--rosewood-line) !important;
+    border-radius: 4px !important;
+    color: var(--rosewood-text) !important;
+}
+body.theme-rosewood .your-profile .title,
+body.theme-rosewood .your-profile-menu a {
+    color: var(--rosewood-text-dim) !important;
+}
+body.theme-rosewood .your-profile-menu a:hover {
+    color: var(--rosewood-text) !important;
+}
+body.theme-rosewood .your-profile .card {
+    background: transparent !important;
+    border: none !important;
+}
+body.theme-rosewood .your-profile .card-header a {
+    color: var(--rosewood-text) !important;
+    font-family: var(--rosewood-body);
+}
+body.theme-rosewood .btn-primary,
+body.theme-rosewood .btn-secondary {
+    border-radius: 100px !important;
+    font-family: var(--rosewood-mono);
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+body.theme-rosewood .btn-primary {
+    background: var(--rosewood-ink) !important;
+    border: 1px solid var(--rosewood-gold) !important;
+    color: #fff !important;
+}
+body.theme-rosewood .btn-secondary {
+    background: var(--rosewood-surface-2) !important;
+    border: 1px solid var(--rosewood-line) !important;
+    color: var(--rosewood-text) !important;
+}
+
+/* ---------- packages page (resources/views/packages.blade.php) - see bloom.css's identical
+   note: .generic_price_table cards are permanently white/gray in the base stylesheet. ---------- */
+body.theme-rosewood .price-heading h1 {
+    color: var(--rosewood-text) !important;
+    font-family: var(--rosewood-display);
+    font-weight: 400;
+}
+body.theme-rosewood .generic_content {
+    background: var(--rosewood-surface) !important;
+    border-radius: 4px;
+    overflow: hidden;
+}
+body.theme-rosewood .generic_head_price {
+    background: var(--rosewood-surface-2) !important;
+}
+body.theme-rosewood .generic_price_tag .price,
+body.theme-rosewood .generic_price_tag .sign,
+body.theme-rosewood .generic_price_tag .currency,
+body.theme-rosewood .generic_price_tag .cent {
+    color: var(--rosewood-text) !important;
+}
+body.theme-rosewood .generic_feature_list ul li {
+    color: var(--rosewood-text-mute) !important;
+}
+body.theme-rosewood .generic_feature_list ul li span {
+    color: var(--rosewood-text-dim) !important;
+}
+body.theme-rosewood .generic_feature_list ul li:hover {
+    background: var(--rosewood-surface-2) !important;
+    border-left-color: var(--rosewood-rose) !important;
+}
+/* Tier accent on the diagonal header - gold (entry tier) -> rose (mid) -> gold again (top),
+   for both the Subscriptions (pk1_*) and Credits (pk2_*) card sets. */
+body.theme-rosewood .generic_content.pk1_1 .head_bg,
+body.theme-rosewood .generic_content.pk2_1 .head_bg {
+    border-color: var(--rosewood-gold-bright) transparent transparent var(--rosewood-gold-bright) !important;
+}
+body.theme-rosewood .generic_content.pk1_2 .head_bg,
+body.theme-rosewood .generic_content.pk2_2 .head_bg {
+    border-color: var(--rosewood-rose) transparent transparent var(--rosewood-rose) !important;
+}
+body.theme-rosewood .generic_content.pk1_3 .head_bg,
+body.theme-rosewood .generic_content.pk2_3 .head_bg {
+    border-color: var(--rosewood-gold) transparent transparent var(--rosewood-gold) !important;
+}
+body.theme-rosewood .generic_content.pk1_1 .head span,
+body.theme-rosewood .generic_content.pk2_1 .head span,
+body.theme-rosewood .generic_content.pk1_2 .head span,
+body.theme-rosewood .generic_content.pk2_2 .head span,
+body.theme-rosewood .generic_content.pk1_3 .head span,
+body.theme-rosewood .generic_content.pk2_3 .head span,
+body.theme-rosewood .generic_content.active .head span,
+body.theme-rosewood .generic_content:hover .head span {
+    color: #fff !important;
+}
+body.theme-rosewood .generic_content.active .head_bg,
+body.theme-rosewood .generic_content:hover .head_bg {
+    border-color: var(--rosewood-gold-bright) transparent transparent var(--rosewood-gold-bright) !important;
+}
+body.theme-rosewood .generic_price_btn a {
+    background: var(--rosewood-ink) !important;
+    border: 1px solid var(--rosewood-gold) !important;
+    color: #fff !important;
+}
+body.theme-rosewood .ribbon-red {
+    background: var(--rosewood-rose) !important;
+}
+
+/* The "scroll to top" floating button (.back-to-top) is a plain circle with a white arrow
+   IMAGE - see bloom.css's identical note (fill/color can't recolor an <img>, so the circle
+   behind it gets a solid theme color instead). */
+body.theme-rosewood .back-to-top {
+    background-color: var(--rosewood-ink) !important;
+    background-image: none !important;
+    border: 1px solid var(--rosewood-gold) !important;
+    box-shadow: 0 8px 20px -8px rgba(43, 30, 34, 0.4) !important;
+}
+
+/* ---------- page-load preloader (layouts/layout.blade.php, #hellopreloader) ---------- */
+body.theme-rosewood #hellopreloader {
+    background: var(--rosewood-bg) !important;
+}
+body.theme-rosewood .preloader svg {
+    stroke: var(--rosewood-rose);
+}
+body.theme-rosewood .preloader .text {
+    color: var(--rosewood-text) !important;
+}
+
+/* ---------- AI Inbox panel (find_friends.blade.php, admin-only "managed accounts" list) ---------- */
+body.theme-rosewood .ai-inbox-panel h4 {
+    color: var(--rosewood-text) !important;
+    font-family: var(--rosewood-display);
+}
+body.theme-rosewood .ai-inbox-panel h4 .text-muted {
+    color: var(--rosewood-text-mute) !important;
+}
+body.theme-rosewood .ai-inbox-panel .list-group {
+    border-radius: 4px;
+    overflow: hidden;
+    border: 1px solid var(--rosewood-line);
+}
+body.theme-rosewood .ai-inbox-panel .list-group-item {
+    background: var(--rosewood-surface) !important;
+    border-color: var(--rosewood-line) !important;
+    color: var(--rosewood-text) !important;
+}
+body.theme-rosewood .ai-inbox-panel .list-group-item:hover,
+body.theme-rosewood .ai-inbox-panel .list-group-item-action:hover {
+    background: var(--rosewood-surface-2) !important;
+}
+body.theme-rosewood .ai-inbox-panel .list-group-item .text-muted,
+body.theme-rosewood .ai-inbox-panel .list-group-item small {
+    color: var(--rosewood-text-mute) !important;
+}
+
+/* ---------- "load more" trigger (find_friends.blade.php's #load_more_find_friends) ---------- */
+body.theme-rosewood #load_more_find_friends {
+    background: var(--rosewood-surface) !important;
+    border: 1px solid var(--rosewood-line-strong) !important;
+    box-shadow: 0 8px 20px -8px rgba(43, 30, 34, 0.3);
+}
+body.theme-rosewood #load_more_find_friends .olymp-three-dots-icon {
+    fill: var(--rosewood-rose) !important;
+}
+body.theme-rosewood #load_more_find_friends:hover {
+    background: var(--rosewood-ink) !important;
+    border-color: var(--rosewood-ink) !important;
+}
+body.theme-rosewood #load_more_find_friends:hover .olymp-three-dots-icon {
+    fill: var(--rosewood-gold) !important;
+}
+
+/* ---------- "livefeed" popup toast (layouts/layout.blade.php, #livefeed_container) ---------- */
+body.theme-rosewood #livefeed_container {
+    background: var(--rosewood-surface) !important;
+    border: 1px solid var(--rosewood-line) !important;
+    border-radius: 4px !important;
+    color: var(--rosewood-text) !important;
+    box-shadow: 0 20px 40px -18px rgba(43, 30, 34, 0.35);
+}
+body.theme-rosewood #livefeed_name {
+    color: var(--rosewood-rose) !important;
+}
+body.theme-rosewood #livefeed_pack {
+    color: var(--rosewood-gold-bright) !important;
+}
+body.theme-rosewood #livefeed_time_container {
+    color: var(--rosewood-text-mute) !important;
+}
+body.theme-rosewood #livefeed_close {
+    background: var(--rosewood-ink) !important;
+    color: #fff !important;
+}
+body.theme-rosewood #livefeed_close:hover {
+    background: var(--rosewood-rose) !important;
+}

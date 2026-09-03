@@ -97,6 +97,7 @@ class FindFriendsController extends Controller
         $query = User::with('images')->where('id', $id);
         $this->applyFindFriendsGenderScope($query);
         $user = $query->firstOrFail();
+        $activeTheme = ActiveTheme::current();
 
         $tpl = '<div data-user-id="' . $user->id . '" class="col col-xl-3 col-lg-6 col-md-6 col-sm-6 col-12 find_friends_item">
                         <div class="ui-block" data-mh="friend-groups-item"
@@ -132,9 +133,10 @@ class FindFriendsController extends Controller
         $tpl .= '</a>
                                             </div>
                                             <div class="control-block-button">
-                                                <a href="/profile/' . $user->username . '" class="  btn btn-control bg-blue"
+                                                <a href="/profile/' . $user->username . '" class="  btn btn-control bg-blue"'
+                                                    . ($activeTheme === 'rosewood' ? '' : '
                                                     data-toggle="tooltip" data-placement="top"
-                                                    data-original-title="' . l("See Profile") . '">
+                                                    data-original-title="' . l("See Profile") . '"') . '>
                                                     ' . l("See Profile") . '
                                                 </a>';
         if (Auth::check()) {

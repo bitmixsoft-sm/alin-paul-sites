@@ -16,7 +16,7 @@ use App\Settings;
  */
 final class ActiveTheme
 {
-    private const VALID = ['classic', 'aurora', 'nordic', 'volt', 'velvet', 'bloom', 'binder'];
+    private const VALID = ['classic', 'aurora', 'nordic', 'volt', 'velvet', 'bloom', 'binder', 'rosewood'];
 
     private static ?string $cached = null;
 

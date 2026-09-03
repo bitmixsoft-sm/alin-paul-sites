@@ -87,6 +87,10 @@
             <link rel="preconnect" href="https://fonts.googleapis.com">
             <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
             <link href="https://fonts.googleapis.com/css2?family=Bungee&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+        @elseif($activeTheme === 'rosewood')
+            <link rel="preconnect" href="https://fonts.googleapis.com">
+            <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+            <link href="https://fonts.googleapis.com/css2?family=Italiana&family=Jost:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
         @endif
         <link rel="stylesheet" type="text/css" href="/assets/css/themes/{{ $activeTheme }}.css?ver={{ is_file(storage_path('app/assets/css/themes/' . $activeTheme . '.css')) ? filemtime(storage_path('app/assets/css/themes/' . $activeTheme . '.css')) : '1' }}">
     @endif

@@ -206,10 +206,17 @@ body.theme-aurora .header-content-wrapper {
 /* Hides BOTH the native mobile tab header (header-responsive, its own icon row/search/
    Register-Login pair) AND the native mobile "Quick Links" drawer (fixed-sidebar-responsive,
    the hamburger-triggered slide-in menu) - unconditionally, at every width. Without this the
-   mobile view falls back to the unthemed classic mobile UI instead of the new design. */
+   mobile view falls back to the unthemed classic mobile UI instead of the new design. Targets
+   #sidebar-left-responsive/#sidebar-left-1-responsive specifically (NOT the broader
+   .fixed-sidebar.fixed-sidebar-responsive class combo an earlier version used) -
+   components/sidebar-right.blade.php's own mobile chat-sidebar wrapper carries that exact
+   same two-class combo on its outer <div>, so the broader selector was also hiding the
+   right-side chat sidebar's mobile drawer - reported as an empty gap on the right on mobile
+   where Classic (untouched by this rule) still shows it. */
 body.theme-aurora .header-responsive,
 body.theme-aurora #site-header-responsive,
-body.theme-aurora .fixed-sidebar.fixed-sidebar-responsive {
+body.theme-aurora #sidebar-left-responsive,
+body.theme-aurora #sidebar-left-1-responsive {
     display: none !important;
 }
 /* ---------- header search bar: one seamless rounded pill, icon has no button chrome of its

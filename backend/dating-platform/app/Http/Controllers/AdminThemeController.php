@@ -44,6 +44,10 @@ final class AdminThemeController extends Controller
             'label' => 'Binder',
             'description' => 'Collectible trading-card look - holographic rotating-border cards that reveal actions on hover, colorful file-tab navigation.',
         ],
+        'rosewood' => [
+            'label' => 'Rosewood',
+            'description' => 'Boutique-elegant theme with a blush/gold palette, serif display type, and arch-framed profile photo cards.',
+        ],
     ];
 
     public function index(): View

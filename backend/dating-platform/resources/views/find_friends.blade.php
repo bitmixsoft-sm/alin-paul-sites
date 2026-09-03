@@ -96,9 +96,18 @@
                                             </div>
                                             @unless($activeTheme === 'binder')
                                             <div class="control-block-button @guest justify-content-center @endguest">
+                                                {{-- No data-toggle="tooltip" on the See Profile caption under Rosewood - it
+                                                     already shows this label as always-visible text (themes/rosewood.css),
+                                                     so the native Bootstrap tooltip is redundant, and mispositions itself
+                                                     (far off to the side, not above the trigger) once this specific button
+                                                     is reshaped this drastically from the classic layout it was tuned for.
+                                                     The Chat/message FAB below keeps its tooltip - unlike the caption, it's
+                                                     icon-only with no visible label, and its tooltip positions correctly. --}}
                                                 <a href="#" class="  btn btn-control bg-blue" onclick="return false;"
+                                                    @unless($activeTheme === 'rosewood')
                                                     data-toggle="tooltip" data-placement="top"
-                                                    data-original-title="{{ l('See Profile') }}">
+                                                    data-original-title="{{ l('See Profile') }}"
+                                                    @endunless>
                                                     {{ l('See Profile') }}
                                                 </a>
                                                 @auth
@@ -201,9 +210,15 @@
                                             </div>
                                             @unless($activeTheme === 'binder')
                                             <div class="control-block-button @guest justify-content-center @endguest">
+                                                {{-- No data-toggle="tooltip" on the See Profile caption under Rosewood - see
+                                                     the AI-profile block above for why (redundant with the always-visible
+                                                     caption text, and mispositions itself once this button is reshaped
+                                                     this drastically). The Chat/message FAB keeps its tooltip. --}}
                                                 <a href="/profile/{{ $user->username }}" class="  btn btn-control bg-blue"
+                                                    @unless($activeTheme === 'rosewood')
                                                     data-toggle="tooltip" data-placement="top"
-                                                    data-original-title="{{ l('See Profile') }}">
+                                                    data-original-title="{{ l('See Profile') }}"
+                                                    @endunless>
                                                     {{ l('See Profile') }}
                                                 </a>
                                                 @auth
