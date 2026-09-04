@@ -463,6 +463,11 @@ ttq.track('CompletePayment', {
 @auth
     @if(isset($_COOKIE['autoregister']) || isset($_COOKIE['autoregister_fake']))
         <!-- Modal -->
+        {{-- Wrapped in .auth_modals (same as the Register/Login popups below) purely so it
+             picks up every theme's existing body.theme-X .auth_modals .modal-content/.form-
+             control/.btn-purple/... rules for free - it was previously outside that wrapper
+             and stuck looking like an unstyled default Bootstrap modal in every theme. --}}
+        <div class="auth_modals">
 <div class="modal fade" id="complete-register-form-popup" tabindex="-1" role="dialog" aria-labelledby="complete-register-form-popupLabel" aria-hidden="true">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
@@ -523,6 +528,7 @@ ttq.track('CompletePayment', {
                 </div>
   </div>
 </div>
+        </div>
     @if ($errors->any() && session()->hasOldInput('firstname'))
         <script type="text/javascript">
             $('#complete-register-form-popup').modal('show');
