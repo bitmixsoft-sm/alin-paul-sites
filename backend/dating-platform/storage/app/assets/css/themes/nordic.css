@@ -258,7 +258,11 @@ body.theme-nordic .search-bar .form-group {
         position: absolute !important;
         top: 100%;
         left: 12px;
-        right: 12px;
+        /* 12px + the 70px .fixed-sidebar-right always occupies on this edge (see
+           the .header-content-wrapper padding-right comment below) - stopping short
+           of it instead of running underneath keeps the dropdown out from under the
+           sidebar entirely. */
+        right: 82px;
         margin-top: 8px;
         background: var(--nordic-bg-deep) !important;
         border: 1px solid var(--nordic-border-strong);
@@ -401,6 +405,50 @@ body.theme-nordic .control-block {
     margin-left: auto;
 }
 @media screen and (max-width: 767px) {
+    /* main.css hides .form--login-logout .btn (the logged-out Register/Login buttons in
+       components/header/profile-header.blade.php - the ONLY login/register entry point left
+       once a theme hides the native mobile header below) at <=580px, on the assumption that
+       header-responsive.blade.php's OWN separate #site-header-responsive .top_auth_mobile
+       block (a different pair of buttons) takes over on mobile instead. This theme
+       unconditionally hides that whole component (see .header-responsive,
+       #site-header-responsive above) without providing any other way to log in/register on
+       mobile - so under 580px, logged-out visitors had literally no visible way in. Forcing
+       these back to visible, and compact enough to sit in the icon row below instead of
+       their native full-width own-row layout, is the fix - not a cosmetic change. */
+    body.theme-nordic .form--login-logout {
+        width: auto !important;
+        margin-right: 0 !important;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        flex: 0 0 auto;
+    }
+    body.theme-nordic .form--login-logout .btn {
+        display: inline-block !important;
+        padding: 5px 8px !important;
+        font-size: 9px !important;
+        letter-spacing: normal !important;
+        white-space: nowrap;
+    }
+    body.theme-nordic .top_auth_spacer {
+        margin: 0 2px !important;
+        font-size: 9px;
+    }
+    /* Every other item in this row (search circle, hamburger, theme toggle) is a fixed,
+       already-tiny icon size - the 16px gap between them (see .header-content-wrapper above)
+       was designed for the roomier desktop nav this row also carries there, and on a narrow
+       phone it alone eats more width than the icons themselves, which is why the buttons
+       above still didn't fit next to the icons even once shrunk. Tightening it recovers that
+       space. flex-wrap stays a fallback (instead of nowrap, see rule above) for screens where
+       the row still doesn't fit even now - moves .control-block onto its own row instead of
+       overflowing off-screen. padding-right reserves the width .fixed-sidebar-right always
+       occupies on this edge (top: 0, right: 0, width: 70px collapsed, at every width incl.
+       mobile) so nothing here ends up sitting underneath it. */
+    body.theme-nordic .header-content-wrapper {
+        gap: 8px;
+        flex-wrap: wrap !important;
+        padding-right: 70px;
+    }
     body.theme-nordic .control-block {
         display: flex !important;
         flex-wrap: wrap;
@@ -1438,4 +1486,202 @@ body.theme-nordic #livefeed_close {
 body.theme-nordic #livefeed_close:hover {
     background: var(--nordic-pink) !important;
     color: #fff !important;
+}
+
+/* ---------- auth modals (Register / Login / Complete profile) ----------
+   Previously completely unthemed - the generic dark-mode stylesheet's unconditional
+   .modal-content{background:#000} (only .modal-content it touches) plus stock white
+   .form-control inputs, so it looked like a broken, off-brand dialog no matter which theme
+   was active. Uses the same surface/text/border tokens as the rest of this theme so it reads
+   as part of it, not a bolted-on default Bootstrap form. */
+body.theme-nordic .auth_modals .modal-content {
+    background: var(--nordic-surface) !important;
+    border: 1px solid var(--nordic-border-strong);
+    border-radius: 8px;
+    box-shadow: 0 25px 60px -18px rgba(0, 0, 0, 0.6);
+    color: var(--nordic-text);
+    font-family: var(--nordic-body);
+    padding: 30px 26px;
+}
+body.theme-nordic .auth_modals .modal-header {
+    border: none;
+    padding: 0 0 18px;
+}
+body.theme-nordic .auth_modals .modal-header .title {
+    font-family: var(--nordic-display);
+    color: var(--nordic-text);
+    font-size: 20px;
+    letter-spacing: .02em;
+}
+body.theme-nordic .auth_modals .icon-close,
+body.theme-nordic .auth_modals .icon-close:hover {
+    color: var(--nordic-pink) !important;
+    fill: var(--nordic-pink) !important;
+}
+body.theme-nordic .auth_modals .form-control {
+    background: var(--nordic-bg-deep) !important;
+    border: 1px solid var(--nordic-border) !important;
+    border-radius: 6px;
+    color: var(--nordic-text) !important;
+}
+body.theme-nordic .auth_modals .form-group label.control-label {
+    color: var(--nordic-text-muted);
+}
+body.theme-nordic .auth_modals .form-group.is-focused label.control-label,
+body.theme-nordic .auth_modals .form-group.label-floating:not(.is-empty) label.control-label {
+    color: var(--nordic-pink);
+}
+body.theme-nordic .auth_modals .checkbox label,
+body.theme-nordic .auth_modals .remember,
+body.theme-nordic .auth_modals p {
+    color: var(--nordic-text-muted);
+}
+body.theme-nordic .auth_modals .checkbox .checkbox-material .check {
+    border-color: var(--nordic-border-strong);
+}
+body.theme-nordic .auth_modals a {
+    color: var(--nordic-pink);
+}
+body.theme-nordic .auth_modals a:hover {
+    color: var(--nordic-teal);
+}
+body.theme-nordic .auth_modals .or {
+    background-color: var(--nordic-border-strong);
+}
+body.theme-nordic .auth_modals .or:after {
+    background-color: var(--nordic-surface);
+    color: var(--nordic-text-muted);
+    letter-spacing: .08em;
+}
+body.theme-nordic .auth_modals .btn-primary,
+body.theme-nordic .auth_modals .btn-purple {
+    background: linear-gradient(120deg, var(--nordic-pink), var(--nordic-pink-deep)) !important;
+    border: none !important;
+    color: #fff !important;
+    font-family: var(--nordic-display);
+    letter-spacing: .02em;
+}
+body.theme-nordic .auth_modals .btn-primary:hover,
+body.theme-nordic .auth_modals .btn-purple:hover {
+    filter: brightness(1.1);
+}
+
+/* ---------- landing page (index.blade.php's Register/Login card + the age-gate modal) ----------
+   This page doesn't extend layouts/layout.blade.php - it never loaded any theme CSS at all
+   until index.blade.php was updated alongside this to include it, so it was stuck looking
+   like classic (plain white card, default Bootstrap modal) regardless of the active theme.
+   Same token-based treatment as the .auth_modals block above, applied to this page's own
+   differently-structured (side-tab, not popup) register/login card. */
+body.theme-nordic .registration-login-form {
+    background: var(--nordic-surface) !important;
+    border: 1px solid var(--nordic-border-strong);
+    border-radius: 8px;
+    box-shadow: 0 25px 60px -18px rgba(0, 0, 0, 0.6);
+}
+body.theme-nordic .registration-login-form .nav-link {
+    background: var(--nordic-bg-deep) !important;
+    border-color: var(--nordic-border) !important;
+    color: var(--nordic-text-muted) !important;
+    fill: var(--nordic-text-muted) !important;
+}
+body.theme-nordic .registration-login-form .nav-link.active {
+    background: var(--nordic-surface) !important;
+    color: var(--nordic-pink) !important;
+    fill: var(--nordic-pink) !important;
+}
+body.theme-nordic .registration-login-form .title {
+    font-family: var(--nordic-display);
+    color: var(--nordic-text) !important;
+    background: var(--nordic-surface) !important;
+    border-color: var(--nordic-border) !important;
+}
+body.theme-nordic .registration-login-form .form-control {
+    background: var(--nordic-bg-deep) !important;
+    border: 1px solid var(--nordic-border) !important;
+    border-radius: 6px;
+    color: var(--nordic-text) !important;
+}
+body.theme-nordic .registration-login-form label.control-label {
+    color: var(--nordic-text-muted) !important;
+}
+body.theme-nordic .registration-login-form .form-group.is-focused label.control-label,
+body.theme-nordic .registration-login-form .form-group.label-floating:not(.is-empty) label.control-label {
+    color: var(--nordic-pink) !important;
+}
+body.theme-nordic .registration-login-form .checkbox label,
+body.theme-nordic .registration-login-form .remember,
+body.theme-nordic .registration-login-form p {
+    color: var(--nordic-text-muted) !important;
+}
+body.theme-nordic .registration-login-form a {
+    color: var(--nordic-pink) !important;
+}
+body.theme-nordic .registration-login-form a:hover {
+    color: var(--nordic-teal) !important;
+}
+body.theme-nordic .registration-login-form .or {
+    background-color: var(--nordic-border-strong);
+}
+body.theme-nordic .registration-login-form .or:after {
+    background-color: var(--nordic-surface);
+    color: var(--nordic-text-muted);
+    letter-spacing: .08em;
+}
+body.theme-nordic .registration-login-form .btn-primary,
+body.theme-nordic .registration-login-form .btn-purple {
+    background: linear-gradient(120deg, var(--nordic-pink), var(--nordic-pink-deep)) !important;
+    border: none !important;
+    color: #fff !important;
+    font-family: var(--nordic-display);
+    letter-spacing: .02em;
+}
+body.theme-nordic .registration-login-form .btn-primary:hover,
+body.theme-nordic .registration-login-form .btn-purple:hover {
+    filter: brightness(1.1);
+}
+body.theme-nordic #adultAlertModal .modal-content {
+    background: var(--nordic-surface) !important;
+    border: 1px solid var(--nordic-border-strong);
+    border-radius: 8px;
+    color: var(--nordic-text);
+    font-family: var(--nordic-body);
+}
+body.theme-nordic #adultAlertModal h3 {
+    font-family: var(--nordic-display);
+    color: var(--nordic-text) !important;
+}
+body.theme-nordic #adultAlertModal p {
+    color: var(--nordic-text-muted) !important;
+}
+body.theme-nordic #adultAlertModal .close {
+    color: var(--nordic-text-muted) !important;
+}
+body.theme-nordic #adultAlertModal .form-control {
+    background: transparent !important;
+    border: none !important;
+}
+body.theme-nordic #adultAlertModal #adult {
+    background: linear-gradient(120deg, var(--nordic-pink), var(--nordic-pink-deep)) !important;
+    border: none !important;
+    color: #fff !important;
+}
+body.theme-nordic #adultAlertModal #exit {
+    background: var(--nordic-surface-2) !important;
+    border: 1px solid var(--nordic-border-strong) !important;
+    color: var(--nordic-text) !important;
+}
+
+/* ---------- "Continue with Google" button (components/google-auth-button.blade.php) ----------
+   Google's brand guidelines require the multicolour "G" mark to stay exactly as-is (never
+   recoloured) and the button to keep enough contrast to read clearly - both still true here.
+   What's free to restyle is the button chrome around it, so it reads as part of this theme
+   instead of a flat white Bootstrap-default box dropped into a themed card. */
+body.theme-nordic .btn-google {
+    background: var(--nordic-surface) !important;
+    border: 1px solid var(--nordic-border-strong) !important;
+    color: var(--nordic-text) !important;
+}
+body.theme-nordic .btn-google:hover {
+    background: var(--nordic-surface-2) !important;
+    border-color: var(--nordic-pink) !important;
 }

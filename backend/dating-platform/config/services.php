@@ -98,6 +98,29 @@ return [
         'admin_email' => env('ADMIN_ALERT_EMAIL'),
     ],
 
+    // "Login/Register with Google" (see App\Http\Controllers\Auth\GoogleController). Redirect
+    // URI must be registered exactly as-is in the Google Cloud Console OAuth client (Authorized
+    // redirect URIs) - it's <APP_URL>/auth/google/callback unless overridden.
+    // 'enabled' is the on/off switch: components/google-auth-button.blade.php only renders the
+    // button when this is true, and the redirect/callback routes 404 when it's false - so
+    // turning it off fully removes it, not just hides it while leaving the routes reachable.
+    'google' => [
+        'enabled' => env('GOOGLE_LOGIN_ENABLED', false),
+        'client_id' => env('GOOGLE_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_CLIENT_SECRET'),
+        'redirect' => env('GOOGLE_REDIRECT_URI', env('APP_URL').'/auth/google/callback'),
+    ],
+
+    // Single "enter your email, we'll figure out if that's a login or a registration" auth
+    // form (components/unified-auth-form.blade.php) instead of separate Register/Login
+    // tabs/modals the visitor has to pick between first. Old tabs/modals stay in the codebase
+    // untouched and render instead whenever this is false - flip it back any time with no
+    // other change needed, see the @if(config('services.unified_login.enabled')) branches in
+    // layouts/layout.blade.php and index.blade.php.
+    'unified_login' => [
+        'enabled' => env('UNIFIED_LOGIN_ENABLED', false),
+    ],
+
     // When true, the header's "Chat / Messages" dropdown (components/header/chat-header.blade.php)
     // also shows AI Companion conversations interleaved with real chats, sorted by recency -
     // clicking one navigates to Find Friends and opens it there via the existing AI popup.

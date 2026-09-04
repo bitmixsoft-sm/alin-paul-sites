@@ -2974,6 +2974,48 @@ button:hover {
   border-color: var(--main-color);
   opacity: 1; }
 
+/* "Continue with Google" - components/google-auth-button.blade.php. Following Google's own
+   brand guidelines (white button, grey border, dark text, full-colour "G" mark on the left)
+   rather than this site's usual solid-fill buttons - the multi-colour Google mark reads as
+   wrong/unbranded on anything but a neutral background. */
+.btn-google {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+  background-color: #fff;
+  border: 1px solid #dadce0;
+  color: #3c4043;
+  font-weight: 500; }
+  .btn-google svg {
+    margin-right: 10px;
+    -ms-flex-negative: 0;
+        flex-shrink: 0; }
+  .btn-google:hover, .btn-google:focus {
+    background-color: #f7f8f8;
+    color: #3c4043;
+    box-shadow: 0 1px 2px 0 rgba(60, 64, 67, 0.3); }
+
+/* Unified email-first auth form (components/unified-auth-form.blade.php). Pure CSS step
+   switcher: .unified-auth's own data-step attribute (set by unified-auth-form.js) decides
+   which of its 3 direct [data-unified-step] children is visible - no JS-toggled display
+   styles or classes needed on the steps themselves. */
+.unified-auth [data-unified-step] {
+  display: none; }
+.unified-auth[data-step="email"] [data-unified-step="email"],
+.unified-auth[data-step="login"] [data-unified-step="login"],
+.unified-auth[data-step="register"] [data-unified-step="register"] {
+  display: block; }
+.unified-auth .unified-auth-error {
+  margin-top: -0.8rem;
+  margin-bottom: 1rem;
+  font-size: 12px; }
+
 .btn-purple {
   background-color: #7c5ac2; }
 
@@ -4699,6 +4741,17 @@ fieldset[disabled] .checkbox, fieldset[disabled] .checkbox input[type=checkbox],
     padding: 25px;
     border-bottom: 1px solid #e6ecf5;
     margin-bottom: 0; }
+  /* Unified email-first auth (index.blade.php, config('services.unified_login.enabled')):
+     min-height: 700px and padding-left: 71px above exist for the OLD side-tab layout (tall
+     enough for two stacked tab buttons down the left edge) - with no tabs and much shorter
+     content, that reserved height/gutter just becomes empty space top/bottom/left instead. */
+  .registration-login-form.unified {
+    min-height: 0;
+    padding-left: 0; }
+  .registration-login-form.unified .title {
+    text-align: center;
+    font-size: 26px;
+    font-weight: 700; }
   .registration-login-form p {
     margin-bottom: 0;
     font-size: 13px; }

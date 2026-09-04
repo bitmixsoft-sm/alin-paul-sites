@@ -272,7 +272,12 @@ body.theme-rosewood .search-bar .form-group {
         position: absolute !important;
         top: 100%;
         left: 12px;
-        right: 12px;
+        /* 12px + the 70px .fixed-sidebar-right always occupies on this edge (see the
+           .header-content-wrapper padding-right comment above) - stopping short of it
+           instead of running underneath keeps the dropdown's right edge (and its z-index:
+           1000, which the sidebar's own stacking context still sat above) out from under
+           the sidebar entirely. */
+        right: 82px;
         margin-top: 8px;
         background: var(--rosewood-bg-2) !important;
         border: 1px solid var(--rosewood-line);
@@ -386,7 +391,60 @@ body.theme-rosewood .control-block {
     flex: 0 0 auto;
     margin-left: auto;
 }
+/* public_html/js's main.css hides .form--login-logout .btn (i.e. the logged-out Register/
+   Login buttons in components/header/profile-header.blade.php - the ONLY login/register
+   entry point left once a theme hides the native mobile header below) at <=580px, on the
+   assumption that header-responsive.blade.php's OWN separate #site-header-responsive
+   .top_auth_mobile block (a different pair of buttons) takes over on mobile instead. Every
+   theme, rosewood included, unconditionally hides that whole component (see the
+   .header-responsive, #site-header-responsive rule above) without providing any other way
+   to log in/register on mobile - so under 580px, logged-out visitors had literally no
+   visible way in. Forcing these back to visible is the fix, not a cosmetic change. */
 @media screen and (max-width: 767px) {
+    /* main.css also gives .form--login-logout a hardcoded width: 100% (it's normally the
+       only thing on its own row in the unthemed mobile layout) - that alone forces it onto
+       its own line here no matter what flex-wrap says on its ancestors, since a 100%-wide
+       item can never share a row. Shrinking it to its content width, and shrinking the
+       buttons themselves, is what actually lets Register/Or/Login sit next to the icon row
+       instead of always dropping below it - they still drop to their own row on their own
+       if a screen is too narrow to fit both, since the wrap rules below stay as a fallback. */
+    body.theme-rosewood .form--login-logout {
+        width: auto !important;
+        margin-right: 0 !important;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        flex: 0 0 auto;
+    }
+    body.theme-rosewood .form--login-logout .btn {
+        display: inline-block !important;
+        padding: 5px 8px !important;
+        font-size: 9px !important;
+        letter-spacing: normal !important;
+        white-space: nowrap;
+    }
+    body.theme-rosewood .top_auth_spacer {
+        margin: 0 2px !important;
+        font-size: 9px;
+    }
+    /* Every other item in this row (search circle, hamburger, theme toggle) is a fixed,
+       already-tiny icon size - the 16px gap between them (see rule above) was designed for
+       the roomier desktop nav this row also carries there, and on a narrow phone it alone
+       eats more width than the icons themselves, which is why the buttons above still
+       didn't fit next to the icons even once shrunk. Tightening it recovers that space.
+       flex-wrap stays a fallback (instead of nowrap, see rule above) for screens where the
+       row still doesn't fit even now - moves .control-block onto its own row instead of
+       overflowing off-screen. */
+    body.theme-rosewood .header-content-wrapper {
+        gap: 8px;
+        flex-wrap: wrap !important;
+        /* .fixed-sidebar-right sits at top: 0, right: 0, width: 70px (collapsed) at every
+           width incl. mobile - see the comment below on why its vertical position can't
+           reliably be pushed below the header instead. Reserving that same 70px on this
+           side keeps Register/Or/Login from sitting underneath it, pulling them left,
+           closer to the theme-toggle icon, instead of being cut off by the sidebar. */
+        padding-right: 70px;
+    }
     body.theme-rosewood .control-block {
         display: flex !important;
         flex-wrap: wrap;
@@ -1645,4 +1703,208 @@ body.theme-rosewood #livefeed_close {
 }
 body.theme-rosewood #livefeed_close:hover {
     background: var(--rosewood-rose) !important;
+}
+
+/* ---------- auth modals (Register / Login / Complete profile) ----------
+   Previously completely unthemed - the generic dark-mode stylesheet's unconditional
+   .modal-content{background:#000} (only .modal-content it touches) plus stock white
+   .form-control inputs, so it looked like a broken, off-brand dialog no matter which theme
+   was active. Uses the same surface/text/line tokens as the rest of this theme so it reads
+   as part of it, not a bolted-on default Bootstrap form. */
+body.theme-rosewood .auth_modals .modal-content {
+    background: var(--rosewood-surface) !important;
+    border: 1px solid var(--rosewood-line);
+    border-radius: 4px;
+    box-shadow: 0 25px 70px -15px rgba(43, 30, 34, 0.5);
+    color: var(--rosewood-text);
+    font-family: var(--rosewood-body);
+    padding: 30px 26px;
+}
+body.theme-rosewood .auth_modals .modal-header {
+    border: none;
+    padding: 0 0 18px;
+}
+body.theme-rosewood .auth_modals .modal-header .title {
+    font-family: var(--rosewood-display);
+    color: var(--rosewood-text);
+    font-size: 22px;
+    letter-spacing: .02em;
+}
+body.theme-rosewood .auth_modals .icon-close,
+body.theme-rosewood .auth_modals .icon-close:hover {
+    color: var(--rosewood-rose) !important;
+    fill: var(--rosewood-rose) !important;
+}
+body.theme-rosewood .auth_modals .form-control {
+    background: var(--rosewood-bg) !important;
+    border: 1px solid var(--rosewood-line) !important;
+    border-radius: 4px;
+    color: var(--rosewood-text) !important;
+}
+body.theme-rosewood .auth_modals .form-group label.control-label {
+    color: var(--rosewood-text-mute);
+}
+body.theme-rosewood .auth_modals .form-group.is-focused label.control-label,
+body.theme-rosewood .auth_modals .form-group.label-floating:not(.is-empty) label.control-label {
+    color: var(--rosewood-gold-bright);
+}
+body.theme-rosewood .auth_modals .checkbox label,
+body.theme-rosewood .auth_modals .remember,
+body.theme-rosewood .auth_modals p {
+    color: var(--rosewood-text-dim);
+}
+body.theme-rosewood .auth_modals .checkbox .checkbox-material .check {
+    border-color: var(--rosewood-line-strong);
+}
+body.theme-rosewood .auth_modals a {
+    color: var(--rosewood-rose);
+}
+body.theme-rosewood .auth_modals a:hover {
+    color: var(--rosewood-rose-bright);
+}
+body.theme-rosewood .auth_modals .or {
+    background-color: var(--rosewood-line);
+}
+body.theme-rosewood .auth_modals .or:after {
+    background-color: var(--rosewood-surface);
+    color: var(--rosewood-text-mute);
+    letter-spacing: .08em;
+}
+body.theme-rosewood .auth_modals .btn-primary,
+body.theme-rosewood .auth_modals .btn-purple {
+    background: var(--rosewood-ink) !important;
+    border: 1px solid var(--rosewood-gold) !important;
+    color: #fff !important;
+    font-family: var(--rosewood-mono);
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    font-size: 13px;
+}
+body.theme-rosewood .auth_modals .btn-primary:hover,
+body.theme-rosewood .auth_modals .btn-purple:hover {
+    background: var(--rosewood-rose) !important;
+    border-color: var(--rosewood-rose) !important;
+}
+
+/* ---------- landing page (index.blade.php's Register/Login card + the age-gate modal) ----------
+   This page doesn't extend layouts/layout.blade.php - it never loaded any theme CSS at all
+   until index.blade.php was updated alongside this to include it, so it was stuck looking
+   like classic (plain white card, default Bootstrap modal) regardless of the active theme.
+   Same token-based treatment as the .auth_modals block above, applied to this page's own
+   differently-structured (side-tab, not popup) register/login card. */
+body.theme-rosewood .registration-login-form {
+    background: var(--rosewood-surface) !important;
+    border: 1px solid var(--rosewood-line);
+    border-radius: 4px;
+    box-shadow: 0 25px 70px -15px rgba(43, 30, 34, 0.5);
+}
+body.theme-rosewood .registration-login-form .nav-link {
+    background: var(--rosewood-bg) !important;
+    border-color: var(--rosewood-line) !important;
+    color: var(--rosewood-text-mute) !important;
+    fill: var(--rosewood-text-mute) !important;
+}
+body.theme-rosewood .registration-login-form .nav-link.active {
+    background: var(--rosewood-surface) !important;
+    color: var(--rosewood-rose) !important;
+    fill: var(--rosewood-rose) !important;
+}
+body.theme-rosewood .registration-login-form .title {
+    font-family: var(--rosewood-display);
+    color: var(--rosewood-text) !important;
+    background: var(--rosewood-surface) !important;
+    border-color: var(--rosewood-line) !important;
+}
+body.theme-rosewood .registration-login-form .form-control {
+    background: var(--rosewood-bg) !important;
+    border: 1px solid var(--rosewood-line) !important;
+    border-radius: 4px;
+    color: var(--rosewood-text) !important;
+}
+body.theme-rosewood .registration-login-form label.control-label {
+    color: var(--rosewood-text-mute) !important;
+}
+body.theme-rosewood .registration-login-form .form-group.is-focused label.control-label,
+body.theme-rosewood .registration-login-form .form-group.label-floating:not(.is-empty) label.control-label {
+    color: var(--rosewood-gold-bright) !important;
+}
+body.theme-rosewood .registration-login-form .checkbox label,
+body.theme-rosewood .registration-login-form .remember,
+body.theme-rosewood .registration-login-form p {
+    color: var(--rosewood-text-dim) !important;
+}
+body.theme-rosewood .registration-login-form a {
+    color: var(--rosewood-rose) !important;
+}
+body.theme-rosewood .registration-login-form a:hover {
+    color: var(--rosewood-rose-bright) !important;
+}
+body.theme-rosewood .registration-login-form .or {
+    background-color: var(--rosewood-line);
+}
+body.theme-rosewood .registration-login-form .or:after {
+    background-color: var(--rosewood-surface);
+    color: var(--rosewood-text-mute);
+    letter-spacing: .08em;
+}
+body.theme-rosewood .registration-login-form .btn-primary,
+body.theme-rosewood .registration-login-form .btn-purple {
+    background: var(--rosewood-ink) !important;
+    border: 1px solid var(--rosewood-gold) !important;
+    color: #fff !important;
+    font-family: var(--rosewood-mono);
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    font-size: 13px;
+}
+body.theme-rosewood .registration-login-form .btn-primary:hover,
+body.theme-rosewood .registration-login-form .btn-purple:hover {
+    background: var(--rosewood-rose) !important;
+    border-color: var(--rosewood-rose) !important;
+}
+body.theme-rosewood #adultAlertModal .modal-content {
+    background: var(--rosewood-surface) !important;
+    border: 1px solid var(--rosewood-line);
+    border-radius: 4px;
+    color: var(--rosewood-text);
+    font-family: var(--rosewood-body);
+}
+body.theme-rosewood #adultAlertModal h3 {
+    font-family: var(--rosewood-display);
+    color: var(--rosewood-text) !important;
+}
+body.theme-rosewood #adultAlertModal p {
+    color: var(--rosewood-text-dim) !important;
+}
+body.theme-rosewood #adultAlertModal .close {
+    color: var(--rosewood-text-mute) !important;
+}
+body.theme-rosewood #adultAlertModal .form-control {
+    background: transparent !important;
+    border: none !important;
+}
+body.theme-rosewood #adultAlertModal #adult {
+    background: var(--rosewood-ink) !important;
+    border: 1px solid var(--rosewood-gold) !important;
+    color: #fff !important;
+}
+body.theme-rosewood #adultAlertModal #exit {
+    background: var(--rosewood-rose) !important;
+    border: 1px solid var(--rosewood-rose) !important;
+    color: #fff !important;
+}
+
+/* ---------- "Continue with Google" button (components/google-auth-button.blade.php) ----------
+   Google's brand guidelines require the multicolour "G" mark to stay exactly as-is (never
+   recoloured) and the button to keep enough contrast to read clearly - both still true here.
+   What's free to restyle is the button chrome around it, so it reads as part of this theme
+   instead of a flat white Bootstrap-default box dropped into a themed card. */
+body.theme-rosewood .btn-google {
+    background: var(--rosewood-surface) !important;
+    border: 1px solid var(--rosewood-line) !important;
+    color: var(--rosewood-text) !important;
+}
+body.theme-rosewood .btn-google:hover {
+    background: var(--rosewood-bg) !important;
+    border-color: var(--rosewood-gold) !important;
 }

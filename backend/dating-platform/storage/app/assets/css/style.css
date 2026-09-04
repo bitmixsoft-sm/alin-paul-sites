@@ -1970,6 +1970,10 @@ ul.online-users-list{height: 200px; overflow-y: auto}
 }
 
 
+/* z-index needed since chat.blade.php gives .popup-chat .mCustomScrollbar its own
+   stacking context (z-index: 0, added for the real-ai background photo layer). Without
+   this, that later-in-DOM message list paints over this call iframe instead of the call
+   taking over the popup - the call still connects, but shows behind the normal chat view. */
 .ubgvideo iframe{
     min-width: 100%;
     min-height: 100%;
@@ -1978,19 +1982,33 @@ ul.online-users-list{height: 200px; overflow-y: auto}
     transform: translateX(-50%) translateY(-50%);
     position: absolute;
     padding: 45px 0;
+    z-index: 1;
 }
 
-.popup-chat .ui-block-title{z-index: 1;}
+/* position: relative is required for z-index to have any effect here - without it this
+   rule was a no-op, so the header (incl. the hang-up/mute/video-controls buttons) painted
+   below the positioned .ubgvideo iframe once that got its own z-index, making the whole
+   header unclickable during a call. Kept above the call iframe (z-index: 1) so the header
+   controls stay usable while a call is taking over the rest of the popup. */
+.popup-chat .ui-block-title{position: relative; z-index: 2;}
+
+/* Same fix as .ui-block-title above, for the message textarea + send button: the
+   non-full-screen .chatform has no position of its own, so it also painted below the
+   positioned .ubgvideo call iframe and was unclickable while a call was active. */
+.popup-chat .chatform{position: relative; z-index: 2;}
 
 /* .popup-chat video is absolutely positioned to cover the whole popup (see rule above) —
    without their own stacking context, the admin account-switcher / AI toggle / language
    controls between the header and .ubgvideo would render underneath it whenever the
-   profile has an uploaded background video, becoming invisible and unclickable. */
+   profile has an uploaded background video, becoming invisible and unclickable.
+   z-index: 2 (not the video's own 1) - these appear before .ubgvideo in the DOM, so at
+   equal z-index the later .ubgvideo iframe would win the tie and cover them too, same
+   as it did to .ui-block-title/.chatform above before those were bumped to 2. */
 .popup-chat #admin_account,
 .popup-chat #ai-pause-toggle,
 .popup-chat .row.m-0 {
     position: relative;
-    z-index: 1;
+    z-index: 2;
 }
 
 /* Admin chat-header dropdown: visually distinguishes a managed account's conversation

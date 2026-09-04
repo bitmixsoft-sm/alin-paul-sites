@@ -11,6 +11,7 @@
         "php": "^8.2 || ^8.5",
         "google/cloud-translate": "^1.21",
         "laravel/framework": "^13.0",
+        "laravel/socialite": "^5.31",
         "laravel/ui": "^4.6",
         "livewire/livewire": "dev-main",
         "paypal/paypal-checkout-sdk": "^1.0",

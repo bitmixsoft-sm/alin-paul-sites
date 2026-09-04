@@ -30,6 +30,50 @@
     <link rel="stylesheet" type="text/css" href="/css/fonts.min.css">
 
     @php
+        // This page doesn't extend layouts/layout.blade.php (it's the pre-login landing
+        // page, standalone), so it never picked up the theme system that page wires up -
+        // the site-wide theme selection (see AdminThemeController / admin/themes.blade.php)
+        // had no effect here, leaving this the one page still stuck looking like classic
+        // regardless of which theme is active. Mirrors layouts/layout.blade.php's own
+        // activeTheme/font-link/theme-css block so this page gets the same treatment.
+        $activeTheme = \App\Support\ActiveTheme::current();
+    @endphp
+    @if($activeTheme !== 'classic')
+        @if($activeTheme === 'aurora')
+            <link rel="preconnect" href="https://fonts.googleapis.com">
+            <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+            <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+        @elseif($activeTheme === 'nordic')
+            <link rel="preconnect" href="https://fonts.googleapis.com">
+            <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+        @elseif($activeTheme === 'volt')
+            <link rel="preconnect" href="https://fonts.googleapis.com">
+            <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+            <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+        @elseif($activeTheme === 'velvet')
+            <link rel="preconnect" href="https://fonts.googleapis.com">
+            <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+            <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600;1,700&family=Jost:wght@400;500;600;700&display=swap" rel="stylesheet">
+        @elseif($activeTheme === 'bloom')
+            <link rel="preconnect" href="https://fonts.googleapis.com">
+            <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+            <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Karla:wght@400;500;600;700&family=Red+Hat+Mono&display=swap" rel="stylesheet">
+        @elseif($activeTheme === 'binder')
+            <link rel="preconnect" href="https://fonts.googleapis.com">
+            <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+            <link href="https://fonts.googleapis.com/css2?family=Bungee&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+        @elseif($activeTheme === 'rosewood')
+            <link rel="preconnect" href="https://fonts.googleapis.com">
+            <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+            <link href="https://fonts.googleapis.com/css2?family=Italiana&family=Jost:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+        @endif
+        {{-- Loaded straight from the site css (no /assets/css/style.css base here, this page
+             never had one) - these theme files are self-contained (own :root tokens, all
+             rules scoped under body.theme-X) so they don't depend on that file being present. --}}
+        <link rel="stylesheet" type="text/css" href="/assets/css/themes/{{ $activeTheme }}.css?ver={{ is_file(storage_path('app/assets/css/themes/' . $activeTheme . '.css')) ? filemtime(storage_path('app/assets/css/themes/' . $activeTheme . '.css')) : '1' }}">
+    @endif
+
+    @php
         $main_color = App\Settings::where('id', 1)->firstOrFail();
         $main_color_rgb = App\Settings::where('id', 5)->firstOrFail();
         $hover_color = App\Settings::where('id', 2)->firstOrFail();
@@ -48,12 +92,29 @@
             background-repeat: no-repeat;
             background-size: cover;
         }
+        /* Same look as #theme-toggler in storage/app/assets/css/style.css (which this page
+           doesn't load), positioned for this page's own transparent, white-text header. */
+        .theme-toggler-landing {
+            float: right;
+            margin-top: 18px;
+            margin-left: 24px;
+            font-size: 22px;
+            line-height: 1;
+            color: #fff;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .theme-toggler-landing:hover {
+            opacity: .8;
+        }
     </style>
+
+    <link id="dark-theme-style" rel="stylesheet" />
 
 
 </head>
 
-<body class="landing-page">
+<body class="landing-page theme-{{ $activeTheme }}">
 
 
 <!-- Preloader -->
@@ -109,6 +170,16 @@
                     <div class="sub-title">Get in touch with people</div>
                 </div>
             </a>
+
+            {{-- Light/dark MODE switch (not the theme picker - that's admin-only). Shares the
+                 same storage/app/assets/js/theme-selector.js and localStorage key every other
+                 page uses, so a preference set here or elsewhere on the site stays in sync.
+                 #theme-toggler-m is a hidden stub, not a real mobile control - the script
+                 unconditionally writes to both ids (that's how the header/header-responsive
+                 split works elsewhere) and throws if either is missing, which would silently
+                 break the toggle entirely on this page. --}}
+            <a href="#" id="theme-toggler" class="theme-toggler-landing" onclick="toggleTheme(); return false;" title="{{ l('Toggle dark/light mode') }}"></a>
+            <a href="#" id="theme-toggler-m" style="display:none;" onclick="toggleTheme(); return false;"></a>
         </div>
     </div>
 </div>
@@ -132,7 +203,31 @@
                 // is that only the registration form ever submits 'firstname'.
                 $loginTabActive = $errors->any() && session()->hasOldInput('email') && ! session()->hasOldInput('firstname');
             @endphp
-            <div class="registration-login-form">
+            <div class="registration-login-form @if(config('services.unified_login.enabled')) unified @endif">
+@php
+$pages = App\CMS::select('name', 'route')->where('lang', session('lang'))->get();
+if(!$pages->count())
+{
+    $pages = App\CMS::select('name', 'route')->get();
+}
+@endphp
+            @if(config('services.unified_login.enabled'))
+                {{-- No tabs to pick between - a single email decides login vs. register for
+                     the visitor. Keeps the same footer links (Find Friends, CMS pages) the old
+                     Register tab had, just no longer duplicated per-tab. --}}
+                <div class="title h6">{{ l('Sign in or sign up') }}</div>
+                <div class="content">
+                    @include('components.unified-auth-form', ['unifiedAuthId' => 'unified-auth-landing', 'showForgotPassword' => true])
+                    <p class="text-center"><a href="/find-friends">{{l("Find Friends")}}</a></p>
+                    @if($pages->count())
+                    <p class="text-center pt-3">
+                        @foreach($pages as $page)
+                            <span class="px-2"><a href="/pages/{{$page->route}}">{{l($page->name)}}</a></span>
+                        @endforeach
+                    </p>
+                    @endif
+                </div>
+            @else
                 <!-- Nav tabs -->
                 <ul class="nav nav-tabs" role="tablist">
                     <li class="nav-item">
@@ -148,18 +243,12 @@
                         </a>
                     </li>
                 </ul>
-@php
-$pages = App\CMS::select('name', 'route')->where('lang', session('lang'))->get();
-if(!$pages->count())
-{
-    $pages = App\CMS::select('name', 'route')->get();
-}
-@endphp
                 <!-- Tab panes -->
                 <div class="tab-content">
                     <div class="tab-pane {{ $loginTabActive ? '' : 'active' }}" id="home" role="tabpanel" data-mh="log-tab">
                         <div class="title h6">{{l("Register to")}} {{config('app.name')}}</div>
                         <form class="content" method="POST" action="{{ route('register') }}">
+                        @include('components.google-auth-button')
                         @csrf
                             <div class="row">
                                 <div class="col col-12 col-xl-6 col-lg-6 col-md-6 col-sm-12">
@@ -232,6 +321,7 @@ if(!$pages->count())
                     <div class="tab-pane {{ $loginTabActive ? 'active' : '' }}" id="profile" role="tabpanel" data-mh="log-tab">
                         <div class="title h6">{{l("Login to your Account")}}</div>
                         <form class="content" method="POST" action="{{ route('login') }}">
+                            @include('components.google-auth-button')
                             @csrf
                             <div class="row">
                                 <div class="col col-12 col-xl-12 col-lg-12 col-md-12 col-sm-12">
@@ -274,6 +364,7 @@ if(!$pages->count())
                         </form>
                     </div>
                 </div>
+            @endif
             </div>
 
             <!-- ... end Login-Registration Form  -->       </div>
@@ -403,6 +494,10 @@ if(!$pages->count())
 
 <script src="/js/dating.js"></script>
 <script src="/js/fb-tracking.js"></script>
+<script src="/assets/js/theme-selector.js"></script>
+@if(config('services.unified_login.enabled'))
+    <script src="/js/unified-auth-form.js"></script>
+@endif
 
 <script type="text/javascript">
     @isset($token)

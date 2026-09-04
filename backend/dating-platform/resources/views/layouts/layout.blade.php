@@ -313,6 +313,10 @@ ttq.track('CompletePayment', {
                     </div>
 
                     <div class="modal-body">
+                    @if(config('services.unified_login.enabled'))
+                        @include('components.unified-auth-form', ['unifiedAuthId' => 'unified-auth-login-modal'])
+                    @else
+                        @include('components.google-auth-button')
                         <form class="form" method="POST" action="{{ route('login') }}">
                             @csrf
                             <div class="row">
@@ -351,6 +355,7 @@ ttq.track('CompletePayment', {
                                 </div>
                             </div>
                         </form>
+                    @endif
                     </div>
                 </div>
   </div>
@@ -377,6 +382,10 @@ ttq.track('CompletePayment', {
                     </div>
 
                     <div class="modal-body">
+                    @if(config('services.unified_login.enabled'))
+                        @include('components.unified-auth-form', ['unifiedAuthId' => 'unified-auth-register-modal'])
+                    @else
+                        @include('components.google-auth-button')
                         <form class="form" method="POST" action="{{ route('register') }}">
                         @csrf
                             <div class="row">
@@ -436,6 +445,7 @@ ttq.track('CompletePayment', {
                                 </div>
                             </div>
                         </form>
+                    @endif
                     </div>
                 </div>
   </div>
@@ -543,6 +553,9 @@ ttq.track('CompletePayment', {
 
 @endauth
 <script src="/assets/js/theme-selector.js"></script>
+@if(config('services.unified_login.enabled'))
+    <script src="/js/unified-auth-form.js"></script>
+@endif
 
 @php
     /*

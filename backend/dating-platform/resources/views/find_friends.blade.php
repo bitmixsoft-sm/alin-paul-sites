@@ -446,6 +446,10 @@
         }
 
         window.ai_chat_open = function (profileId, name, imageUrl) {
+            // Same fix as chat_open() in dating.js - the "Chat" button that triggers this
+            // carries a Bootstrap tooltip ("Start chatting") that doesn't auto-hide on click
+            // (no mouseleave fires), leaving it floating over the chat popup that just opened.
+            $('.tooltip').remove();
             var dataId = 'ai-' + profileId;
             var existing = document.querySelector('.chats .popup-chat[data-id="' + dataId + '"]');
             if (existing) {

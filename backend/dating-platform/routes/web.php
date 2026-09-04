@@ -18,6 +18,11 @@ Route::get('/', 'IndexController@index')->name('index');
 
 Auth::routes();
 
+Route::get('/auth/google/redirect', 'Auth\GoogleController@redirect')->name('google.redirect');
+Route::get('/auth/google/callback', 'Auth\GoogleController@callback')->name('google.callback');
+
+Route::post('/auth/check-email', 'Auth\EmailCheckController@check')->name('auth.check_email');
+
 Route::get('/profile', 'ProfileController@index')->name('profile')->middleware('auth');
 
 Route::post('/fast-register', 'AutoRegisterController@fastregister')->name('fast_register');

@@ -288,7 +288,11 @@ body.theme-binder .search-bar .form-group {
         position: absolute !important;
         top: 100%;
         left: 12px;
-        right: 12px;
+        /* 12px + the 70px .fixed-sidebar-right always occupies on this edge (see
+           the .header-content-wrapper padding-right comment below) - stopping short
+           of it instead of running underneath keeps the dropdown out from under the
+           sidebar entirely. */
+        right: 82px;
         margin-top: 8px;
         background: var(--binder-bg-2) !important;
         border: 1px solid var(--binder-line);
@@ -429,6 +433,50 @@ body.theme-binder .control-block {
     margin-left: auto;
 }
 @media screen and (max-width: 767px) {
+    /* main.css hides .form--login-logout .btn (the logged-out Register/Login buttons in
+       components/header/profile-header.blade.php - the ONLY login/register entry point left
+       once a theme hides the native mobile header below) at <=580px, on the assumption that
+       header-responsive.blade.php's OWN separate #site-header-responsive .top_auth_mobile
+       block (a different pair of buttons) takes over on mobile instead. This theme
+       unconditionally hides that whole component (see .header-responsive,
+       #site-header-responsive above) without providing any other way to log in/register on
+       mobile - so under 580px, logged-out visitors had literally no visible way in. Forcing
+       these back to visible, and compact enough to sit in the icon row below instead of
+       their native full-width own-row layout, is the fix - not a cosmetic change. */
+    body.theme-binder .form--login-logout {
+        width: auto !important;
+        margin-right: 0 !important;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        flex: 0 0 auto;
+    }
+    body.theme-binder .form--login-logout .btn {
+        display: inline-block !important;
+        padding: 5px 8px !important;
+        font-size: 9px !important;
+        letter-spacing: normal !important;
+        white-space: nowrap;
+    }
+    body.theme-binder .top_auth_spacer {
+        margin: 0 2px !important;
+        font-size: 9px;
+    }
+    /* Every other item in this row (search circle, hamburger, theme toggle) is a fixed,
+       already-tiny icon size - the 16px gap between them (see .header-content-wrapper above)
+       was designed for the roomier desktop nav this row also carries there, and on a narrow
+       phone it alone eats more width than the icons themselves, which is why the buttons
+       above still didn't fit next to the icons even once shrunk. Tightening it recovers that
+       space. flex-wrap stays a fallback (instead of nowrap, see rule above) for screens where
+       the row still doesn't fit even now - moves .control-block onto its own row instead of
+       overflowing off-screen. padding-right reserves the width .fixed-sidebar-right always
+       occupies on this edge (top: 0, right: 0, width: 70px collapsed, at every width incl.
+       mobile) so nothing here ends up sitting underneath it. */
+    body.theme-binder .header-content-wrapper {
+        gap: 8px;
+        flex-wrap: wrap !important;
+        padding-right: 70px;
+    }
     body.theme-binder .control-block {
         display: flex !important;
         flex-wrap: wrap;
@@ -1730,4 +1778,202 @@ body.theme-binder #livefeed_close {
 body.theme-binder #livefeed_close:hover {
     background: var(--binder-pink) !important;
     color: #fff !important;
+}
+
+/* ---------- auth modals (Register / Login / Complete profile) ----------
+   Previously completely unthemed - the generic dark-mode stylesheet's unconditional
+   .modal-content{background:#000} (only .modal-content it touches) plus stock white
+   .form-control inputs, so it looked like a broken, off-brand dialog no matter which theme
+   was active. Uses the same surface/text/line tokens as the rest of this theme so it reads
+   as part of it, not a bolted-on default Bootstrap form. */
+body.theme-binder .auth_modals .modal-content {
+    background: var(--binder-surface) !important;
+    border: 1px solid var(--binder-line-strong);
+    border-radius: 16px;
+    box-shadow: 0 25px 70px -15px rgba(0, 0, 0, 0.7);
+    color: var(--binder-text);
+    font-family: var(--binder-body);
+    padding: 30px 26px;
+}
+body.theme-binder .auth_modals .modal-header {
+    border: none;
+    padding: 0 0 18px;
+}
+body.theme-binder .auth_modals .modal-header .title {
+    font-family: var(--binder-display);
+    color: var(--binder-text);
+    font-size: 20px;
+    letter-spacing: .02em;
+}
+body.theme-binder .auth_modals .icon-close,
+body.theme-binder .auth_modals .icon-close:hover {
+    color: var(--binder-pink) !important;
+    fill: var(--binder-pink) !important;
+}
+body.theme-binder .auth_modals .form-control {
+    background: var(--binder-bg) !important;
+    border: 1px solid var(--binder-line) !important;
+    border-radius: 10px;
+    color: var(--binder-text) !important;
+}
+body.theme-binder .auth_modals .form-group label.control-label {
+    color: var(--binder-text-mute);
+}
+body.theme-binder .auth_modals .form-group.is-focused label.control-label,
+body.theme-binder .auth_modals .form-group.label-floating:not(.is-empty) label.control-label {
+    color: var(--binder-pink-bright);
+}
+body.theme-binder .auth_modals .checkbox label,
+body.theme-binder .auth_modals .remember,
+body.theme-binder .auth_modals p {
+    color: var(--binder-text-dim);
+}
+body.theme-binder .auth_modals .checkbox .checkbox-material .check {
+    border-color: var(--binder-line-strong);
+}
+body.theme-binder .auth_modals a {
+    color: var(--binder-pink);
+}
+body.theme-binder .auth_modals a:hover {
+    color: var(--binder-yellow);
+}
+body.theme-binder .auth_modals .or {
+    background-color: var(--binder-line-strong);
+}
+body.theme-binder .auth_modals .or:after {
+    background-color: var(--binder-surface);
+    color: var(--binder-text-mute);
+    letter-spacing: .08em;
+}
+body.theme-binder .auth_modals .btn-primary,
+body.theme-binder .auth_modals .btn-purple {
+    background: linear-gradient(120deg, var(--binder-pink), var(--binder-yellow-bright)) !important;
+    border: none !important;
+    color: #1a1424 !important;
+    font-family: var(--binder-display);
+    letter-spacing: .02em;
+}
+body.theme-binder .auth_modals .btn-primary:hover,
+body.theme-binder .auth_modals .btn-purple:hover {
+    filter: brightness(1.1);
+}
+
+/* ---------- landing page (index.blade.php's Register/Login card + the age-gate modal) ----------
+   This page doesn't extend layouts/layout.blade.php - it never loaded any theme CSS at all
+   until index.blade.php was updated alongside this to include it, so it was stuck looking
+   like classic (plain white card, default Bootstrap modal) regardless of the active theme.
+   Same token-based treatment as the .auth_modals block above, applied to this page's own
+   differently-structured (side-tab, not popup) register/login card. */
+body.theme-binder .registration-login-form {
+    background: var(--binder-surface) !important;
+    border: 1px solid var(--binder-line-strong);
+    border-radius: 16px;
+    box-shadow: 0 25px 70px -15px rgba(0, 0, 0, 0.7);
+}
+body.theme-binder .registration-login-form .nav-link {
+    background: var(--binder-bg) !important;
+    border-color: var(--binder-line) !important;
+    color: var(--binder-text-mute) !important;
+    fill: var(--binder-text-mute) !important;
+}
+body.theme-binder .registration-login-form .nav-link.active {
+    background: var(--binder-surface) !important;
+    color: var(--binder-pink) !important;
+    fill: var(--binder-pink) !important;
+}
+body.theme-binder .registration-login-form .title {
+    font-family: var(--binder-display);
+    color: var(--binder-text) !important;
+    background: var(--binder-surface) !important;
+    border-color: var(--binder-line) !important;
+}
+body.theme-binder .registration-login-form .form-control {
+    background: var(--binder-bg) !important;
+    border: 1px solid var(--binder-line) !important;
+    border-radius: 10px;
+    color: var(--binder-text) !important;
+}
+body.theme-binder .registration-login-form label.control-label {
+    color: var(--binder-text-mute) !important;
+}
+body.theme-binder .registration-login-form .form-group.is-focused label.control-label,
+body.theme-binder .registration-login-form .form-group.label-floating:not(.is-empty) label.control-label {
+    color: var(--binder-pink-bright) !important;
+}
+body.theme-binder .registration-login-form .checkbox label,
+body.theme-binder .registration-login-form .remember,
+body.theme-binder .registration-login-form p {
+    color: var(--binder-text-dim) !important;
+}
+body.theme-binder .registration-login-form a {
+    color: var(--binder-pink) !important;
+}
+body.theme-binder .registration-login-form a:hover {
+    color: var(--binder-yellow) !important;
+}
+body.theme-binder .registration-login-form .or {
+    background-color: var(--binder-line-strong);
+}
+body.theme-binder .registration-login-form .or:after {
+    background-color: var(--binder-surface);
+    color: var(--binder-text-mute);
+    letter-spacing: .08em;
+}
+body.theme-binder .registration-login-form .btn-primary,
+body.theme-binder .registration-login-form .btn-purple {
+    background: linear-gradient(120deg, var(--binder-pink), var(--binder-yellow-bright)) !important;
+    border: none !important;
+    color: #1a1424 !important;
+    font-family: var(--binder-display);
+    letter-spacing: .02em;
+}
+body.theme-binder .registration-login-form .btn-primary:hover,
+body.theme-binder .registration-login-form .btn-purple:hover {
+    filter: brightness(1.1);
+}
+body.theme-binder #adultAlertModal .modal-content {
+    background: var(--binder-surface) !important;
+    border: 1px solid var(--binder-line-strong);
+    border-radius: 16px;
+    color: var(--binder-text);
+    font-family: var(--binder-body);
+}
+body.theme-binder #adultAlertModal h3 {
+    font-family: var(--binder-display);
+    color: var(--binder-text) !important;
+}
+body.theme-binder #adultAlertModal p {
+    color: var(--binder-text-dim) !important;
+}
+body.theme-binder #adultAlertModal .close {
+    color: var(--binder-text-mute) !important;
+}
+body.theme-binder #adultAlertModal .form-control {
+    background: transparent !important;
+    border: none !important;
+}
+body.theme-binder #adultAlertModal #adult {
+    background: linear-gradient(120deg, var(--binder-pink), var(--binder-yellow-bright)) !important;
+    border: none !important;
+    color: #1a1424 !important;
+}
+body.theme-binder #adultAlertModal #exit {
+    background: var(--binder-surface-2) !important;
+    border: 1px solid var(--binder-line-strong) !important;
+    color: var(--binder-text) !important;
+}
+
+/* ---------- "Continue with Google" button (components/google-auth-button.blade.php) ----------
+   Google's brand guidelines require the multicolour "G" mark to stay exactly as-is (never
+   recoloured) and the button to keep enough contrast to read clearly - both still true here.
+   What's free to restyle is the button chrome around it, so it reads as part of this theme
+   instead of a flat white Bootstrap-default box dropped into a themed card. */
+body.theme-binder .btn-google {
+    background: var(--binder-surface) !important;
+    border: 1px solid var(--binder-line-strong) !important;
+    color: var(--binder-text) !important;
+}
+body.theme-binder .btn-google:hover {
+    background: var(--binder-surface-2) !important;
+    border-color: var(--binder-pink) !important;
 }

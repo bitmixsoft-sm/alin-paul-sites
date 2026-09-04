@@ -285,7 +285,11 @@ body.theme-volt .search-bar .form-group {
         position: absolute !important;
         top: 100%;
         left: 12px;
-        right: 12px;
+        /* 12px + the 70px .fixed-sidebar-right always occupies on this edge (see
+           the .header-content-wrapper padding-right comment below) - stopping short
+           of it instead of running underneath keeps the dropdown out from under the
+           sidebar entirely. */
+        right: 82px;
         margin-top: 8px;
         background: var(--volt-bg-2) !important;
         border: 2px solid var(--volt-line-strong);
@@ -421,6 +425,50 @@ body.theme-volt .control-block {
     margin-left: auto;
 }
 @media screen and (max-width: 767px) {
+    /* main.css hides .form--login-logout .btn (the logged-out Register/Login buttons in
+       components/header/profile-header.blade.php - the ONLY login/register entry point left
+       once a theme hides the native mobile header below) at <=580px, on the assumption that
+       header-responsive.blade.php's OWN separate #site-header-responsive .top_auth_mobile
+       block (a different pair of buttons) takes over on mobile instead. This theme
+       unconditionally hides that whole component (see .header-responsive,
+       #site-header-responsive above) without providing any other way to log in/register on
+       mobile - so under 580px, logged-out visitors had literally no visible way in. Forcing
+       these back to visible, and compact enough to sit in the icon row below instead of
+       their native full-width own-row layout, is the fix - not a cosmetic change. */
+    body.theme-volt .form--login-logout {
+        width: auto !important;
+        margin-right: 0 !important;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        flex: 0 0 auto;
+    }
+    body.theme-volt .form--login-logout .btn {
+        display: inline-block !important;
+        padding: 5px 8px !important;
+        font-size: 9px !important;
+        letter-spacing: normal !important;
+        white-space: nowrap;
+    }
+    body.theme-volt .top_auth_spacer {
+        margin: 0 2px !important;
+        font-size: 9px;
+    }
+    /* Every other item in this row (search circle, hamburger, theme toggle) is a fixed,
+       already-tiny icon size - the 16px gap between them (see .header-content-wrapper above)
+       was designed for the roomier desktop nav this row also carries there, and on a narrow
+       phone it alone eats more width than the icons themselves, which is why the buttons
+       above still didn't fit next to the icons even once shrunk. Tightening it recovers that
+       space. flex-wrap stays a fallback (instead of nowrap, see rule above) for screens where
+       the row still doesn't fit even now - moves .control-block onto its own row instead of
+       overflowing off-screen. padding-right reserves the width .fixed-sidebar-right always
+       occupies on this edge (top: 0, right: 0, width: 70px collapsed, at every width incl.
+       mobile) so nothing here ends up sitting underneath it. */
+    body.theme-volt .header-content-wrapper {
+        gap: 8px;
+        flex-wrap: wrap !important;
+        padding-right: 70px;
+    }
     body.theme-volt .control-block {
         display: flex !important;
         flex-wrap: wrap;
@@ -1473,4 +1521,214 @@ body.theme-volt #livefeed_close {
 body.theme-volt #livefeed_close:hover {
     background: var(--volt-pink) !important;
     color: #000 !important;
+}
+
+/* ---------- auth modals (Register / Login / Complete profile) ----------
+   Previously completely unthemed - the generic dark-mode stylesheet's unconditional
+   .modal-content{background:#000} (only .modal-content it touches) plus stock white
+   .form-control inputs, so it looked like a broken, off-brand dialog no matter which theme
+   was active. Uses the same surface/text/line tokens (and the thicker 2px borders this theme
+   uses elsewhere, e.g. #livefeed_container above) so it reads as part of it. */
+body.theme-volt .auth_modals .modal-content {
+    background: var(--volt-surface) !important;
+    border: 2px solid var(--volt-line-strong);
+    border-radius: 6px;
+    box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.8);
+    color: var(--volt-text);
+    font-family: var(--volt-body);
+    padding: 30px 26px;
+}
+body.theme-volt .auth_modals .modal-header {
+    border: none;
+    padding: 0 0 18px;
+}
+body.theme-volt .auth_modals .modal-header .title {
+    font-family: var(--volt-display);
+    color: var(--volt-text);
+    font-size: 20px;
+    letter-spacing: .02em;
+    text-transform: uppercase;
+}
+body.theme-volt .auth_modals .icon-close,
+body.theme-volt .auth_modals .icon-close:hover {
+    color: var(--volt-lime) !important;
+    fill: var(--volt-lime) !important;
+}
+body.theme-volt .auth_modals .form-control {
+    background: var(--volt-bg) !important;
+    border: 2px solid var(--volt-line) !important;
+    border-radius: 4px;
+    color: var(--volt-text) !important;
+}
+body.theme-volt .auth_modals .form-group label.control-label {
+    color: var(--volt-text-mute);
+}
+body.theme-volt .auth_modals .form-group.is-focused label.control-label,
+body.theme-volt .auth_modals .form-group.label-floating:not(.is-empty) label.control-label {
+    color: var(--volt-lime);
+}
+body.theme-volt .auth_modals .checkbox label,
+body.theme-volt .auth_modals .remember,
+body.theme-volt .auth_modals p {
+    color: var(--volt-text-dim);
+}
+body.theme-volt .auth_modals .checkbox .checkbox-material .check {
+    border-color: var(--volt-line-strong);
+}
+body.theme-volt .auth_modals a {
+    color: var(--volt-lime);
+}
+body.theme-volt .auth_modals a:hover {
+    color: var(--volt-pink);
+}
+body.theme-volt .auth_modals .or {
+    background-color: var(--volt-line-strong);
+}
+body.theme-volt .auth_modals .or:after {
+    background-color: var(--volt-surface);
+    color: var(--volt-text-mute);
+    letter-spacing: .08em;
+}
+body.theme-volt .auth_modals .btn-primary,
+body.theme-volt .auth_modals .btn-purple {
+    background: var(--volt-lime) !important;
+    border: 2px solid var(--volt-lime) !important;
+    color: #0A0A0A !important;
+    font-family: var(--volt-display);
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    font-weight: 700;
+}
+body.theme-volt .auth_modals .btn-primary:hover,
+body.theme-volt .auth_modals .btn-purple:hover {
+    background: var(--volt-pink) !important;
+    border-color: var(--volt-pink) !important;
+    color: #fff !important;
+}
+
+/* ---------- landing page (index.blade.php's Register/Login card + the age-gate modal) ----------
+   This page doesn't extend layouts/layout.blade.php - it never loaded any theme CSS at all
+   until index.blade.php was updated alongside this to include it, so it was stuck looking
+   like classic (plain white card, default Bootstrap modal) regardless of the active theme.
+   Same token-based treatment as the .auth_modals block above (2px borders, matching this
+   theme's edgier look elsewhere), applied to this page's own differently-structured
+   (side-tab, not popup) register/login card. */
+body.theme-volt .registration-login-form {
+    background: var(--volt-surface) !important;
+    border: 2px solid var(--volt-line-strong);
+    border-radius: 6px;
+    box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.8);
+}
+body.theme-volt .registration-login-form .nav-link {
+    background: var(--volt-bg) !important;
+    border-color: var(--volt-line) !important;
+    color: var(--volt-text-mute) !important;
+    fill: var(--volt-text-mute) !important;
+}
+body.theme-volt .registration-login-form .nav-link.active {
+    background: var(--volt-surface) !important;
+    color: var(--volt-lime) !important;
+    fill: var(--volt-lime) !important;
+}
+body.theme-volt .registration-login-form .title {
+    font-family: var(--volt-display);
+    color: var(--volt-text) !important;
+    background: var(--volt-surface) !important;
+    border-color: var(--volt-line) !important;
+    text-transform: uppercase;
+}
+body.theme-volt .registration-login-form .form-control {
+    background: var(--volt-bg) !important;
+    border: 2px solid var(--volt-line) !important;
+    border-radius: 4px;
+    color: var(--volt-text) !important;
+}
+body.theme-volt .registration-login-form label.control-label {
+    color: var(--volt-text-mute) !important;
+}
+body.theme-volt .registration-login-form .form-group.is-focused label.control-label,
+body.theme-volt .registration-login-form .form-group.label-floating:not(.is-empty) label.control-label {
+    color: var(--volt-lime) !important;
+}
+body.theme-volt .registration-login-form .checkbox label,
+body.theme-volt .registration-login-form .remember,
+body.theme-volt .registration-login-form p {
+    color: var(--volt-text-dim) !important;
+}
+body.theme-volt .registration-login-form a {
+    color: var(--volt-lime) !important;
+}
+body.theme-volt .registration-login-form a:hover {
+    color: var(--volt-pink) !important;
+}
+body.theme-volt .registration-login-form .or {
+    background-color: var(--volt-line-strong);
+}
+body.theme-volt .registration-login-form .or:after {
+    background-color: var(--volt-surface);
+    color: var(--volt-text-mute);
+    letter-spacing: .08em;
+}
+body.theme-volt .registration-login-form .btn-primary,
+body.theme-volt .registration-login-form .btn-purple {
+    background: var(--volt-lime) !important;
+    border: 2px solid var(--volt-lime) !important;
+    color: #0A0A0A !important;
+    font-family: var(--volt-display);
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    font-weight: 700;
+}
+body.theme-volt .registration-login-form .btn-primary:hover,
+body.theme-volt .registration-login-form .btn-purple:hover {
+    background: var(--volt-pink) !important;
+    border-color: var(--volt-pink) !important;
+    color: #fff !important;
+}
+body.theme-volt #adultAlertModal .modal-content {
+    background: var(--volt-surface) !important;
+    border: 2px solid var(--volt-line-strong);
+    border-radius: 6px;
+    color: var(--volt-text);
+    font-family: var(--volt-body);
+}
+body.theme-volt #adultAlertModal h3 {
+    font-family: var(--volt-display);
+    color: var(--volt-text) !important;
+    text-transform: uppercase;
+}
+body.theme-volt #adultAlertModal p {
+    color: var(--volt-text-dim) !important;
+}
+body.theme-volt #adultAlertModal .close {
+    color: var(--volt-text-mute) !important;
+}
+body.theme-volt #adultAlertModal .form-control {
+    background: transparent !important;
+    border: none !important;
+}
+body.theme-volt #adultAlertModal #adult {
+    background: var(--volt-lime) !important;
+    border: 2px solid var(--volt-lime) !important;
+    color: #0A0A0A !important;
+}
+body.theme-volt #adultAlertModal #exit {
+    background: var(--volt-surface-2) !important;
+    border: 2px solid var(--volt-line-strong) !important;
+    color: var(--volt-text) !important;
+}
+
+/* ---------- "Continue with Google" button (components/google-auth-button.blade.php) ----------
+   Google's brand guidelines require the multicolour "G" mark to stay exactly as-is (never
+   recoloured) and the button to keep enough contrast to read clearly - both still true here.
+   What's free to restyle is the button chrome around it, so it reads as part of this theme
+   instead of a flat white Bootstrap-default box dropped into a themed card. */
+body.theme-volt .btn-google {
+    background: var(--volt-surface) !important;
+    border: 2px solid var(--volt-line-strong) !important;
+    color: var(--volt-text) !important;
+}
+body.theme-volt .btn-google:hover {
+    background: var(--volt-surface-2) !important;
+    border-color: var(--volt-lime) !important;
 }

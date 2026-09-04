@@ -590,6 +590,12 @@ var first_bar = false;
 var messages = new Array();
 var user_reg = 'auth';
 function chat_open(t, e, id = null, from_id = null) {
+    // The "Chat" button that triggers this (find_friends.blade.php) carries a Bootstrap
+    // tooltip ("Start chatting") - clicking it doesn't fire the mouseleave Bootstrap relies
+    // on to auto-hide it, so the tooltip stayed floating on screen (over the chat popup that
+    // just opened underneath it) until the user moved the mouse away. Removing any visible
+    // one here means it's gone the instant a chat window opens, regardless of which trigger.
+    $('.tooltip').remove();
     if ($(window).width() < 768) {
         close_chats();
     }
