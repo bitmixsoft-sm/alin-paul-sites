@@ -1421,6 +1421,18 @@ function send_msg(e, t, btn = false) {
         }
         var text = $(t).val();
         if (text) {
+            // Mirrors extract_emails() in app/Helpers/helpers.php - ChatController@send runs
+            // that same check server-side and (for an autoregister_fake account, within their
+            // first few messages) swaps the account's placeholder email for whatever's found
+            // here. That happens over a separate AJAX call though, so the #complete-register-
+            // form-popup modal - already rendered server-side at page load, before this
+            // message was even sent - has no way to know about it. Remembering it here lets
+            // the 'show.bs.modal' handler below pre-fill that modal's empty Email field with
+            // it instead of making the visitor retype the same address they just sent in chat.
+            var typedEmailMatch = text.match(/[._a-zA-Z0-9-]+@[._a-zA-Z0-9-]+/i);
+            if (typedEmailMatch) {
+                window.lastTypedEmail = typedEmailMatch[0];
+            }
             var from = $(t).attr('data-from');
             if (typeof from !== typeof undefined && from !== false) {
                 var from = $(t).attr('data-from');
@@ -2578,3 +2590,20 @@ function show_hide_messages(t, event) {
         $('.popup-chat[data-id="' + data_id + '"] .notification-list.chat-message').hide();
     }
 }
+
+// See the comment in send_msg() above where window.lastTypedEmail gets set - pre-fills
+// #complete-register-form-popup's Email field (layouts/layout.blade.php) with it, whichever
+// of that modal's 3 separate show triggers (validation error, autoregister_fake's/
+// autoregister's setTimeout) actually opens it, so a visitor who already typed their email in
+// chat doesn't have to type the same address again here. Only touches the field if it's
+// there (autoregister_fake state) and still empty (never overwrites something the visitor's
+// already typed into this modal by hand).
+$(document).on('show.bs.modal', '#complete-register-form-popup', function () {
+    if (!window.lastTypedEmail) {
+        return;
+    }
+    var $email = $(this).find('input[name="email"]');
+    if ($email.length && !$email.val()) {
+        $email.val(window.lastTypedEmail).closest('.form-group').removeClass('is-empty');
+    }
+});
