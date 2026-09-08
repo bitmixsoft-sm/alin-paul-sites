@@ -2607,3 +2607,51 @@ $(document).on('show.bs.modal', '#complete-register-form-popup', function () {
         $email.val(window.lastTypedEmail).closest('.form-group').removeClass('is-empty');
     }
 });
+
+// "Boost your profile" (BoostController@activate) - shared by every spot this can be
+// triggered from (header button, Find Friends banner, Profile Settings section: components/
+// header.blade.php, find_friends.blade.php, profile/profile-info.blade.php respectively).
+// There's only one boost state per user, so on success this updates EVERY instance of
+// .boost-activate-btn/.boost-active-indicator on the page at once, not just the one clicked -
+// e.g. clicking the header button also flips the Find Friends banner if both are visible.
+function activateBoost(btn) {
+    var $btn = $(btn);
+    if ($btn.data('boosting')) {
+        return; // already in flight - .boost-activate-btn is an <a>, not a <button>, so
+                // there's no native `disabled` state to rely on to block a double-click.
+    }
+    $btn.data('boosting', true);
+    var isIconOnly = $btn.hasClass('boost-icon-only');
+    var $err = $btn.closest('.boost-widget').find('.boost-error-msg');
+    $err.hide().text('');
+    $.ajax({
+        url: '/profile/boost',
+        type: 'POST',
+        dataType: 'JSON',
+        data: { _token: $('input[name="_token"]').first().val() },
+        success: function (data) {
+            $('#credits_header').text(data.credits);
+            $('.boost-activate-btn').hide();
+            var untilLabel = 'Boosted until ' + data.boosted_until_human;
+            $('.boost-active-indicator')
+                .show()
+                .attr('title', untilLabel)
+                .find('.boost-until-time').text(data.boosted_until_human);
+        },
+        error: function (xhr) {
+            $btn.data('boosting', false);
+            var message = (xhr.responseJSON && xhr.responseJSON.error === 'not_enough_credits')
+                ? 'Not enough credits.'
+                : 'Something went wrong, please try again.';
+            // The icon-only header button (components/boost-widget.blade.php) has no room for
+            // a persistent error message next to it without disrupting that tight icon row -
+            // a plain alert() is the simplest option there. The other two spots (Profile
+            // Settings, Find Friends banner) have space, so they get the inline message.
+            if (isIconOnly) {
+                alert(message);
+            } else {
+                $err.text(message).show();
+            }
+        }
+    });
+}

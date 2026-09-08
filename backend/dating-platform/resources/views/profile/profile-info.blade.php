@@ -36,6 +36,27 @@
 						<div class="account_info_text"><span>{{l("Subscription Type:")}}</span> @if($user->package()) {{$user->package()->name}} @else {{l("None")}} @endif</div>
 						<div class="account_info_text"><span>{{l("Expiration Date:")}}</span> @if($user->package()) {{$user->package_expire() ? $user->package_expire()->format('d/m/Y H:i') : l('None')}} @else {{l("None")}} @endif</div>
 					</div>
+					{{-- "Boost your profile" (BoostController@activate) - spends credits to rank
+						 higher in Find Friends for a limited time (see FindFriendsController's
+						 boosted_until ordering). Priced/timed via the BOOST_COST_CREDITS /
+						 BOOST_DURATION_MINUTES settings (generic /admin/settings page).
+						 Hidden for admins: this page always edits Auth::user()'s own account,
+						 which for an admin is their own login (not a managed female profile),
+						 and Find Friends only ever shows female profiles to regular users - so
+						 boosting the admin's own account here would never be visible to
+						 anyone, and BoostController itself 403s an admin who hits the route
+						 directly. On/off switch is the BOOST_FEATURE_ENABLED settings-table
+						 row (admin-editable at /admin/settings), not a config/.env value. --}}
+					@if(\App\Settings::where('name', 'BOOST_FEATURE_ENABLED')->value('value') !== 'no')
+					@unless(Auth::user()->isAdmin())
+					<div class="row">
+						<div class="account_info_text">
+							<span>{{l("Boost your profile:")}}</span>
+							@include('components.boost-widget')
+						</div>
+					</div>
+					@endunless
+					@endif
 				</div>
 				<div class="ui-block-title">
 					<h6 class="title">{{l("Personal Information")}}</h6>

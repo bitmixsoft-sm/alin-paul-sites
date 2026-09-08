@@ -102,6 +102,6 @@ www
 backend/7lovestory7
 backend/laravel3
 backend/dating-platform/error_log
-
+backend/.env.example
 
 

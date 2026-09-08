@@ -292,7 +292,13 @@ class AutoRegisterController extends Controller
      */
     public function complete_fake(Request $request)
     {
-        $check_user = User::where('email', $request->email);
+        // Excludes the current user's own row - without this, resubmitting the SAME email
+        // the popup pre-fills (see layouts/layout.blade.php - now defaults to Auth::user()
+        // ->email, which for this account may already be correct, e.g. set separately via
+        // Profile Settings) always matched "itself" and fell through to the "Already exists!"
+        // branch below, silently failing to save the name/password or clear the cookie no
+        // matter how many times they resubmitted with an unchanged, perfectly valid email.
+        $check_user = User::where('email', $request->email)->where('id', '!=', Auth::id());
         if(!$check_user->exists()){
             $user = User::where('id', Auth::id())->firstOrFail();
 

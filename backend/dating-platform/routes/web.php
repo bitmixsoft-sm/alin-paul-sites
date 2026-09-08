@@ -57,6 +57,8 @@ Route::post('/upload-image', 'ProfileController@image')->name('upload-image')->m
 
 Route::post('/save-profile-info', 'ProfileController@update')->name('save-profile-info')->middleware('auth');
 
+Route::post('/profile/boost', 'BoostController@activate')->name('profile_boost')->middleware('auth');
+
 Route::post('/new-album', 'AlbumController@create')->name('new-album')->middleware('auth');
 
 Route::post('/add-album-photo', 'AlbumController@store')->name('add-album-photo')->middleware('auth');

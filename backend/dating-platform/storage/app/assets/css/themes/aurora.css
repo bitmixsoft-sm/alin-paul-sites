@@ -456,16 +456,21 @@ body.theme-aurora .control-block {
     body.theme-aurora .header-content-wrapper {
         gap: 8px;
         flex-wrap: wrap !important;
+        /* padding-right stays reserved for .fixed-sidebar-right (see comment above); padding-
+           left has no such constraint, so it's trimmed from the base rule's 16px - the row was
+           consistently one icon short of fitting on this narrow a screen, and 16px of empty
+           space on the left (visible as a gap before the search icon) was the difference. */
+        padding-left: 4px;
         padding-right: 70px;
     }
+    /* display: contents (not flex) - this removes .control-block's own box entirely, so its
+       remaining visible children (once packages-top/theme-credits-pill/boost-widget below are
+       hidden, that's just the friend-request/chat/notification icons + profile avatar) become
+       direct flex items of .header-content-wrapper itself, flowing into the SAME wrapped row
+       as the search/hamburger/theme-toggle icons above instead of always dropping to a
+       separate row below a hidden Packages pill they used to be jammed against. */
     body.theme-aurora .control-block {
-        display: flex !important;
-        flex-wrap: wrap;
-        align-items: center;
-        justify-content: flex-end;
-        gap: 10px;
-        height: auto !important;
-        padding: 0 !important;
+        display: contents;
     }
     body.theme-aurora .control-block > * {
         flex: 0 0 auto;
@@ -475,8 +480,14 @@ body.theme-aurora .control-block {
        button already shows its own full one further down, and dropping these two frees up
        enough width for the notification/chat/friend-request icon badges (previously squeezed
        off/invisible in this same row) to actually fit and show. */
+    /* .boost-widget (components/boost-widget.blade.php, in the header - see header.blade.php)
+       joins the same hide list below: it's a plain, unwidthed flex item, and on this narrow a
+       row it was overlapping the (still technically-in-the-DOM) Packages pill instead of
+       properly wrapping below it. Boost stays reachable on mobile via Profile Settings and
+       the Find Friends banner. */
     body.theme-aurora .control-block .packages-top,
-    body.theme-aurora .control-block .theme-credits-pill {
+    body.theme-aurora .control-block .theme-credits-pill,
+    body.theme-aurora .control-block .boost-widget {
         display: none !important;
     }
 }
@@ -733,8 +744,11 @@ body.theme-aurora .theme-nav-mobile-only {
         position: absolute;
         top: 100%;
         left: 12px;
-        right: 12px;
-        margin-top: 8px;
+        /* 82px = 12px + the 70px .fixed-sidebar-right always occupies on this edge (same fix
+           as the search dropdown above) - without it, whatever sits at this panel's own right
+           edge (the Custom Status save button, styled as a flex row ending flush with the
+           panel) rendered underneath the sidebar instead of next to the input. */
+        right: 82px;
         flex-direction: column;
         /* flex-wrap:nowrap overrides the desktop rule's flex-wrap:wrap (unconditional, further
            up) - with flex-direction:column, "wrap" doesn't overflow vertically at all, it
@@ -746,7 +760,15 @@ body.theme-aurora .theme-nav-mobile-only {
         flex-wrap: nowrap;
         align-items: flex-start;
         gap: 4px;
-        margin: 0;
+        /* 16px top, not 0 - this was the actual bug behind the "first item hidden, can't
+           scroll to it" report: a margin-top: 16px was added higher up in this same rule to
+           clear the panel from the header's bottom edge, but THIS margin shorthand (already
+           here, unconditionally zeroing all four sides) sits later in the same block and
+           silently cancelled it out again - confirmed live via getComputedStyle(nav).marginTop
+           returning "0px" despite the file genuinely containing "margin-top: 16px" (verified
+           in the served CSS itself, ruling out a caching issue). One property, no ordering
+           trap, instead of two that can drift apart again the same way. */
+        margin: 16px 0 0 0;
         padding: 12px;
         background: var(--aurora-bg-2);
         border: 1px solid var(--aurora-line);
@@ -817,14 +839,32 @@ body.theme-aurora .theme-nav-mobile-only {
     }
     /* Section labels become full-width block headers with a top divider/spacing in the
        stacked mobile dropdown, instead of the small inline labels used in the desktop row. */
+    /* Bumped from the desktop rule's 11px/muted-color up to something that actually reads as
+       a section header rather than blending into the 14px .theme-nav-link items around it
+       (which were louder despite being the less important text) - bigger, theme-accent
+       colored, with its own tinted band instead of just a hairline border, so ACCOUNT/CUSTOM
+       STATUS/LANGUAGE are unmistakably section breaks in the stacked mobile list. */
     body.theme-aurora .theme-nav-section-label {
         width: 100%;
-        padding: 10px 8px 0;
-        margin-top: 6px;
+        font-size: 12px;
+        color: var(--aurora-pink);
+        background: var(--aurora-surface-2);
+        padding: 10px 12px;
+        margin: 10px -12px 4px;
         border-top: 1px solid var(--aurora-line);
+        border-radius: 4px;
     }
     body.theme-aurora .theme-nav-section-label:first-of-type {
         margin-top: 0;
+        border-top: none;
+    }
+    /* Boost now (components/boost-widget.blade.php's boostDropdownItem mode) sat right against
+       the ACCOUNT label above and Profile Settings below with only the panel's own 4px flex
+       gap between them - every other row here has that same 4px, but this one reads as
+       cramped since its <a> is one level deeper (wrapped in .boost-widget) than a bare
+       .theme-nav-link sibling. A bit of extra breathing room on both sides fixes that. */
+    body.theme-aurora .theme-nav .boost-widget {
+        margin: 6px 0;
     }
     /* The extra account/language links can make the panel taller than the viewport - scroll
        instead of overflowing off-screen. overflow-x:hidden is a safety net (not the actual

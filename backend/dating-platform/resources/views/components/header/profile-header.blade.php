@@ -12,6 +12,18 @@
                             </div>
 
                             <ul class="account-settings">
+                                {{-- On/off switch is the BOOST_FEATURE_ENABLED settings-table
+                                     row (admin-editable at /admin/settings). Hidden for admins
+                                     - this dropdown is always the admin's own login, not a
+                                     managed female profile, and Find Friends only ever shows
+                                     female profiles to regular users, so boosting it would
+                                     never be visible to anyone (see the same note in
+                                     profile-info.blade.php/header.blade.php). --}}
+                                @if(\App\Settings::where('name', 'BOOST_FEATURE_ENABLED')->value('value') !== 'no')
+                                @unless(Auth::user()->isAdmin())
+                                @include('components.boost-widget', ['boostDropdownItem' => true])
+                                @endunless
+                                @endif
                                 <li>
                                     <a href="/profile-settings">
 

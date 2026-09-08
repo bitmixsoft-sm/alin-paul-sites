@@ -64,6 +64,22 @@
                  dropdown, since it's a single flat list there. --}}
             @auth
                 <div class="theme-nav-section-label theme-nav-mobile-only">{{ l('Account') }}</div>
+                {{-- "Boost your profile" wasn't reachable from here at all: the icon-only
+                     header button (components/boost-widget.blade.php's boostIcon mode) is
+                     hidden below 768px for lack of room (see themes/*.css), and this hamburger
+                     dropdown is the ONLY nav on mobile once the profile avatar's own dropdown
+                     is hidden too (see the comment above). Text-link mode, styled like its
+                     .theme-nav-link siblings here, same on/off switch as everywhere else. --}}
+                @if(\App\Settings::where('name', 'BOOST_FEATURE_ENABLED')->value('value') !== 'no')
+                @unless(Auth::user()->isAdmin())
+                @include('components.boost-widget', [
+                    'boostWidgetClass' => 'theme-nav-mobile-only',
+                    'boostButtonClass' => 'theme-nav-link',
+                    'boostActiveClass' => 'theme-nav-link',
+                    'boostButtonLabel' => l('Boost now'),
+                ])
+                @endunless
+                @endif
                 <a href="/profile-settings" class="theme-nav-link theme-nav-mobile-only">{{ l('Profile Settings') }}</a>
                 <a href="/logout" class="theme-nav-link theme-nav-mobile-only">{{ l('Log Out') }}</a>
                 {{-- Custom status ("moto") editor - same feature as the profile avatar's
@@ -102,6 +118,22 @@
            {{--  <a href="/roulette" class="link-find-friend packages-top" style="margin-left:10px;padding:1px;">
                 <img src = "/svg/roulette.svg" alt="Roulette" style="width:35px;height:35px;"/>
             </a> --}}
+            {{-- "Boost your profile" - site-wide access point (also on profile-settings and
+                 Find Friends) since it was previously only discoverable by visiting Profile
+                 Settings. Hidden for admins - see the same comment in profile-info.blade.php.
+                 On/off switch is the BOOST_FEATURE_ENABLED settings-table row (admin-editable
+                 at /admin/settings), not a config/.env value.
+                 Icon-only here (boostIcon) - the full "Boost now (50 credits)" text link
+                 didn't fit next to Packages + credits + the 3 notification icons at medium
+                 (tablet/small-laptop) widths, only wrapping cleanly below 768px. This also
+                 appears (as a text link) in the profile avatar dropdown - see
+                 components/header/profile-header.blade.php - so it's reachable even where
+                 there's no room for it here at all. --}}
+            @if(\App\Settings::where('name', 'BOOST_FEATURE_ENABLED')->value('value') !== 'no')
+            @unless(Auth::user()->isAdmin())
+            @include('components.boost-widget', ['boostIcon' => true])
+            @endunless
+            @endif
             @if(($activeTheme ?? 'classic') === 'classic')
             <span class="link-find-friend">{{l("Credits")}}: <span id="credits_header">{{number_format(Auth::user()->credits, 0, '.', ',')}}</span></span>
             @else

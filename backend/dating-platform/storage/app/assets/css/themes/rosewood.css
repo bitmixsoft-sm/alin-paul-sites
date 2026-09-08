@@ -442,24 +442,34 @@ body.theme-rosewood .control-block {
            width incl. mobile - see the comment below on why its vertical position can't
            reliably be pushed below the header instead. Reserving that same 70px on this
            side keeps Register/Or/Login from sitting underneath it, pulling them left,
-           closer to the theme-toggle icon, instead of being cut off by the sidebar. */
+           closer to the theme-toggle icon, instead of being cut off by the sidebar.
+           padding-left has no such constraint, so it's trimmed from the base rule's 16px -
+           the icon row was consistently one icon short of fitting on this narrow a screen,
+           and that 16px of empty space on the left was the difference. */
+        padding-left: 4px;
         padding-right: 70px;
     }
+    /* display: contents (not flex) - this removes .control-block's own box entirely, so its
+       remaining visible children (once packages-top/theme-credits-pill/boost-widget below are
+       hidden, that's just the friend-request/chat/notification icons + profile avatar) become
+       direct flex items of .header-content-wrapper itself, flowing into the SAME wrapped row
+       as the search/hamburger/theme-toggle icons above instead of always dropping to a
+       separate row below a hidden Packages pill they used to be jammed against. */
     body.theme-rosewood .control-block {
-        display: flex !important;
-        flex-wrap: wrap;
-        align-items: center;
-        justify-content: flex-end;
-        gap: 10px;
-        height: auto !important;
-        padding: 0 !important;
+        display: contents;
     }
     body.theme-rosewood .control-block > * {
         flex: 0 0 auto;
         width: auto !important;
     }
+    /* .boost-widget (components/boost-widget.blade.php, in the header - see header.blade.php)
+       joins the same hide list below: it's a plain, unwidthed flex item, and on this narrow a
+       row it was overlapping the (still technically-in-the-DOM) Packages pill instead of
+       properly wrapping below it. Boost stays reachable on mobile via Profile Settings and
+       the Find Friends banner. */
     body.theme-rosewood .control-block .packages-top,
-    body.theme-rosewood .control-block .theme-credits-pill {
+    body.theme-rosewood .control-block .theme-credits-pill,
+    body.theme-rosewood .control-block .boost-widget {
         display: none !important;
     }
 }
@@ -661,13 +671,24 @@ body.theme-rosewood .theme-nav-mobile-only {
         position: absolute;
         top: 100%;
         left: 12px;
-        right: 12px;
-        margin-top: 8px;
+        /* 82px = 12px + the 70px .fixed-sidebar-right always occupies on this edge (same fix
+           as the search dropdown above) - without it, whatever sits at this panel's own right
+           edge (the Custom Status save button, styled as a flex row ending flush with the
+           panel) rendered underneath the sidebar instead of next to the input. */
+        right: 82px;
         flex-direction: column;
         flex-wrap: nowrap;
         align-items: flex-start;
         gap: 4px;
-        margin: 0;
+        /* 16px top, not 0 - this was the actual bug behind the "first item hidden, can't
+           scroll to it" report: a margin-top: 16px was added higher up in this same rule to
+           clear the panel from the header's bottom edge, but THIS margin shorthand (already
+           here, unconditionally zeroing all four sides) sat later in the same block and
+           silently cancelled it out again - confirmed live via getComputedStyle(nav).marginTop
+           returning "0px" despite the file genuinely containing "margin-top: 16px" (verified
+           in the served CSS itself, ruling out a caching issue). One property, no ordering
+           trap, instead of two that can drift apart again the same way. */
+        margin: 16px 0 0 0;
         padding: 12px;
         background: var(--rosewood-bg-2);
         border: 1px solid var(--rosewood-line);
@@ -720,14 +741,32 @@ body.theme-rosewood .theme-nav-mobile-only {
         background: var(--rosewood-rose);
         fill: #fff;
     }
+    /* Bumped from the desktop rule's 11px/muted-color up to something that actually reads as
+       a section header rather than blending into the 14px .theme-nav-link items around it
+       (which were louder despite being the less important text) - bigger, theme-accent
+       colored, with its own tinted band instead of just a hairline border, so ACCOUNT/CUSTOM
+       STATUS/LANGUAGE are unmistakably section breaks in the stacked mobile list. */
     body.theme-rosewood .theme-nav-section-label {
         width: 100%;
-        padding: 10px 8px 0;
-        margin-top: 6px;
-        border-top: 1px solid var(--rosewood-line);
+        font-size: 12px;
+        color: var(--rosewood-rose);
+        background: var(--rosewood-surface-2);
+        padding: 10px 12px;
+        margin: 10px -12px 4px;
+        border-top: 1px solid var(--rosewood-line-strong);
+        border-radius: 4px;
     }
     body.theme-rosewood .theme-nav-section-label:first-of-type {
         margin-top: 0;
+        border-top: none;
+    }
+    /* Boost now (components/boost-widget.blade.php's boostDropdownItem mode) sat right against
+       the ACCOUNT label above and Profile Settings below with only the panel's own 4px flex
+       gap between them - every other row here has that same 4px, but this one reads as
+       cramped since its <a> is one level deeper (wrapped in .boost-widget) than a bare
+       .theme-nav-link sibling. A bit of extra breathing room on both sides fixes that. */
+    body.theme-rosewood .theme-nav .boost-widget {
+        margin: 6px 0;
     }
     body.theme-rosewood .theme-nav {
         max-height: calc(100vh - 100px);

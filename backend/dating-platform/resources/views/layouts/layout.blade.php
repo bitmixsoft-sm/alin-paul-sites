@@ -461,7 +461,34 @@ ttq.track('CompletePayment', {
 @endif
 @endguest
 @auth
-    @if(isset($_COOKIE['autoregister']) || isset($_COOKIE['autoregister_fake']))
+    @php
+        // The cookie alone isn't enough to decide whether this popup is still needed - it's
+        // only ever CLEARED by actually submitting this form (AutoRegisterController::complete/
+        // complete_fake), so an account that got its real email set some other way (the chat-
+        // detection swap in ChatController, or just editing it by hand on Profile Settings,
+        // like this one) keeps the stale cookie and keeps getting asked to "finish" a
+        // registration that's already finished. AutoRegisterController::fakeregister() gives
+        // every fake account a placeholder email shaped exactly like
+        // "{firstname}{lastname}{timestamp}@{this site's own hostname}" - checking for that
+        // exact shape (not just "is there a cookie") tells the two states apart reliably.
+        // Once it's gone, the cookie no longer means anything - queue()ing its removal here
+        // stops this same check (and the popup) from re-running on every future page load.
+        $autoregisterFakeEmailPattern = '/@'.preg_quote(request()->getHost(), '/').'$/i';
+        $stillHasFakeEmail = Auth::user()->email && preg_match($autoregisterFakeEmailPattern, Auth::user()->email);
+        $showCompleteRegistrationPopup = (isset($_COOKIE['autoregister']) || isset($_COOKIE['autoregister_fake']))
+            && !Auth::user()->isAdmin()
+            && $stillHasFakeEmail;
+        if (!$showCompleteRegistrationPopup && (isset($_COOKIE['autoregister']) || isset($_COOKIE['autoregister_fake']))) {
+            \Cookie::queue(\Cookie::forget('autoregister'));
+            \Cookie::queue(\Cookie::forget('autoregister_fake'));
+        }
+    @endphp
+    {{-- Admin accounts can end up carrying an autoregister(_fake) cookie too (e.g. from
+         testing the fake-registration flow themselves) - excluded here because the popup's
+         whole premise ("finish setting up the account you were auto-signed-into") doesn't
+         apply to an admin's own real login, and there's no real-world path where an admin
+         needs to "complete" a fake account of their own. --}}
+    @if($showCompleteRegistrationPopup)
         <!-- Modal -->
         {{-- Wrapped in .auth_modals (same as the Register/Login popups below) purely so it
              picks up every theme's existing body.theme-X .auth_modals .modal-content/.form-
@@ -503,9 +530,19 @@ ttq.track('CompletePayment', {
                                 </div>
                                 <div class="col col-12 col-xl-12 col-lg-12 col-md-12 col-sm-12">
                                     @if(isset($_COOKIE['autoregister_fake']))
+                                        {{-- Pre-filled with the account's CURRENT email (not
+                                             left blank) - this account may already have a real
+                                             one, either auto-detected from a chat reply
+                                             (ChatController) or set separately via Profile
+                                             Settings, and this popup has no way to know which
+                                             without showing it: leaving it empty made it look
+                                             like starting from scratch, tempting a different
+                                             (and possibly wrong) email to be typed over an
+                                             already-correct one. Submitting unchanged just
+                                             confirms it and clears the cookie. --}}
                                         <div class="form-group label-floating {{$errors->has('email') ? 'has-error' : ''}}">
                                             <label class="control-label">{{l("Email")}}</label>
-                                            <input name="email" required class="form-control {{$errors->has('email') ? 'form-control-danger' : ''}}" placeholder="" type="email" value="{{ old('email') }}">
+                                            <input name="email" required class="form-control {{$errors->has('email') ? 'form-control-danger' : ''}}" placeholder="" type="email" value="{{ old('email', Auth::user()->email) }}">
                                             @if ($errors->has('email'))
                                                 <div class="text-danger">{{ $errors->first('email') }}</div>
                                             @endif

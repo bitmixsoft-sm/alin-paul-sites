@@ -31,6 +31,7 @@ class FindFriendsController extends Controller
             $query = User::with('images');
             $this->applyFindFriendsGenderScope($query);
             $this->applyFindFriendsSearch($query, $searchTerm);
+            $this->applyBoostOrdering($query);
             if ($sort === 'newest') {
                 $query->orderBy('created_at', 'desc');
             } else {
@@ -41,6 +42,7 @@ class FindFriendsController extends Controller
             $query = User::with('images');
             $this->applyFindFriendsGenderScope($query);
             $this->applyFindFriendsSearch($query, $searchTerm);
+            $this->applyBoostOrdering($query);
             if ($sort === 'newest') {
                 $query->orderBy('created_at', 'desc');
             }
@@ -190,6 +192,7 @@ class FindFriendsController extends Controller
             $query = User::query();
             $this->applyFindFriendsGenderScope($query);
             $this->applyFindFriendsSearch($query, $searchTerm);
+            $this->applyBoostOrdering($query);
             if ($sort === 'newest') {
                 $query->orderBy('created_at', 'desc');
             } else {
@@ -200,6 +203,7 @@ class FindFriendsController extends Controller
             $query = User::query();
             $this->applyFindFriendsGenderScope($query);
             $this->applyFindFriendsSearch($query, $searchTerm);
+            $this->applyBoostOrdering($query);
             if ($sort === 'newest') {
                 $query->orderBy('created_at', 'desc');
             }
@@ -393,6 +397,7 @@ class FindFriendsController extends Controller
 
         $query = User::where('status', 'online');
         $this->applyFindFriendsGenderScope($query);
+        $this->applyBoostOrdering($query);
         if (Auth::check() && Auth::user()->isAdmin()) {
             $query->orderby('status', 'desc')->orderby('created_at', 'desc')->orderBy('gender', 'desc');
         }
@@ -446,5 +451,23 @@ class FindFriendsController extends Controller
                 ->orWhere('lastname', 'like', '%' . $searchTerm . '%')
                 ->orWhere('city', 'like', '%' . $searchTerm . '%');
         });
+    }
+
+    /**
+     * "Boost your profile" (BoostController@activate) - a user who paid to boost sets
+     * users.boosted_until to a few minutes in the future; while that's still ahead of now(),
+     * they sort before everyone else, ahead of whatever ordering the caller applies next
+     * (status/created_at/gender, or nothing at all for the non-admin "no explicit sort" case)
+     * - call this BEFORE those, not instead of them, so it only ever reorders within/across
+     * the boosted-vs-not split rather than replacing the existing tiebreakers.
+     *
+     * Binds PHP's now() as a parameter instead of using SQL NOW() - this DB server's clock
+     * runs 3 hours ahead of the app's (APP_TIMEZONE=UTC vs. the DB server's local time), and
+     * boosted_until is written using PHP's now() (BoostController@activate), so comparing it
+     * against SQL NOW() instead made every boost register as already-expired immediately.
+     */
+    private function applyBoostOrdering($query): void
+    {
+        $query->orderByRaw('CASE WHEN boosted_until IS NOT NULL AND boosted_until > ? THEN 0 ELSE 1 END ASC', [now()]);
     }
 }
