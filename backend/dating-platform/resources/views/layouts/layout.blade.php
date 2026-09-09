@@ -234,7 +234,7 @@ $pixel_id = env('FACEBOOK_PIXEL_ID');
 <script src="/Bootstrap/dist/js/bootstrap.bundle.js"></script>
 <script src="/js/croppie.min.js"></script>
 <script src="/assets/js/online.js?v=1.0.1"></script>
-<script src="/assets/js/dating.js?v=1.0.0"></script>
+<script src="/assets/js/dating.js?v=1.0.1"></script>
 @if ($_SERVER['REMOTE_ADDR'] == '82.78.230.101' || $_SERVER['REMOTE_ADDR'] == '86.125.60.125')
 <script src="/js/videochat2__NEW.js?ver={{ is_file(public_path('js/videochat2__NEW.js')) ? filemtime(public_path('js/videochat2__NEW.js')) : '1' }}"></script>
 <script src="/js/simplepeer_9.11.0.min.js"></script>
