@@ -326,6 +326,21 @@
         height: auto !important;
         min-height: 260px;
     }
+    /* The static background photo layer (.real-ai-bg-photo above) is opaque and painted as
+       part of .mCustomScrollbar's own stacking context, so it rides along at z-index: 1 with
+       it once docked - sitting directly in front of the call video (z-index: 0) and hiding it
+       completely, even though .mCustomScrollbar's own background was made transparent for
+       exactly this purpose. Hide the photo outright while a docked call is showing instead.
+       Scoped to BOTH conditions actually seen in practice (confirmed live via devtools) -
+       .real-ai-docked-open never actually gets added to .popup-chat for this profile's calls,
+       even though the docked video slot itself renders fine; what verifiably flips live is
+       .popup-chat:has(> .ubgvideo iframe) (the same condition the classic-call transparency
+       rule below already keys off), so the photo has to hide on that condition too, not just
+       the docked-mode class. */
+    .popup-chat.real-ai-docked-open .real-ai-bg-photo,
+    .popup-chat:has(> .ubgvideo iframe) .real-ai-bg-photo {
+        display: none;
+    }
     .popup-chat.real-ai-docked-open .chatform {
         position: relative;
         z-index: 1;
