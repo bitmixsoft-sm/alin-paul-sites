@@ -880,7 +880,7 @@ window.setAiCompanionChatBackgroundPhoto = function (dataId, imageUrl) {
 function setRealAiChatBackgroundVideo(dataId, videoName, blurAmount) {
     var blurPx = parseInt(blurAmount, 10) || 0;
     var style = blurPx > 0 ? ' style="filter: blur(' + blurPx + 'px);"' : '';
-    $('.popup-chat[data-id="' + dataId + '"] .ubgvideo').html('<video autoplay muted loop' + style + '><source src="' + window.location.origin + '/videos/' + videoName + '"></source></video>');
+    $('.popup-chat[data-id="' + dataId + '"] .ubgvideo').html('<video autoplay muted loop' + style + '><source src="' + window.location.origin + '/storage/videos/' + videoName + '"></source></video>');
 }
 
 function createRealAiDailyRenderer(container, blurAmount, audioMuted) {
