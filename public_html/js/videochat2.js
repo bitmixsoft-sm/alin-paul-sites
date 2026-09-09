@@ -231,9 +231,13 @@
 	function close_video_call(uid, home)
 	{
 		home = home || false;
-		if (home == true)
+		// See videochat2__NEW.js's close_video_call() for the full explanation - this.event
+		// threw when the refuseCall handler below called this function programmatically (no
+		// real click) to close the call on the OTHER party's side, silently aborting before
+		// the actual cleanup code ran. window.event is safe to read even when undefined.
+		if (home == true && window.event && typeof window.event.stopPropagation === 'function')
 		{
-			this.event.stopPropagation();
+			window.event.stopPropagation();
 		}
         var propNameCheck = 'id';
         /*if (othercall == true) {

@@ -255,9 +255,20 @@
 	function close_video_call(uid, home)
 	{
 		home = home || false;
-		if (home == true)
+		// this.event.stopPropagation() assumed a real click always triggered this call (this
+		// was needed so hanging up doesn't also bubble up into .ui-block-title's own
+		// onclick="toggle_chat(this)" and collapse the popup). But the refuseCall Pusher
+		// handler below calls this function directly (no real click, no `this` bound to the
+		// icon) to close the call on the OTHER party's side when you hang up - there,
+		// this.event was undefined (always in Firefox; even in Chrome when there's no actual
+		// event on the stack), so .stopPropagation() threw, was swallowed by that handler's
+		// try/catch, and the cleanup code below never ran - the other party's call window just
+		// stayed open. window.event (checked safely, never throws even when undefined) covers
+		// the real-click case identically to before; the programmatic case now simply skips
+		// stopPropagation instead of crashing.
+		if (home == true && window.event && typeof window.event.stopPropagation === 'function')
 		{
-			this.event.stopPropagation();
+			window.event.stopPropagation();
 		}
         var propNameCheck = 'id';
         /*if (othercall == true) {
