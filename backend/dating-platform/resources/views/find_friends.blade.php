@@ -179,6 +179,17 @@
                             @else
                                 <span class="find_friends_status span-offline">Offline</span>
                             @endif
+                            {{-- Per the client's explicit answer on the Boost feature (2026-09-09): boosted
+                                 profiles should be recognizable to admins/editors specifically ("sa se simta
+                                 clientii mai importanti", staff should notice/pay more attention to them) -
+                                 not to other regular users, who only ever get the silent ordering advantage
+                                 (applyBoostOrdering() in FindFriendsController). isAdmin() covers both admin
+                                 and editor roles (see User::isAdmin()). --}}
+                            @if (Auth::check() && Auth::user()->isAdmin() && $user->boosted_until && \Illuminate\Support\Carbon::parse($user->boosted_until)->isFuture())
+                                <span class="find_friends_boosted_badge" title="{{ l('Boosted until') }} {{ \Illuminate\Support\Carbon::parse($user->boosted_until)->format('H:i') }}">
+                                    &#9889; {{ l('Boosted') }}
+                                </span>
+                            @endif
                             @if ($loop->first && auth()->check() && $show_roulette)
                                 @include('components.roulette_spinner', [
                                     'width' => '295px',
