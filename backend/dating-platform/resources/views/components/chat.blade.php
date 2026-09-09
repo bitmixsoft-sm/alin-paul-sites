@@ -341,6 +341,21 @@
     .popup-chat:has(> .ubgvideo iframe) .real-ai-bg-photo {
         display: none;
     }
+    /* Plain ambient background video (a profile's admin-uploaded video, played on open via
+       setRealAiChatBackgroundVideo() in dating.js - not a live call, just a looping <video>
+       dropped directly into .ubgvideo). Same problem as the two rules above and the same fix:
+       .mCustomScrollbar comes after .ubgvideo in the DOM, so at equal stacking it paints on
+       top - and several themes (e.g. nordic's --nordic-bg-deep) give it an opaque
+       background-color, hiding the video completely behind a solid color. Scoped narrowly to
+       a <video> that's a DIRECT child of .ubgvideo so it doesn't also match (and wrongly
+       affect) the real-ai docked call's own video, which lives one level deeper inside
+       .real-ai-docked-video-slot. */
+    .popup-chat:has(> .ubgvideo > video) .mCustomScrollbar {
+        background: transparent !important;
+    }
+    .popup-chat:has(> .ubgvideo > video) .real-ai-bg-photo {
+        display: none;
+    }
     .popup-chat.real-ai-docked-open .chatform {
         position: relative;
         z-index: 1;
