@@ -2011,6 +2011,22 @@ ul.online-users-list{height: 200px; overflow-y: auto}
     z-index: 2;
 }
 
+/* Call in progress: message history floats semi-transparent OVER the call iframe instead of
+   the call covering it entirely - same treatment the Real AI docked video already uses
+   (.popup-chat.real-ai-docked-open .mCustomScrollbar/.chatform, chat.blade.php's own <style>),
+   just applied to the classic call too. Scoped with :has() to only take effect while .ubgvideo
+   actually contains the call <iframe> (videochat2.js's send_call()/answer put it there) -
+   without this condition, the chat body would stay permanently transparent/see-through even
+   with no call active, which looks broken against a plain background. */
+.popup-chat:has(> .ubgvideo iframe) .mCustomScrollbar {
+    position: relative;
+    z-index: 2;
+    background: transparent !important;
+}
+.popup-chat:has(> .ubgvideo iframe) .chatform {
+    background: transparent;
+}
+
 /* Admin chat-header dropdown: visually distinguishes a managed account's conversation
    (e.g. Carmen talking to some other user) from the admin's own personal conversation,
    so a large mixed list stays scannable at a glance. */

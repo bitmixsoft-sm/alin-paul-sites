@@ -156,9 +156,9 @@
                                                             <label class=" form-control-label">Add video</label>
                                                         </div>
                                                         <div class="col-12 col-md-9">
-                                                            @if($user->video!='' && \File::exists(public_path('videos').'/'.$user->video))
+                                                            @if($user->video!='' && \File::exists(storage_path('app/public/videos/').$user->video))
                                                                 <video width="320" height="240" controls>
-                                                                    <source src="{{URL::asset("/videos/$user->video")}}"
+                                                                    <source src="{{ asset('storage/videos/'.$user->video) }}"
                                                                             type="video/mp4">
                                                                     Your browser does not support the video tag.
                                                                 </video>

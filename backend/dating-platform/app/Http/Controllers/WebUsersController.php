@@ -107,16 +107,26 @@ class WebUsersController extends Controller
 
             if((Auth::user()->role == 'admin' || (Auth::user()->role == 'editor' && $user->gender=='female'))) {
                 if($request->hasFile('video')) {
-                    if(!\File::exists(public_path('videos')))
-                        \File::makeDirectory(public_path('videos'), 0777);
+                    // public_path() (backend/dating-platform/public) doesn't exist in this
+                    // deployment at all - the public webroot actually served is public_html,
+                    // a sibling of backend/, reached through hand-made symlinks (see
+                    // public_html/assets.php) rather than Laravel's own public/ folder. That's
+                    // why makeDirectory() on it failed with "No such file or directory": its
+                    // parent didn't exist either, and makeDirectory() wasn't even told to
+                    // create parents recursively. storage_path('app/public/videos') is the
+                    // SAME convention PostController::create() already uses successfully for
+                    // newsfeed video posts (served via /storage/videos/... through the
+                    // standard storage:link symlink) - matching it here needs no manual
+                    // mkdir() at all, since UploadedFile::move() creates its target directory
+                    // itself if missing.
                     $file = $request->file('video');
                     $extension = \File::extension($file->getClientOriginalName());
                     $filename = \Illuminate\Support\Str::random(32).".".$extension;
-                    $path = public_path('videos');
+                    $path = storage_path('app/public/videos');
                     $file->move($path, $filename);
                     $user->video = $filename;
                 } elseif($request->has('video-delete')) {
-                    \File::delete(public_path('videos/').$user->video);
+                    \File::delete(storage_path('app/public/videos/').$user->video);
                     $user->video = NULL;
                 }
             }
