@@ -163,6 +163,17 @@
                     <div data-user-id="{{$user->id}}" class="col col-xl-3 col-lg-6 col-md-6 col-sm-6 col-12 find_friends_item">
                         <div @if (!$loop->first || !$show_roulette) class="ui-block" @endif data-mh="friend-groups-item"
                             style="@if ($user->images->count() > 0) background: url('/storage/images/{{ $user->images->take(1)[0]->name }}');@endif  height:415px;" >
+                            @if ((!$loop->first || !$show_roulette) && $user->video)
+                                {{-- Same admin-uploaded video already used as the chat popup's background
+                                     (ChatController::get()/setRealAiChatBackgroundVideo in dating.js) -
+                                     played muted/looped on hover here as a preview, mirroring that. Starts
+                                     paused (no autoplay) and is only played/shown via JS on hover
+                                     (see the mouseenter/mouseleave binding below) so idle cards with a
+                                     video don't all download/decode video simultaneously on page load. --}}
+                                <video class="find-friends-hover-video" muted loop playsinline preload="none">
+                                    <source src="{{ asset('storage/videos/'.$user->video) }}" type="video/mp4">
+                                </video>
+                            @endif
                             @if ($user->status == 'online' || $user->gender == 'female')
                                 <span class="find_friends_status span-online">Online</span>
                             @else
@@ -1030,6 +1041,24 @@
             delete aiActiveSessions[profileId];
         }
     })();
+    </script>
+    {{-- A second @section('scripts') block in this same file would silently overwrite (not
+         append to) the one above - the layout only @yield's this section once - so this has
+         to be its own <script> tag inside the SAME section rather than a second @section call. --}}
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.find_friends_item').forEach(function (item) {
+            var video = item.querySelector('.find-friends-hover-video');
+            if (!video) { return; }
+            item.addEventListener('mouseenter', function () {
+                video.currentTime = 0;
+                video.play().catch(function () {});
+            });
+            item.addEventListener('mouseleave', function () {
+                video.pause();
+            });
+        });
+    });
     </script>
     @endsection
 @endauth
