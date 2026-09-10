@@ -2001,11 +2001,21 @@ ul.online-users-list{height: 200px; overflow-y: auto}
 }
 
 .popup-chat video{
-  min-width: 100%;
-  min-height: 100%;
-  top: 50%;
-  left: 50%;
-  transform: translateX(-50%) translateY(-50%);
+  /* min-width/min-height with no upper bound scales the video up until BOTH constraints are
+     satisfied, using whichever axis needs more growth - since this centers against the WHOLE
+     .popup-chat box (header + switchers + messages + chatform, not just the video's own
+     .ubgvideo slot), that box's aspect ratio rarely matches the video's own, so the video
+     regularly overshot well past 100% on one axis and got centered/cropped into a visibly
+     zoomed-in crop (compare to the Find Friends hover-preview video, which uses the same
+     cover-fit but a box-constrained width/height/object-fit instead of unbounded min-*, and
+     doesn't have this problem). width/height 100% + object-fit: cover gives the identical
+     "fill and crop overflow" behavior but bounded to exactly this container's box instead of
+     free-scaling past it. */
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  top: 0;
+  left: 0;
   position: absolute;
 }
 
