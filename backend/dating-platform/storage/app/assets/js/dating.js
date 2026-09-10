@@ -1,3 +1,26 @@
+// Scrolls a chat popup's message list to the bottom after inserting new HTML
+// (display_messages()). MUST set scrollTop directly in one jump, never via jQuery's animated
+// .animate({scrollTop: ...}) - the .mCustomScrollbar/.ps element's own scrollbar-rail overlay
+// (perfect-scrollbar v0.7.0, public_html/js/perfect-scrollbar.js, update-geometry.js) repositions
+// itself to `top: <current scrollTop>` on EVERY native "scroll" event it sees, and that rail is
+// a real DOM child of the very element it's decorating - so it counts toward that element's own
+// scrollHeight. An animated scroll fires dozens of intermediate scroll events as it eases toward
+// the target; each one nudges the rail (and therefore scrollHeight) a little further down before
+// the animation has even reached its original target, and the next intermediate frame then scrolls
+// toward THAT new, larger scrollHeight - a runaway feedback loop that left the view scrolled deep
+// into empty space below the real messages (confirmed live: scrollHeight inflated to 1132px for a
+// list of messages measuring 430px). A single direct assignment fires at most one scroll event,
+// so the rail is repositioned once, against the real content height, with nothing to compound.
+function scrollChatToBottom(scroll) {
+    var el = scroll.get(0);
+    if (!el) { return; }
+    el.scrollTop = el.scrollHeight;
+    scroll.find('img').each(function () {
+        if (this.complete) { return; }
+        $(this).one('load error', function () { el.scrollTop = el.scrollHeight; });
+    });
+}
+
 $('a[data-open="register"]').click(function (e) {
     e.preventDefault();
     $('.nav-item a[href="#home"]').tab('show');
@@ -697,7 +720,7 @@ function chat_open(t, e, id = null, from_id = null) {
                             messages['u_' + to] = data.msg;
                             $('.popup-chat[data-id="' + to + '"] .chat-message-field').html(display_messages(messages['u_' + to], to, data.user_img, data.auth_img));
                             var scroll = $('.popup-chat[data-id="' + to + '"] .mCustomScrollbar');
-                            scroll.animate({ scrollTop: $(scroll).get(0).scrollHeight }, 500);
+                            scrollChatToBottom(scroll);
                             var counter = $('#chat-unread-counter').html();
                             $('#chat-unread-counter').html(parseInt(counter) - data.unread);
                             var counter2 = $('#chat-unread-counter2').html();
@@ -754,7 +777,7 @@ function change_user(t) {
             $('.popup-chat[data-id="' + to + '"] .chat-message-field').html(display_messages(messages['u_' + to], to, data.user_img, data.auth_img));
 
             var scroll = $('.popup-chat[data-id="' + to + '"] .mCustomScrollbar');
-            scroll.animate({ scrollTop: $(scroll).get(0).scrollHeight }, 500);
+            scrollChatToBottom(scroll);
             var counter = $('#chat-unread-counter').html();
             $('#chat-unread-counter').html(parseInt(counter) - data.unread);
             $('.js-chat-open[data-from="' + from + '"][data-id="' + to + '"] .unread-right[data-from="' + to + '"]').remove();
@@ -1475,7 +1498,7 @@ function send_msg(e, t, btn = false) {
                             messages['u_' + to].push(data.msg);
                             $('.popup-chat[data-id="' + to + '"] .chat-message-field').append(display_messages(data.msg, to, data.user_img, data.auth_img));
                             var scroll = $('.popup-chat[data-id="' + to + '"] .mCustomScrollbar');
-                            scroll.animate({ scrollTop: $(scroll).get(0).scrollHeight }, 500);
+                            scrollChatToBottom(scroll);
                             if (data.check_adm) {
                                 var tpl = "";
                                 tpl += "<li data-id='" + data.msg[0].to_user + "' data-from='" + data.msg[0].from_user + "' class='message-unread' onclick='chat_open(this,event);'>";
@@ -1646,7 +1669,7 @@ if (window.Pusher != undefined) {
                 if (block.attr('data-from') == data.msg[0].to_user)
                     $('.popup-chat[data-id="' + data.msg[0].from_user + '"] .chat-message-field').append(display_messages(data.msg, data.msg[0].from_user, data.user_img, data.auth_img));
                 var scroll = $('.popup-chat[data-id="' + data.msg[0].from_user + '"] .mCustomScrollbar');
-                scroll.animate({ scrollTop: $(scroll).get(0).scrollHeight }, 500);
+                scrollChatToBottom(scroll);
                 var counter = $('#chat-unread-counter').html();
                 $('#chat-unread-counter').html(parseInt(counter) + 1);
                 var counter2 = $('#chat-unread-counter2').html();
@@ -1660,7 +1683,7 @@ if (window.Pusher != undefined) {
             } else {
                 $('.popup-chat[data-id="' + data.msg[0].from_user + '"] .chat-message-field').append(display_messages(data.msg, data.msg[0].from_user, data.user_img, data.auth_img));
                 var scroll = $('.popup-chat[data-id="' + data.msg[0].from_user + '"] .mCustomScrollbar');
-                scroll.animate({ scrollTop: $(scroll).get(0).scrollHeight }, 500);
+                scrollChatToBottom(scroll);
                 var counter = $('#chat-unread-counter').html();
                 $('#chat-unread-counter').html(parseInt(counter) + 1);
                 var counter2 = $('#chat-unread-counter2').html();

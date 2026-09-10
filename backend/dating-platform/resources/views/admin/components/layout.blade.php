@@ -84,7 +84,7 @@
     <script src="/admin_assets/js/main.js"></script>
     <script src="https://js.pusher.com/4.3/pusher.min.js"></script>
     <script src="/assets/js/online.js?v=1.0.1"></script>
-    <script src="/assets/js/dating.js?v=1.0.1"></script>
+    <script src="/assets/js/dating.js?v=1.0.3"></script>
     <!-- Hotjar Tracking Code for https://chit-chat.me -->
 <script>
     (function(h,o,t,j,a,r){

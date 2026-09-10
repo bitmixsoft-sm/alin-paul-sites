@@ -71,7 +71,18 @@
 
                                 </ul>
 
-                            <div class="ps__scrollbar-x-rail" style="left: 0px; bottom: 0px;"><div class="ps__scrollbar-x" tabindex="0" style="left: 0px; width: 0px;"></div></div><div class="ps__scrollbar-y-rail" style="top: 0px; height: 350px; right: 0px;"><div class="ps__scrollbar-y" tabindex="0" style="top: 0px; height: 255px;"></div></div></div>
+                            {{-- No hand-written .ps__scrollbar-x-rail/.ps__scrollbar-y-rail markup here - those
+                                 are perfect-scrollbar's own generated overlay, added by its JS at runtime. A
+                                 static copy used to be baked into this template (a leftover from pasting the
+                                 library's rendered output straight into the source at some point); the JS then
+                                 appended its own live pair alongside it instead of replacing it, leaving TWO
+                                 rail elements per popup. The stale static one (a fixed height: 350px, sitting
+                                 in normal flow rather than the position: absolute the library's own copy uses)
+                                 added ~350px of empty scrollable space below the actual messages - so a fresh
+                                 chat popup (still scrolled to the very true bottom, past the messages, into
+                                 that dead space) looked completely empty until scrolled back up. See auto-
+                                 registration's welcome-message chat, the case this was first noticed in. --}}
+                            </div>
 
                             <form class="chatform">
 
