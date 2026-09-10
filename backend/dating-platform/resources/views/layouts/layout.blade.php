@@ -495,12 +495,14 @@ ttq.track('CompletePayment', {
              control/.btn-purple/... rules for free - it was previously outside that wrapper
              and stuck looking like an unstyled default Bootstrap modal in every theme. --}}
         <div class="auth_modals">
-<div class="modal fade" id="complete-register-form-popup" tabindex="-1" role="dialog" aria-labelledby="complete-register-form-popupLabel" aria-hidden="true">
+<div class="modal fade" id="complete-register-form-popup" tabindex="-1" role="dialog" aria-labelledby="complete-register-form-popupLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
-                    <a href="#" class="close icon-close" data-dismiss="modal" aria-label="Close">
-                        <svg class="olymp-close-icon"><use xlink:href="/svg-icons/sprites/icons.svg#olymp-close-icon"></use></svg>
-                    </a>
+                    {{-- No close button, and data-backdrop="static"/data-keyboard="false" above -
+                         per the client's explicit request, this popup must not be dismissible.
+                         Previously it could be closed (the X here, clicking outside, or Esc) and
+                         the visitor could then use the whole site without ever finishing
+                         registration; now the only way out is actually submitting the form. --}}
 
                     <div class="modal-header">
                         <h6 class="title">{{l("Finish your registration")}}</h6>
@@ -530,19 +532,17 @@ ttq.track('CompletePayment', {
                                 </div>
                                 <div class="col col-12 col-xl-12 col-lg-12 col-md-12 col-sm-12">
                                     @if(isset($_COOKIE['autoregister_fake']))
-                                        {{-- Pre-filled with the account's CURRENT email (not
-                                             left blank) - this account may already have a real
-                                             one, either auto-detected from a chat reply
-                                             (ChatController) or set separately via Profile
-                                             Settings, and this popup has no way to know which
-                                             without showing it: leaving it empty made it look
-                                             like starting from scratch, tempting a different
-                                             (and possibly wrong) email to be typed over an
-                                             already-correct one. Submitting unchanged just
-                                             confirms it and clears the cookie. --}}
+                                        {{-- Left blank (not pre-filled with the account's current
+                                             fake-generated email) per the client's explicit
+                                             request - showing that address here read as the
+                                             visitor's own real email already being on file,
+                                             which they'd then just submit unchanged instead of
+                                             typing their actual one. old('email') still re-fills
+                                             it after a failed submit, same as every other field
+                                             here. --}}
                                         <div class="form-group label-floating {{$errors->has('email') ? 'has-error' : ''}}">
                                             <label class="control-label">{{l("Email")}}</label>
-                                            <input name="email" required class="form-control {{$errors->has('email') ? 'form-control-danger' : ''}}" placeholder="" type="email" value="{{ old('email', Auth::user()->email) }}">
+                                            <input name="email" required class="form-control {{$errors->has('email') ? 'form-control-danger' : ''}}" placeholder="" type="email" value="{{ old('email') }}">
                                             @if ($errors->has('email'))
                                                 <div class="text-danger">{{ $errors->first('email') }}</div>
                                             @endif
@@ -566,21 +566,31 @@ ttq.track('CompletePayment', {
   </div>
 </div>
         </div>
+    {{-- backdrop: 'static', keyboard: false passed explicitly on every .modal() call below too
+         (not just the data-* attributes on the element) since Bootstrap only reads those
+         attributes at the point .modal() is first called on the element - belt and suspenders
+         so this never accidentally becomes dismissible regardless of call site. --}}
     @if ($errors->any() && session()->hasOldInput('firstname'))
         <script type="text/javascript">
-            $('#complete-register-form-popup').modal('show');
+            $('#complete-register-form-popup').modal({backdrop: 'static', keyboard: false});
         </script>
-    @elseif(isset($_COOKIE['autoregister_fake']))
+    @elseif(isset($_COOKIE['autoregister']) || isset($_COOKIE['autoregister_fake']))
+        @php
+            // A plain setTimeout(..., 120000) restarts from zero on every page load, so
+            // refreshing or clicking to a new page before it fires bought the visitor another
+            // full 2 minutes of browsing indefinitely - it never actually reached 2 minutes
+            // total. Anchoring the delay to the account's created_at (fixed at signup, doesn't
+            // change across requests) instead means the remaining wait only ever shrinks
+            // across page loads, same as a real "2 minutes since you arrived" countdown, and
+            // once it's already elapsed the popup shows immediately on the next page load
+            // rather than waiting another full 2 minutes.
+            $secondsSinceSignup = Auth::user()->created_at ? Auth::user()->created_at->diffInSeconds(now()) : 0;
+            $remainingMs = max(0, (120 - $secondsSinceSignup) * 1000);
+        @endphp
         <script type="text/javascript">
             setTimeout(function() {
-                $('#complete-register-form-popup').modal();
-            }, 20000);
-        </script>
-    @elseif(isset($_COOKIE['autoregister']))
-        <script type="text/javascript">
-            setTimeout(function() {
-                $('#complete-register-form-popup').modal();
-            }, 7500);
+                $('#complete-register-form-popup').modal({backdrop: 'static', keyboard: false});
+            }, {{ $remainingMs }});
         </script>
     @endif
     @endif
