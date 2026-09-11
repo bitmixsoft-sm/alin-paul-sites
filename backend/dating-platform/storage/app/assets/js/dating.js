@@ -619,6 +619,20 @@ function chat_open(t, e, id = null, from_id = null) {
     // just opened underneath it) until the user moved the mouse away. Removing any visible
     // one here means it's gone the instant a chat window opens, regardless of which trigger.
     $('.tooltip').remove();
+    // preventDefault() below stops the "Chat" link's own href="#" navigation, but never moves
+    // keyboard focus away from the link itself - it stays focused after the click. Harmless
+    // almost everywhere, except the binder theme's Find Friends card flip
+    // (themes/binder.css), which flips the WHOLE card via `:focus-within` (in addition to
+    // `:hover`, so keyboard/touch users get the same flip a mouse-hover gives). Without
+    // blurring it here, every card whose Chat button had ever been clicked stayed
+    // permanently flipped (showing its "back" face upside-down/mirrored) even after the mouse
+    // moved away - reported live, and worse the more cards got clicked while browsing. t is
+    // the raw clicked element (or the literal 0 the auto-open flows pass instead), so this
+    // covers all ~13 places across the app that call chat_open() from a real click, not just
+    // the Find Friends cards.
+    if (t && typeof t.blur === 'function') {
+        t.blur();
+    }
     if ($(window).width() < 768) {
         close_chats();
     }
@@ -868,14 +882,18 @@ function updateRealAiVideoButton(dataId, available) {
 }
 
 // Applies the chat popup's background photo on its own dedicated layer (see the
-// .real-ai-bg-photo CSS in chat.blade.php) instead of directly on .mCustomScrollbar, so a
-// package-tier blur can be applied to just the photo without also blurring the message
-// bubbles rendered on top of it.
+// .real-ai-bg-photo CSS in chat.blade.php), as a direct child of .popup-chat itself rather
+// than inside .mCustomScrollbar. It used to live inside the scrollable message list, which
+// meant it scrolled away with the messages instead of staying put as a backdrop (reported
+// live: replying enough to scroll the conversation pushed the photo up and out of view
+// entirely) - .popup-chat itself never scrolls, so anchoring it there keeps it fixed in place
+// exactly like the docked call video already does. Also lets a package-tier blur apply to
+// just the photo without also blurring the message bubbles on top of it.
 function setRealAiChatBackgroundPhoto(dataId, imageName, blurAmount) {
-    var scrollDiv = $('.popup-chat[data-id="' + dataId + '"] .mCustomScrollbar');
-    var layer = scrollDiv.find('.real-ai-bg-photo');
+    var popup = $('.popup-chat[data-id="' + dataId + '"]');
+    var layer = popup.children('.real-ai-bg-photo');
     if (!layer.length) {
-        layer = $('<div class="real-ai-bg-photo"></div>').prependTo(scrollDiv);
+        layer = $('<div class="real-ai-bg-photo"></div>').prependTo(popup);
     }
     layer.css('background-image', 'url("/storage/images/' + imageName + '")');
     var blurPx = parseInt(blurAmount, 10) || 0;
@@ -883,15 +901,16 @@ function setRealAiChatBackgroundPhoto(dataId, imageName, blurAmount) {
 }
 
 // AI Companions chat (window.ai_chat_open, find_friends.blade.php) - same .real-ai-bg-photo
-// layer as the real-profile chat above, just fed a ready absolute URL instead of a bare
-// filename under /storage/images/, since AIProfile::imageUrl() already returns a full URL
+// layer as the real-profile chat above (see its comment for why it's a direct .popup-chat
+// child instead of nested in .mCustomScrollbar), just fed a ready absolute URL instead of a
+// bare filename under /storage/images/, since AIProfile::imageUrl() already returns a full URL
 // (its own S3/CDN base, or an http(s) URL as-is). No blur here - the package-tier privacy
 // blur only ever applied to real people's live video/photo, not a fictional companion's.
 window.setAiCompanionChatBackgroundPhoto = function (dataId, imageUrl) {
-    var scrollDiv = $('.popup-chat[data-id="' + dataId + '"] .mCustomScrollbar');
-    var layer = scrollDiv.find('.real-ai-bg-photo');
+    var popup = $('.popup-chat[data-id="' + dataId + '"]');
+    var layer = popup.children('.real-ai-bg-photo');
     if (!layer.length) {
-        layer = $('<div class="real-ai-bg-photo"></div>').prependTo(scrollDiv);
+        layer = $('<div class="real-ai-bg-photo"></div>').prependTo(popup);
     }
     layer.css('background-image', imageUrl ? 'url("' + imageUrl + '")' : 'none');
 };
@@ -902,8 +921,16 @@ window.setAiCompanionChatBackgroundPhoto = function (dataId, imageUrl) {
 // in the popup entirely.
 function setRealAiChatBackgroundVideo(dataId, videoName, blurAmount) {
     var blurPx = parseInt(blurAmount, 10) || 0;
-    var style = blurPx > 0 ? ' style="filter: blur(' + blurPx + 'px);"' : '';
-    $('.popup-chat[data-id="' + dataId + '"] .ubgvideo').html('<video autoplay muted loop' + style + '><source src="' + window.location.origin + '/storage/videos/' + videoName + '"></source></video>');
+    // pointer-events: none added to style alongside the existing blur filter - this is a
+    // decorative background video, not meant to be interacted with. playsinline is required
+    // separately (can't be set via the style attribute) - without it, iOS Safari treats the
+    // video as a full interactive media element and pops up its own native play/pause + 10s
+    // skip controls whenever the user taps it, even though there's no `controls` attribute
+    // here at all; Android Chrome never did this, which is why the bug only ever showed up on
+    // iPhone. The Find Friends hover-preview video (same file, setRealAiChatBackgroundVideo's
+    // sibling) already had playsinline for this exact reason.
+    var style = ' style="pointer-events: none;' + (blurPx > 0 ? ' filter: blur(' + blurPx + 'px);' : '') + '"';
+    $('.popup-chat[data-id="' + dataId + '"] .ubgvideo').html('<video autoplay muted loop playsinline' + style + '><source src="' + window.location.origin + '/storage/videos/' + videoName + '"></source></video>');
 }
 
 function createRealAiDailyRenderer(container, blurAmount, audioMuted) {

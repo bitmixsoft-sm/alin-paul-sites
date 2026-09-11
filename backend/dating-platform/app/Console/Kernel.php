@@ -27,6 +27,13 @@ class Kernel extends ConsoleKernel
         // Cleanup old audio files daily at 2 AM
         $schedule->job(new \App\Jobs\CleanupOldAudioFiles)
                  ->dailyAt('02:00');
+
+        // Delete auto-registered ("fake") accounts that never completed registration - see
+        // DeleteAbandonedAutoRegisteredUsers for the full reasoning. 30-minute grace period
+        // (the "Finish your registration" popup itself only appears after 2 minutes - see
+        // layouts/layout.blade.php), checked every 15 minutes.
+        $schedule->command('users:delete-abandoned-autoregistered', ['--minutes=30'])
+                 ->everyFifteenMinutes();
     }
 
     /**

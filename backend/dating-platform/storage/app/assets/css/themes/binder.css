@@ -1220,10 +1220,26 @@ body.theme-binder .friend-item-content {
     transform-style: preserve-3d;
     -webkit-transform-style: preserve-3d;
     transition: transform .6s cubic-bezier(.3, .7, .3, 1);
+    /* Forces the browser to composite this rotation on its own GPU layer from the start,
+       instead of only promoting it once the transition begins. Reported live: hovering a card
+       (no click involved) could occasionally leave it stuck showing both faces at once,
+       mirrored/upside-down - a known class of compositing glitch with backface-visibility +
+       rotateY, more likely to surface when something else on the same card repaints at the
+       same moment (here, the Find Friends hover-preview video starting/stopping playback on
+       that identical hover). will-change hints the browser to keep this element pre-promoted
+       rather than promoting/demoting it around every hover, which is where the corrupted-frame
+       glitch tends to happen; translateZ(0) is the older fallback for browsers that ignore
+       will-change. */
+    will-change: transform;
+    transform: translateZ(0);
 }
 body.theme-binder .find_friends_item:hover .friend-item-content,
 body.theme-binder .find_friends_item:focus-within .friend-item-content {
-    transform: rotateY(180deg);
+    /* translateZ(0) kept alongside the rotation (not just on the resting state above) - the
+       `transform` property replaces its whole value on state change, so without repeating it
+       here the element would actually drop OFF its GPU layer for the entire duration of the
+       flip, exactly when keeping it on one matters most. */
+    transform: translateZ(0) rotateY(180deg);
 }
 /* backface-visibility needs the -webkit- prefix too, not just the unprefixed property, for
    reliable cross-browser support. */

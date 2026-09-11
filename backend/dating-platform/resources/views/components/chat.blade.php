@@ -286,29 +286,37 @@
 
     /* Package-tier blur applied to the chat popup's own background photo (see
        ChatController::get()'s background_blur_amount / AISetting::resolveVideoPrivacyForUser()
-       - same rule as the live AI video call). The photo lives on its own layer with a negative
-       z-index so the blur filter (which would otherwise blur the whole element it's applied to,
-       messages included) only ever touches the photo, never the message bubbles on top of it. */
-    /* z-index (not just position:relative) is required here - position:relative alone, with
-       z-index left at its default "auto", does NOT establish a new stacking context. Without
-       an actual value, the photo's z-index:-1 below doesn't stay confined to just behind THIS
-       element's own background - it escapes to the nearest ancestor that DOES form a stacking
-       context (in practice, .popup-chat itself, which every theme gives its own opaque
-       background), rendering the photo completely behind the whole popup instead of just
-       behind its message bubbles. This is what made the background photo/video invisible for
-       every regular (non-AI-video) chat that has one, in every theme including classic. */
+       - same rule as the live AI video call). */
     .popup-chat .mCustomScrollbar {
         position: relative;
         z-index: 0;
     }
-    .popup-chat .mCustomScrollbar .real-ai-bg-photo {
+    /* A direct child of .popup-chat (NOT nested inside .mCustomScrollbar, where it used to
+       live) - .mCustomScrollbar is the scrolling element, and an absolutely-positioned
+       descendant of a scrolling container still scrolls along WITH that container's content
+       (position: absolute only controls where it's offset from, not whether it participates in
+       the ancestor's scroll). With the photo living inside .mCustomScrollbar, it scrolled up
+       and out of view right along with the messages as the conversation grew - reported live:
+       typing replies pushed the background photo up until it disappeared entirely, instead of
+       staying put as a fixed backdrop. Moved here (a sibling of .mCustomScrollbar, positioned
+       against .popup-chat itself, which never scrolls) it now behaves exactly like the docked
+       call video below, which already gets this right for the same reason. No z-index: -1
+       needed either, unlike before - being an earlier DOM sibling of .mCustomScrollbar (not a
+       descendant), it already paints behind it via plain DOM-order stacking, same as .ubgvideo. */
+    .popup-chat > .real-ai-bg-photo {
         position: absolute;
         inset: 0;
-        z-index: -1;
         background-size: cover;
         background-repeat: no-repeat;
         background-position: 50% 50%;
         pointer-events: none;
+    }
+    /* .mCustomScrollbar's own background (opaque, set per-theme) would otherwise paint over
+       the photo above since it's a later DOM sibling - same reasoning, and same fix, as the
+       .popup-chat:has(> .ubgvideo iframe)/.ubgvideo > video rules further down for the call/
+       ambient-video cases. */
+    .popup-chat:has(> .real-ai-bg-photo) .mCustomScrollbar {
+        background: transparent !important;
     }
 
     /* Docked layout (mirrors the AI Companions docked mode in ai_chat_popup.blade.php, but
