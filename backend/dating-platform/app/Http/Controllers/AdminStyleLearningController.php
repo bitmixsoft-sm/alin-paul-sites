@@ -20,11 +20,19 @@ use Throwable;
 /**
  * Client's request (see conversation with the client, 2026-09-14): let an admin take the
  * conversation history of whichever female profile has actually converted clients into paying
- * subscribers the best, distill it into a reusable "conversational style" (tone/approach, not
- * literal sentences - see PersonaPromptBuilder/AIOrchestratorService's existing styleGuide
- * plumbing, built for the separate AI Companions catalog but unused for real profiles until
- * now), and apply that style to other real female profiles' AI auto-replies
- * (ChatBotController::sendAiReply()).
+ * subscribers the best, learn from it, and apply that to other real female profiles' AI
+ * auto-replies (ChatBotController::sendAiReply()).
+ *
+ * Two learning modes, picked per profile (2026-09-14 follow-up - the client's "inspired by tone"
+ * vs. "use only phrases from that conversation" distinction):
+ * - 'style': a paraphrased tone/approach guide (StyleDistillationService::distill()) - the same
+ *   styleGuide plumbing the AI Companions catalog already used, just extended to real profiles.
+ * - 'phrases': a bank of the persona's own real lines, extracted verbatim
+ *   (StyleDistillationService::extractPhrases()), reused near-verbatim by the AI rather than
+ *   paraphrased.
+ * Only one mode is active per profile at a time - learning in one mode doesn't clear data saved
+ * from the other, but ChatBotController::resolveLearning() only ever reads whichever 'mode' says
+ * is current.
  */
 final class AdminStyleLearningController extends Controller
 {
@@ -43,13 +51,15 @@ final class AdminStyleLearningController extends Controller
     }
 
     /**
-     * Builds a transcript from $user's OWN message history and distills a style guide from it -
-     * "let this profile learn from her own conversations", the first half of the client's ask.
+     * Builds a transcript from $user's OWN message history and learns from it in whichever
+     * mode was requested - "let this profile learn from her own conversations".
      */
     public function distill(Request $request, User $user, ProfileTranscriptBuilder $transcripts, StyleDistillationService $distillation): RedirectResponse
     {
         $this->authorizeAdmin();
         $this->authorizeFemale($user);
+
+        $mode = $request->input('mode') === 'phrases' ? 'phrases' : 'style';
 
         $transcript = $transcripts->build($user->id);
 
@@ -58,20 +68,31 @@ final class AdminStyleLearningController extends Controller
         }
 
         try {
-            $styleGuide = $distillation->distill($transcript);
+            if ($mode === 'phrases') {
+                $phrases = $distillation->extractPhrases($transcript);
+
+                if (empty($phrases)) {
+                    return back()->with('status', 'Nu s-au gasit fraze potrivite in conversatiile lui ' . $user->name() . '.');
+                }
+
+                $this->saveLearning($user, mode: 'phrases', phrases: $phrases, sourceUserId: $user->id);
+            } else {
+                $styleGuide = $distillation->distill($transcript);
+                $this->saveLearning($user, mode: 'style', styleGuide: $styleGuide, sourceUserId: $user->id);
+            }
         } catch (Throwable $throwable) {
-            return back()->with('status', 'Invatarea stilului a esuat: ' . $throwable->getMessage());
+            return back()->with('status', 'Invatarea a esuat: ' . $throwable->getMessage());
         }
 
-        $this->saveStyleGuide($user, $styleGuide, sourceUserId: $user->id);
+        $modeLabel = $mode === 'phrases' ? 'fraze exacte' : 'stil (ton)';
 
-        return back()->with('status', 'Stilul a fost invatat din propriile conversatii ale lui ' . $user->name() . ' si salvat.');
+        return back()->with('status', 'A invatat ' . $modeLabel . ' din propriile conversatii ale lui ' . $user->name() . ' si a salvat.');
     }
 
     /**
-     * Copies an already-distilled style guide from one profile onto one or more others - "use
+     * Copies an already-learned style/phrases from one profile onto one or more others - "use
      * the best-converting profile's approach on other profiles too", the second half of the
-     * client's ask.
+     * client's ask. Copies whichever mode is currently active on the source.
      */
     public function apply(Request $request): RedirectResponse
     {
@@ -86,10 +107,13 @@ final class AdminStyleLearningController extends Controller
         $source = User::where('id', $validated['source_user_id'])->firstOrFail();
         $this->authorizeFemale($source);
 
-        $styleGuide = trim((string) (($source->learning_snapshot ?? [])['style_guide'] ?? ''));
+        $snapshot = $source->learning_snapshot ?? [];
+        $mode = $snapshot['mode'] ?? null;
+        $styleGuide = trim((string) ($snapshot['style_guide'] ?? ''));
+        $phrases = $snapshot['phrase_examples'] ?? [];
 
-        if ($styleGuide === '') {
-            return back()->with('status', $source->name() . ' nu are inca un stil invatat - invata unul mai intai.');
+        if ($mode === null || ($mode === 'style' && $styleGuide === '') || ($mode === 'phrases' && empty($phrases))) {
+            return back()->with('status', $source->name() . ' nu are inca nimic invatat - invata mai intai un stil sau fraze.');
         }
 
         $targets = User::where('gender', 'female')
@@ -97,10 +121,10 @@ final class AdminStyleLearningController extends Controller
             ->get();
 
         foreach ($targets as $target) {
-            $this->saveStyleGuide($target, $styleGuide, sourceUserId: $source->id);
+            $this->saveLearning($target, mode: $mode, styleGuide: $styleGuide !== '' ? $styleGuide : null, phrases: ! empty($phrases) ? $phrases : null, sourceUserId: $source->id);
         }
 
-        return back()->with('status', 'Stilul lui ' . $source->name() . ' a fost aplicat la ' . $targets->count() . ' profil(uri).');
+        return back()->with('status', 'Ce a invatat ' . $source->name() . ' a fost aplicat la ' . $targets->count() . ' profil(uri).');
     }
 
     public function clear(Request $request, User $user): RedirectResponse
@@ -111,12 +135,12 @@ final class AdminStyleLearningController extends Controller
         $user->learning_snapshot = null;
         $user->save();
 
-        return back()->with('status', 'Ghidul de stil a fost eliminat de la ' . $user->name() . '.');
+        return back()->with('status', 'Ce a invatat ' . $user->name() . ' a fost eliminat.');
     }
 
     /**
      * Testing level 1 from the conversation with the user (2026-09-14): generates the SAME
-     * test message's reply with and without the profile's saved style guide, side by side, so
+     * test message's reply with and without the profile's saved learning, side by side, so
      * the admin/client can immediately see whether it's wired up and whether it actually
      * changes anything - without needing to run a real chat conversation to find out.
      */
@@ -133,12 +157,13 @@ final class AdminStyleLearningController extends Controller
         $this->authorizeFemale($user);
 
         $systemPrompt = $persona->build($user);
-        $styleGuide = trim((string) (($user->learning_snapshot ?? [])['style_guide'] ?? ''));
+        [$styleGuide, $phraseExamples] = $this->resolveLearning($user);
+        $hasLearning = $styleGuide !== null || $phraseExamples !== null;
 
         try {
             $without = $orchestrator->generateTextReply(message: $validated['message'], systemPrompt: $systemPrompt);
-            $with = $styleGuide !== ''
-                ? $orchestrator->generateTextReply(message: $validated['message'], systemPrompt: $systemPrompt, styleGuide: $styleGuide)
+            $with = $hasLearning
+                ? $orchestrator->generateTextReply(message: $validated['message'], systemPrompt: $systemPrompt, styleGuide: $styleGuide, phraseExamples: $phraseExamples)
                 : null;
         } catch (Throwable $throwable) {
             return response()->json(['error' => $throwable->getMessage()], 502);
@@ -147,16 +172,44 @@ final class AdminStyleLearningController extends Controller
         return response()->json([
             'without_style' => $without,
             'with_style' => $with,
-            'has_style_guide' => $styleGuide !== '',
+            'has_style_guide' => $hasLearning,
         ]);
     }
 
-    private function saveStyleGuide(User $user, string $styleGuide, int $sourceUserId): void
+    /**
+     * Same resolution logic as ChatBotController::resolveLearning() - duplicated rather than
+     * shared, since these two controllers otherwise have no common base worth introducing just
+     * for this.
+     *
+     * @return array{0: ?string, 1: ?array<int, string>} [styleGuide, phraseExamples]
+     */
+    private function resolveLearning(User $user): array
+    {
+        $snapshot = $user->learning_snapshot ?? [];
+        $mode = $snapshot['mode'] ?? 'style';
+
+        if ($mode === 'phrases') {
+            $phrases = $snapshot['phrase_examples'] ?? [];
+
+            return [null, ! empty($phrases) ? $phrases : null];
+        }
+
+        $styleGuide = trim((string) ($snapshot['style_guide'] ?? ''));
+
+        return [$styleGuide !== '' ? $styleGuide : null, null];
+    }
+
+    /**
+     * @param array<int, string>|null $phrases
+     */
+    private function saveLearning(User $user, string $mode, ?string $styleGuide = null, ?array $phrases = null, int $sourceUserId = 0): void
     {
         $user->learning_snapshot = [
+            'mode' => $mode,
             'style_guide' => $styleGuide,
-            'style_guide_updated_at' => now()->toIso8601String(),
-            'style_guide_source_user_id' => $sourceUserId,
+            'phrase_examples' => $phrases,
+            'updated_at' => now()->toIso8601String(),
+            'source_user_id' => $sourceUserId,
         ];
         $user->save();
     }

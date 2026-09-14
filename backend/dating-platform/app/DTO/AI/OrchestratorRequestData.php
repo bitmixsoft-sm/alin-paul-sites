@@ -20,6 +20,8 @@ final readonly class OrchestratorRequestData
         public array $history = [],
         public ?string $styleGuide = null,
         public ?string $memoryNote = null,
+        /** @var array<int, string>|null */
+        public ?array $phraseExamples = null,
     ) {
     }
 }

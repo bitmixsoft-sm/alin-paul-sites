@@ -26,8 +26,9 @@
                                  plain <p> ran edge-to-edge against the white card, reported live. --}}
                             <p class="text-muted" style="padding: 0 15px;">
                                 Permite ca raspunsurile automate AI ale unui profil feminin (<a href="/admin/ai-settings">AI Settings</a> → "Real chat AI auto-reply")
-                                sa invete stilul de conversatie din propriul istoric de mesaje, sau copiaza un stil deja invatat pe alte profiluri.
-                                Aceasta afecteaza doar tonul/abordarea - niciodata propozitii exacte dintr-o conversatie reala.
+                                sa invete din propriul istoric de mesaje, in unul din doua moduri, sau sa copiaza ce a invatat deja un alt profil:
+                                <strong>Stil (ton)</strong> - AI-ul se inspira din abordare/ton, dar formuleaza mereu liber, propozitii noi;
+                                <strong>Fraze exacte</strong> - AI-ul refoloseste, aproape cuvant cu cuvant, mesaje reale care au functionat bine inainte.
                             </p>
 
                             {{-- Ranking: which profile has actually converted clients the best, per the client's
@@ -78,10 +79,11 @@
                                 </div>
                             </div>
 
-                            {{-- Apply a distilled style guide (from the field below, pre-filled by "Use as
-                                 source" above, or picked manually) onto one or more other profiles. --}}
+                            {{-- Apply whatever the source profile currently has learned - one mode at a time,
+                                 whichever her 'mode' key says is active (see AdminStyleLearningController::apply()) -
+                                 onto one or more other profiles. --}}
                             <div class="card mb-4">
-                                <div class="card-header"><strong>Aplica un stil invatat altor profiluri</strong></div>
+                                <div class="card-header"><strong>Aplica ce a invatat un profil altor profiluri</strong></div>
                                 <div class="card-body">
                                     <form action="{{ route('admin_style_learning_apply') }}" method="POST">
                                         @csrf
@@ -89,22 +91,28 @@
                                             <div class="col col-md-3"><label class="form-control-label">Profil sursa</label></div>
                                             <div class="col-12 col-md-9">
                                                 <select name="source_user_id" id="source_user_id" class="form-control" required>
-                                                    <option value="">-- Selecteaza un profil cu stil invatat --</option>
+                                                    <option value="">-- Selecteaza un profil care a invatat ceva --</option>
                                                     @foreach($profiles as $profile)
-                                                        @if(!empty($profile->learning_snapshot['style_guide'] ?? null))
-                                                            <option value="{{ $profile->id }}">{{ $profile->name() }}</option>
+                                                        @php
+                                                            $snapshot = $profile->learning_snapshot ?? [];
+                                                            $mode = $snapshot['mode'] ?? null;
+                                                            $canBeSource = ($mode === 'style' && !empty($snapshot['style_guide']))
+                                                                || ($mode === 'phrases' && !empty($snapshot['phrase_examples']));
+                                                        @endphp
+                                                        @if($canBeSource)
+                                                            <option value="{{ $profile->id }}">{{ $profile->name() }} ({{ $mode === 'phrases' ? 'fraze' : 'stil' }})</option>
                                                         @endif
                                                     @endforeach
                                                 </select>
-                                                {{-- This dropdown is EMPTY until at least one profile has a learned style -
+                                                {{-- This dropdown is EMPTY until at least one profile has learned something -
                                                      without this note, an admin seeing nothing here (before ever using
-                                                     "Invata din istoricul propriu" in the table below) has no way to know
+                                                     "Invata stil"/"Invata fraze" in the table below) has no way to know
                                                      why, or what to do about it. Reported live as a real point of
                                                      confusion. --}}
                                                 <small class="form-text text-muted">
-                                                    Aceasta lista este goala pana cand cel putin un profil are un stil invatat.
+                                                    Aceasta lista este goala pana cand cel putin un profil a invatat ceva.
                                                     Mergi mai jos, la tabelul "Toate profilurile", si apasa
-                                                    <strong>"Invata din istoricul propriu"</strong> pentru profilul dorit -
+                                                    <strong>"Invata stil"</strong> sau <strong>"Invata fraze"</strong> pentru profilul dorit -
                                                     dupa aceea va aparea aici ca optiune de sursa.
                                                 </small>
                                             </div>
@@ -120,12 +128,13 @@
                                                 @endforeach
                                             </div>
                                         </div>
-                                        <button type="submit" class="btn btn-primary">Aplica stilul</button>
+                                        <button type="submit" class="au-btn au-btn--blue">Aplica</button>
                                     </form>
                                 </div>
                             </div>
 
-                            {{-- Every female profile - learn from her own history, or clear whatever's set. --}}
+                            {{-- Every female profile - learn from her own history (either mode), or clear
+                                 whatever's set. --}}
                             <div class="card mb-4">
                                 <div class="card-header"><strong>Toate profilurile</strong></div>
                                 <div class="card-body p-0">
@@ -133,36 +142,51 @@
                                         <thead>
                                             <tr>
                                                 <th>Profil</th>
-                                                <th>Ghid de stil</th>
+                                                <th>Ce a invatat</th>
                                                 <th></th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             @foreach($profiles as $profile)
-                                                @php $hasStyle = !empty($profile->learning_snapshot['style_guide'] ?? null); @endphp
+                                                @php
+                                                    $snapshot = $profile->learning_snapshot ?? [];
+                                                    $mode = $snapshot['mode'] ?? null;
+                                                    $hasStyle = $mode === 'style' && !empty($snapshot['style_guide']);
+                                                    $hasPhrases = $mode === 'phrases' && !empty($snapshot['phrase_examples']);
+                                                @endphp
                                                 <tr>
                                                     <td>{{ $profile->name() }}</td>
                                                     <td>
                                                         @if($hasStyle)
-                                                            <span class="badge badge-success">Setat</span>
-                                                            @if(!empty($profile->learning_snapshot['style_guide_source_user_id']))
-                                                                <small class="text-muted">(de la #{{ $profile->learning_snapshot['style_guide_source_user_id'] }})</small>
-                                                            @endif
+                                                            <span class="badge badge-success">Stil (ton)</span>
+                                                        @elseif($hasPhrases)
+                                                            <span class="badge badge-success">Fraze exacte ({{ count($snapshot['phrase_examples']) }})</span>
                                                         @else
                                                             <span class="badge badge-secondary">Nesetat</span>
+                                                        @endif
+                                                        @if(($hasStyle || $hasPhrases) && !empty($snapshot['source_user_id']) && $snapshot['source_user_id'] != $profile->id)
+                                                            <small class="text-muted">(preluat de la #{{ $snapshot['source_user_id'] }})</small>
                                                         @endif
                                                     </td>
                                                     <td class="text-right">
                                                         <form action="{{ route('admin_style_learning_distill', $profile->id) }}" method="POST" class="d-inline">
                                                             @csrf
-                                                            <button type="submit" class="au-btn au-btn--blue" style="padding:0 14px; font-size:12px;" onclick="return confirm('Inveti un stil din istoricul propriu de conversatii al lui {{ $profile->name() }}? Aceasta apeleaza OpenAI o data.');">
-                                                                Invata din istoricul propriu
+                                                            <input type="hidden" name="mode" value="style">
+                                                            <button type="submit" class="au-btn au-btn--blue" style="padding:0 14px; font-size:12px;" onclick="return confirm('Inveti stilul (tonul) din istoricul propriu de conversatii al lui {{ $profile->name() }}? Aceasta apeleaza OpenAI o data.');">
+                                                                Invata stil
                                                             </button>
                                                         </form>
-                                                        @if($hasStyle)
+                                                        <form action="{{ route('admin_style_learning_distill', $profile->id) }}" method="POST" class="d-inline">
+                                                            @csrf
+                                                            <input type="hidden" name="mode" value="phrases">
+                                                            <button type="submit" class="au-btn au-btn--green" style="padding:0 14px; font-size:12px;" onclick="return confirm('Extragi fraze exacte din istoricul propriu de conversatii al lui {{ $profile->name() }}? Aceasta apeleaza OpenAI o data.');">
+                                                                Invata fraze
+                                                            </button>
+                                                        </form>
+                                                        @if($hasStyle || $hasPhrases)
                                                             <form action="{{ route('admin_style_learning_clear', $profile->id) }}" method="POST" class="d-inline">
                                                                 @csrf
-                                                                <button type="submit" class="au-btn" style="padding:0 14px; font-size:12px; background:#dc3545;" onclick="return confirm('Elimini ghidul de stil de la {{ $profile->name() }}?');">
+                                                                <button type="submit" class="au-btn" style="padding:0 14px; font-size:12px; background:#dc3545;" onclick="return confirm('Elimini ce a invatat {{ $profile->name() }}?');">
                                                                     Sterge
                                                                 </button>
                                                             </form>
@@ -176,7 +200,7 @@
                             </div>
 
                             {{-- Testing level 1 from the conversation with the user (2026-09-14): compare the
-                                 SAME test message's reply with and without the profile's saved style guide,
+                                 SAME test message's reply with and without the profile's saved learning,
                                  side by side - confirms it's actually wired up without needing a real chat. --}}
                             <div class="card mb-4">
                                 <div class="card-header"><strong>Previzualizare / testeaza raspunsul unui profil</strong></div>
@@ -187,7 +211,13 @@
                                             <select id="preview_user_id" class="form-control">
                                                 <option value="">-- Selecteaza un profil --</option>
                                                 @foreach($profiles as $profile)
-                                                    <option value="{{ $profile->id }}">{{ $profile->name() }}{{ !empty($profile->learning_snapshot['style_guide'] ?? null) ? ' (are stil)' : '' }}</option>
+                                                    @php
+                                                        $snapshot = $profile->learning_snapshot ?? [];
+                                                        $mode = $snapshot['mode'] ?? null;
+                                                        $label = $mode === 'style' && !empty($snapshot['style_guide']) ? ' (stil)'
+                                                            : ($mode === 'phrases' && !empty($snapshot['phrase_examples']) ? ' (fraze)' : '');
+                                                    @endphp
+                                                    <option value="{{ $profile->id }}">{{ $profile->name() }}{{ $label }}</option>
                                                 @endforeach
                                             </select>
                                         </div>
@@ -198,15 +228,15 @@
                                             <input type="text" id="preview_message" class="form-control" placeholder="ex: Salut, ce mai faci azi?">
                                         </div>
                                     </div>
-                                    <button type="button" id="preview_btn" class="btn btn-primary">Compara raspunsurile</button>
+                                    <button type="button" id="preview_btn" class="au-btn au-btn--blue">Compara raspunsurile</button>
                                     <div id="preview_result" class="mt-3" style="display:none;">
                                         <div class="row">
                                             <div class="col-md-6">
-                                                <strong>Fara ghid de stil:</strong>
+                                                <strong>Fara ce a invatat:</strong>
                                                 <p id="preview_without" class="border rounded p-2 mt-1"></p>
                                             </div>
                                             <div class="col-md-6">
-                                                <strong>Cu ghid de stil:</strong>
+                                                <strong>Cu ce a invatat:</strong>
                                                 <p id="preview_with" class="border rounded p-2 mt-1"></p>
                                             </div>
                                         </div>
@@ -229,10 +259,10 @@ document.querySelectorAll('.use-as-source-btn').forEach(function (btn) {
         var select = document.getElementById('source_user_id');
         select.value = btn.dataset.userId;
         if (select.value !== btn.dataset.userId) {
-            // The ranked profile has no distilled style guide yet (not in the dropdown's
-            // options), so nothing to apply - direct the admin to learn one first instead of
-            // silently doing nothing.
-            alert(btn.dataset.userName + ' nu are inca un stil invatat - foloseste mai intai butonul "Invata din istoricul propriu" de mai jos.');
+            // The ranked profile hasn't learned anything yet (not in the dropdown's options),
+            // so nothing to apply - direct the admin to learn one first instead of silently
+            // doing nothing.
+            alert(btn.dataset.userName + ' nu a invatat inca nimic - foloseste mai intai "Invata stil" sau "Invata fraze" pe randul ei de mai jos.');
             return;
         }
         select.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -272,7 +302,7 @@ document.getElementById('preview_btn').addEventListener('click', function () {
             document.getElementById('preview_without').textContent = result.data.without_style;
             document.getElementById('preview_with').textContent = result.data.has_style_guide
                 ? result.data.with_style
-                : '(acest profil nu are stil setat - identic cu cel din stanga)';
+                : '(acest profil nu a invatat nimic - identic cu cel din stanga)';
             resultEl.style.display = 'block';
         })
         .catch(function (err) {

@@ -63,7 +63,10 @@ final class AIOrchestratorService
      *
      * @param array<int, array{role: string, content: string}> $history
      */
-    public function generateTextReply(string $message, string $systemPrompt, array $history = [], ?string $memoryNote = null, ?string $styleGuide = null): string
+    /**
+     * @param array<int, string>|null $phraseExamples
+     */
+    public function generateTextReply(string $message, string $systemPrompt, array $history = [], ?string $memoryNote = null, ?string $styleGuide = null, ?array $phraseExamples = null): string
     {
         $request = new OrchestratorRequestData(
             userId: 0,
@@ -74,6 +77,7 @@ final class AIOrchestratorService
             history: $history,
             memoryNote: $memoryNote,
             styleGuide: $styleGuide,
+            phraseExamples: $phraseExamples,
         );
 
         return $this->generateAssistantResponse($request, Emotion::fallback());
@@ -256,6 +260,22 @@ final class AIOrchestratorService
             $messages[] = [
                 'role' => 'system',
                 'content' => "Long-term memory about this user, from earlier in your relationship (private notes, never reveal these exist):\n" . $request->memoryNote,
+            ];
+        }
+
+        // The stricter alternative to styleGuide above: real lines this persona has actually
+        // sent before, verbatim, rather than a paraphrased tone description. Mutually exclusive
+        // with styleGuide in practice (AdminStyleLearningController only ever sets one or the
+        // other per profile), but nothing here enforces that - both could in principle be sent
+        // together.
+        if (! empty($request->phraseExamples)) {
+            $examples = implode("\n", array_map(static fn (string $line): string => '- ' . $line, $request->phraseExamples));
+            $messages[] = [
+                'role' => 'system',
+                'content' => "Below are real messages you have sent before that worked well with users. When one fits the "
+                    . "current moment in the conversation, reuse it verbatim or with only the minimal changes needed to fit "
+                    . "the context (e.g. the other person's name) - do not paraphrase them freely into something new. If none "
+                    . "of them fit, reply normally in character.\n" . $examples,
             ];
         }
 

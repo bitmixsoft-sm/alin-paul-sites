@@ -305,10 +305,17 @@
                                                                 <label class="form-control-label">Stil AI invatat</label>
                                                             </div>
                                                             <div class="col-12 col-md-9">
-                                                                @php $styleGuide = trim((string) ($user->learning_snapshot['style_guide'] ?? '')); @endphp
-                                                                @if($styleGuide !== '')
-                                                                    <span class="badge badge-success">Setat</span>
+                                                                @php
+                                                                    $learningSnapshot = $user->learning_snapshot ?? [];
+                                                                    $learningMode = $learningSnapshot['mode'] ?? null;
+                                                                    $styleGuide = trim((string) ($learningSnapshot['style_guide'] ?? ''));
+                                                                    $phraseExamples = $learningSnapshot['phrase_examples'] ?? [];
+                                                                @endphp
+                                                                @if($learningMode === 'style' && $styleGuide !== '')
+                                                                    <span class="badge badge-success">Stil (ton)</span>
                                                                     <small class="form-text text-muted">{{ \Illuminate\Support\Str::limit($styleGuide, 160) }}</small>
+                                                                @elseif($learningMode === 'phrases' && !empty($phraseExamples))
+                                                                    <span class="badge badge-success">Fraze exacte ({{ count($phraseExamples) }})</span>
                                                                 @else
                                                                     <span class="badge badge-secondary">Nesetat</span>
                                                                 @endif

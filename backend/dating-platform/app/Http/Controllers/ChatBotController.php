@@ -211,11 +211,14 @@ class ChatBotController extends Controller
     private function sendAiReply(AIOrchestratorService $orchestrator, AdminAlertService $adminAlert, PersonaPromptBuilder $persona, User $user_to, User $user_from, \App\Chat $bot_chat, string $text): bool
     {
         try {
+            [$styleGuide, $phraseExamples] = $this->resolveLearning($user_to);
+
             $reply = $orchestrator->generateTextReply(
                 message: $text,
                 systemPrompt: $persona->build($user_to),
                 history: $this->recentHistory($user_to->id, $user_from->id),
-                styleGuide: $this->resolveStyleGuide($user_to),
+                styleGuide: $styleGuide,
+                phraseExamples: $phraseExamples,
             );
         } catch (Throwable $throwable) {
             Log::error('AI chat auto-reply generation failed.', [
@@ -272,16 +275,29 @@ class ChatBotController extends Controller
     }
 
     /**
-     * The style-learning feature's payoff: if an admin has distilled (or copied from another
-     * profile - see AdminStyleLearningController) a conversational style guide for this
-     * profile, feed it into the same styleGuide slot AIOrchestratorService::
-     * generateAssistantResponse() already uses for the AI Companions catalog.
+     * The style-learning feature's payoff: if an admin has learned (or copied from another
+     * profile - see AdminStyleLearningController) either a conversational style guide OR a
+     * bank of literal example phrases for this profile, feed whichever one is set into
+     * AIOrchestratorService's matching slot. 'mode' decides which of the two (possibly both
+     * being present after switching modes more than once) actually gets used - only one is
+     * meant to be active at a time.
+     *
+     * @return array{0: ?string, 1: ?array<int, string>} [styleGuide, phraseExamples]
      */
-    private function resolveStyleGuide(User $user): ?string
+    private function resolveLearning(User $user): array
     {
-        $styleGuide = trim((string) (($user->learning_snapshot ?? [])['style_guide'] ?? ''));
+        $snapshot = $user->learning_snapshot ?? [];
+        $mode = $snapshot['mode'] ?? 'style';
 
-        return $styleGuide !== '' ? $styleGuide : null;
+        if ($mode === 'phrases') {
+            $phrases = $snapshot['phrase_examples'] ?? [];
+
+            return [null, ! empty($phrases) ? $phrases : null];
+        }
+
+        $styleGuide = trim((string) ($snapshot['style_guide'] ?? ''));
+
+        return [$styleGuide !== '' ? $styleGuide : null, null];
     }
 
     /**
