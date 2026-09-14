@@ -293,6 +293,30 @@
                                                         </div>
                                                     </div>
 
+                                                    @if($user->gender === 'female')
+                                                        {{-- Read-only status + link, not an editable field like its siblings here -
+                                                             actually learning/applying a style happens on the dedicated
+                                                             /admin/style-learning page (ranking + apply-to-multiple-profiles UI
+                                                             doesn't fit a single-profile form), this is just a shortcut so an
+                                                             admin editing one profile doesn't have to remember that page exists
+                                                             or dig through the menu to check her current status. --}}
+                                                        <div class="row form-group">
+                                                            <div class="col col-md-3">
+                                                                <label class="form-control-label">Stil AI invatat</label>
+                                                            </div>
+                                                            <div class="col-12 col-md-9">
+                                                                @php $styleGuide = trim((string) ($user->learning_snapshot['style_guide'] ?? '')); @endphp
+                                                                @if($styleGuide !== '')
+                                                                    <span class="badge badge-success">Setat</span>
+                                                                    <small class="form-text text-muted">{{ \Illuminate\Support\Str::limit($styleGuide, 160) }}</small>
+                                                                @else
+                                                                    <span class="badge badge-secondary">Nesetat</span>
+                                                                @endif
+                                                                <div class="mt-1"><a href="/admin/style-learning">Gestioneaza in AI Style Learning &rarr;</a></div>
+                                                            </div>
+                                                        </div>
+                                                    @endif
+
                                                     <div class="row form-group">
                                                         <div class="col col-md-3">
                                                             <label class=" form-control-label">Simli Face ID</label>

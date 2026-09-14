@@ -21,10 +21,13 @@
                             <h3 class="title-3 m-b-30">
                                 <i class="fas fa-graduation-cap"></i> AI Style Learning
                             </h3>
-                            <p class="text-muted">
-                                Let a female profile's AI auto-reply (<a href="/admin/ai-settings">AI Settings</a> → "Real chat AI auto-reply")
-                                learn its conversational style from her own message history, or copy an already-learned style onto other profiles.
-                                This only affects tone/approach - never literal sentences from anyone's real conversation.
+                            {{-- .user-data doesn't add its own horizontal padding (the tables/cards below get
+                                 away with it because Bootstrap's .card/.table already carry their own) - a
+                                 plain <p> ran edge-to-edge against the white card, reported live. --}}
+                            <p class="text-muted" style="padding: 0 15px;">
+                                Permite ca raspunsurile automate AI ale unui profil feminin (<a href="/admin/ai-settings">AI Settings</a> → "Real chat AI auto-reply")
+                                sa invete stilul de conversatie din propriul istoric de mesaje, sau copiaza un stil deja invatat pe alte profiluri.
+                                Aceasta afecteaza doar tonul/abordarea - niciodata propozitii exacte dintr-o conversatie reala.
                             </p>
 
                             {{-- Ranking: which profile has actually converted clients the best, per the client's
@@ -33,18 +36,18 @@
                                  paying, in the 7 days before) - see ProfileConversionRankingService for the
                                  full reasoning. --}}
                             <div class="card mb-4">
-                                <div class="card-header"><strong>Top-converting profiles (last 7 days of purchases)</strong></div>
+                                <div class="card-header"><strong>Profilurile cu cele mai multe conversii (ultimele 7 zile)</strong></div>
                                 <div class="card-body p-0">
                                     @if(empty($ranked))
-                                        <p class="text-muted p-3 mb-0">No attributable conversions found yet in the lookback window.</p>
+                                        <p class="text-muted p-3 mb-0">Nu au fost gasite conversii atribuibile in perioada analizata.</p>
                                     @else
                                         <table class="table mb-0">
                                             <thead>
                                                 <tr>
                                                     <th>#</th>
-                                                    <th>Profile</th>
-                                                    <th>Conversions</th>
-                                                    <th>Revenue</th>
+                                                    <th>Profil</th>
+                                                    <th>Conversii</th>
+                                                    <th>Venit</th>
                                                     <th></th>
                                                 </tr>
                                             </thead>
@@ -56,9 +59,15 @@
                                                         <td>{{ $row['conversions'] }}</td>
                                                         <td>{{ number_format($row['revenue'], 2) }}</td>
                                                         <td>
-                                                            <button type="button" class="btn btn-sm btn-outline-primary use-as-source-btn"
+                                                            {{-- Bootstrap's btn-outline-* renders with invisible (white-on-white)
+                                                                 text in this admin theme until :hover - reported live - so this
+                                                                 (and the other action buttons on this page) use the theme's own
+                                                                 au-btn classes instead, which are already proven to render
+                                                                 correctly everywhere else in the admin. --}}
+                                                            <button type="button" class="au-btn au-btn--blue use-as-source-btn"
+                                                                    style="padding:0 14px; font-size:12px;"
                                                                     data-user-id="{{ $row['user_id'] }}" data-user-name="{{ $row['name'] }}">
-                                                                Use as source
+                                                                Foloseste ca sursa
                                                             </button>
                                                         </td>
                                                     </tr>
@@ -72,25 +81,36 @@
                             {{-- Apply a distilled style guide (from the field below, pre-filled by "Use as
                                  source" above, or picked manually) onto one or more other profiles. --}}
                             <div class="card mb-4">
-                                <div class="card-header"><strong>Apply a learned style to other profiles</strong></div>
+                                <div class="card-header"><strong>Aplica un stil invatat altor profiluri</strong></div>
                                 <div class="card-body">
                                     <form action="{{ route('admin_style_learning_apply') }}" method="POST">
                                         @csrf
                                         <div class="row form-group">
-                                            <div class="col col-md-3"><label class="form-control-label">Source profile</label></div>
+                                            <div class="col col-md-3"><label class="form-control-label">Profil sursa</label></div>
                                             <div class="col-12 col-md-9">
                                                 <select name="source_user_id" id="source_user_id" class="form-control" required>
-                                                    <option value="">-- Select a profile with a learned style --</option>
+                                                    <option value="">-- Selecteaza un profil cu stil invatat --</option>
                                                     @foreach($profiles as $profile)
                                                         @if(!empty($profile->learning_snapshot['style_guide'] ?? null))
                                                             <option value="{{ $profile->id }}">{{ $profile->name() }}</option>
                                                         @endif
                                                     @endforeach
                                                 </select>
+                                                {{-- This dropdown is EMPTY until at least one profile has a learned style -
+                                                     without this note, an admin seeing nothing here (before ever using
+                                                     "Invata din istoricul propriu" in the table below) has no way to know
+                                                     why, or what to do about it. Reported live as a real point of
+                                                     confusion. --}}
+                                                <small class="form-text text-muted">
+                                                    Aceasta lista este goala pana cand cel putin un profil are un stil invatat.
+                                                    Mergi mai jos, la tabelul "Toate profilurile", si apasa
+                                                    <strong>"Invata din istoricul propriu"</strong> pentru profilul dorit -
+                                                    dupa aceea va aparea aici ca optiune de sursa.
+                                                </small>
                                             </div>
                                         </div>
                                         <div class="row form-group">
-                                            <div class="col col-md-3"><label class="form-control-label">Apply to</label></div>
+                                            <div class="col col-md-3"><label class="form-control-label">Aplica la</label></div>
                                             <div class="col-12 col-md-9" style="max-height: 220px; overflow-y: auto;">
                                                 @foreach($profiles as $profile)
                                                     <div class="form-check">
@@ -100,20 +120,20 @@
                                                 @endforeach
                                             </div>
                                         </div>
-                                        <button type="submit" class="btn btn-primary">Apply style</button>
+                                        <button type="submit" class="btn btn-primary">Aplica stilul</button>
                                     </form>
                                 </div>
                             </div>
 
                             {{-- Every female profile - learn from her own history, or clear whatever's set. --}}
                             <div class="card mb-4">
-                                <div class="card-header"><strong>All profiles</strong></div>
+                                <div class="card-header"><strong>Toate profilurile</strong></div>
                                 <div class="card-body p-0">
                                     <table class="table mb-0">
                                         <thead>
                                             <tr>
-                                                <th>Profile</th>
-                                                <th>Style guide</th>
+                                                <th>Profil</th>
+                                                <th>Ghid de stil</th>
                                                 <th></th>
                                             </tr>
                                         </thead>
@@ -124,26 +144,26 @@
                                                     <td>{{ $profile->name() }}</td>
                                                     <td>
                                                         @if($hasStyle)
-                                                            <span class="badge badge-success">Set</span>
+                                                            <span class="badge badge-success">Setat</span>
                                                             @if(!empty($profile->learning_snapshot['style_guide_source_user_id']))
-                                                                <small class="text-muted">(from #{{ $profile->learning_snapshot['style_guide_source_user_id'] }})</small>
+                                                                <small class="text-muted">(de la #{{ $profile->learning_snapshot['style_guide_source_user_id'] }})</small>
                                                             @endif
                                                         @else
-                                                            <span class="badge badge-secondary">None</span>
+                                                            <span class="badge badge-secondary">Nesetat</span>
                                                         @endif
                                                     </td>
                                                     <td class="text-right">
                                                         <form action="{{ route('admin_style_learning_distill', $profile->id) }}" method="POST" class="d-inline">
                                                             @csrf
-                                                            <button type="submit" class="btn btn-sm btn-outline-primary" onclick="return confirm('Learn a style from {{ $profile->name() }}\'s own conversation history? This calls OpenAI once.');">
-                                                                Learn from her own history
+                                                            <button type="submit" class="au-btn au-btn--blue" style="padding:0 14px; font-size:12px;" onclick="return confirm('Inveti un stil din istoricul propriu de conversatii al lui {{ $profile->name() }}? Aceasta apeleaza OpenAI o data.');">
+                                                                Invata din istoricul propriu
                                                             </button>
                                                         </form>
                                                         @if($hasStyle)
                                                             <form action="{{ route('admin_style_learning_clear', $profile->id) }}" method="POST" class="d-inline">
                                                                 @csrf
-                                                                <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Remove the style guide from {{ $profile->name() }}?');">
-                                                                    Clear
+                                                                <button type="submit" class="au-btn" style="padding:0 14px; font-size:12px; background:#dc3545;" onclick="return confirm('Elimini ghidul de stil de la {{ $profile->name() }}?');">
+                                                                    Sterge
                                                                 </button>
                                                             </form>
                                                         @endif
@@ -159,34 +179,34 @@
                                  SAME test message's reply with and without the profile's saved style guide,
                                  side by side - confirms it's actually wired up without needing a real chat. --}}
                             <div class="card mb-4">
-                                <div class="card-header"><strong>Preview / test a profile's reply</strong></div>
+                                <div class="card-header"><strong>Previzualizare / testeaza raspunsul unui profil</strong></div>
                                 <div class="card-body">
                                     <div class="row form-group">
-                                        <div class="col col-md-3"><label class="form-control-label">Profile</label></div>
+                                        <div class="col col-md-3"><label class="form-control-label">Profil</label></div>
                                         <div class="col-12 col-md-9">
                                             <select id="preview_user_id" class="form-control">
-                                                <option value="">-- Select a profile --</option>
+                                                <option value="">-- Selecteaza un profil --</option>
                                                 @foreach($profiles as $profile)
-                                                    <option value="{{ $profile->id }}">{{ $profile->name() }}{{ !empty($profile->learning_snapshot['style_guide'] ?? null) ? ' (has style)' : '' }}</option>
+                                                    <option value="{{ $profile->id }}">{{ $profile->name() }}{{ !empty($profile->learning_snapshot['style_guide'] ?? null) ? ' (are stil)' : '' }}</option>
                                                 @endforeach
                                             </select>
                                         </div>
                                     </div>
                                     <div class="row form-group">
-                                        <div class="col col-md-3"><label class="form-control-label">Test message</label></div>
+                                        <div class="col col-md-3"><label class="form-control-label">Mesaj de test</label></div>
                                         <div class="col-12 col-md-9">
-                                            <input type="text" id="preview_message" class="form-control" placeholder="e.g. Hey, how are you today?">
+                                            <input type="text" id="preview_message" class="form-control" placeholder="ex: Salut, ce mai faci azi?">
                                         </div>
                                     </div>
-                                    <button type="button" id="preview_btn" class="btn btn-primary">Compare replies</button>
+                                    <button type="button" id="preview_btn" class="btn btn-primary">Compara raspunsurile</button>
                                     <div id="preview_result" class="mt-3" style="display:none;">
                                         <div class="row">
                                             <div class="col-md-6">
-                                                <strong>Without style guide:</strong>
+                                                <strong>Fara ghid de stil:</strong>
                                                 <p id="preview_without" class="border rounded p-2 mt-1"></p>
                                             </div>
                                             <div class="col-md-6">
-                                                <strong>With style guide:</strong>
+                                                <strong>Cu ghid de stil:</strong>
                                                 <p id="preview_with" class="border rounded p-2 mt-1"></p>
                                             </div>
                                         </div>
@@ -212,7 +232,7 @@ document.querySelectorAll('.use-as-source-btn').forEach(function (btn) {
             // The ranked profile has no distilled style guide yet (not in the dropdown's
             // options), so nothing to apply - direct the admin to learn one first instead of
             // silently doing nothing.
-            alert(btn.dataset.userName + ' does not have a distilled style guide yet - use "Learn from her own history" on her row below first.');
+            alert(btn.dataset.userName + ' nu are inca un stil invatat - foloseste mai intai butonul "Invata din istoricul propriu" de mai jos.');
             return;
         }
         select.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -228,7 +248,7 @@ document.getElementById('preview_btn').addEventListener('click', function () {
     resultEl.style.display = 'none';
 
     if (!userId || !message) {
-        errorEl.textContent = 'Pick a profile and type a test message first.';
+        errorEl.textContent = 'Selecteaza un profil si scrie un mesaj de test.';
         errorEl.style.display = 'block';
         return;
     }
@@ -245,18 +265,18 @@ document.getElementById('preview_btn').addEventListener('click', function () {
         .then(function (resp) { return resp.json().then(function (data) { return { ok: resp.ok, data: data }; }); })
         .then(function (result) {
             if (!result.ok) {
-                errorEl.textContent = result.data.error || result.data.message || 'Request failed.';
+                errorEl.textContent = result.data.error || result.data.message || 'Cererea a esuat.';
                 errorEl.style.display = 'block';
                 return;
             }
             document.getElementById('preview_without').textContent = result.data.without_style;
             document.getElementById('preview_with').textContent = result.data.has_style_guide
                 ? result.data.with_style
-                : '(this profile has no style guide set - identical to the left)';
+                : '(acest profil nu are stil setat - identic cu cel din stanga)';
             resultEl.style.display = 'block';
         })
         .catch(function (err) {
-            errorEl.textContent = 'Network error: ' + err.message;
+            errorEl.textContent = 'Eroare de retea: ' + err.message;
             errorEl.style.display = 'block';
         });
 });

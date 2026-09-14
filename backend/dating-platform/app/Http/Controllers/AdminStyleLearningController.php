@@ -54,18 +54,18 @@ final class AdminStyleLearningController extends Controller
         $transcript = $transcripts->build($user->id);
 
         if (trim($transcript) === '') {
-            return back()->with('status', $user->name() . ' has no message history to learn from yet.');
+            return back()->with('status', $user->name() . ' nu are inca istoric de mesaje din care sa invete.');
         }
 
         try {
             $styleGuide = $distillation->distill($transcript);
         } catch (Throwable $throwable) {
-            return back()->with('status', 'Failed to distill style: ' . $throwable->getMessage());
+            return back()->with('status', 'Invatarea stilului a esuat: ' . $throwable->getMessage());
         }
 
         $this->saveStyleGuide($user, $styleGuide, sourceUserId: $user->id);
 
-        return back()->with('status', 'Style guide learned from ' . $user->name() . '\'s own conversations and saved.');
+        return back()->with('status', 'Stilul a fost invatat din propriile conversatii ale lui ' . $user->name() . ' si salvat.');
     }
 
     /**
@@ -89,7 +89,7 @@ final class AdminStyleLearningController extends Controller
         $styleGuide = trim((string) (($source->learning_snapshot ?? [])['style_guide'] ?? ''));
 
         if ($styleGuide === '') {
-            return back()->with('status', $source->name() . ' does not have a distilled style guide yet - distill one first.');
+            return back()->with('status', $source->name() . ' nu are inca un stil invatat - invata unul mai intai.');
         }
 
         $targets = User::where('gender', 'female')
@@ -100,7 +100,7 @@ final class AdminStyleLearningController extends Controller
             $this->saveStyleGuide($target, $styleGuide, sourceUserId: $source->id);
         }
 
-        return back()->with('status', 'Applied ' . $source->name() . '\'s style to ' . $targets->count() . ' profile(s).');
+        return back()->with('status', 'Stilul lui ' . $source->name() . ' a fost aplicat la ' . $targets->count() . ' profil(uri).');
     }
 
     public function clear(Request $request, User $user): RedirectResponse
@@ -111,7 +111,7 @@ final class AdminStyleLearningController extends Controller
         $user->learning_snapshot = null;
         $user->save();
 
-        return back()->with('status', 'Style guide removed from ' . $user->name() . '.');
+        return back()->with('status', 'Ghidul de stil a fost eliminat de la ' . $user->name() . '.');
     }
 
     /**
@@ -168,6 +168,6 @@ final class AdminStyleLearningController extends Controller
 
     private function authorizeFemale(User $user): void
     {
-        abort_unless($user->gender === 'female', 422, 'This feature only applies to female profiles.');
+        abort_unless($user->gender === 'female', 422, 'Aceasta functie se aplica doar profilurilor feminine.');
     }
 }
