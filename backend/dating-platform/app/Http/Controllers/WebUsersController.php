@@ -37,6 +37,12 @@ class WebUsersController extends Controller
      */
     public function index(Request $request)
     {
+        // Optional gender filter (admin.users.blade.php's new dropdown) - applied on top of
+        // whichever branch below builds the base query, so it works together with search/
+        // banned instead of being yet another separate mutually-exclusive branch. Editors
+        // already only ever see 'male' below regardless, so the filter is a no-op for them.
+        $gender = in_array($request->gender, ['male', 'female'], true) ? $request->gender : null;
+
         if($request->search){
             $search = $request->search;
             $users = User::where('role', 'user')->where(function($q) use ($search) {
@@ -44,23 +50,33 @@ class WebUsersController extends Controller
                     ->orWhere('lastname', 'like', '%'.$search.'%')
                     ->orWhere('username', 'like', '%'.$search.'%')
                     ->orWhere('email', 'like', '%'.$search.'%');
-                      })->orderBy('created_at', 'desc')
+                      })
+                    ->when($gender, fn($q) => $q->where('gender', $gender))
+                    ->orderBy('created_at', 'desc')
                     ->paginate(20);
         }elseif(isset($request->option) && $request->option == 'banned'){
-                $users = User::where('role', 'user')->where('banned', 'yes')->orderBy('created_at', 'desc')->paginate(20);
+                $users = User::where('role', 'user')->where('banned', 'yes')
+                    ->when($gender, fn($q) => $q->where('gender', $gender))
+                    ->orderBy('created_at', 'desc')->paginate(20);
         }else{
             if(Auth::user()->role == 'editor'){
                 // $users= User::leftJoin('clients', 'users.email','=', 'clients.email')->where('role', 'user')->where('banned', 'no')->where('users.gender', 'male')->whereNotNull('users.email')->orderBy('users.created_at', 'desc')->paginate(20);
                 $users= User::where('role', 'user')->where('banned', 'no')->where('users.gender', 'male')->whereNotNull('users.email')->orderBy('users.created_at', 'desc')->paginate(20);
             } elseif(Auth::user()->role == 'admin'){
-                $users = User::where('role', 'user')->orderBy('created_at', 'desc')->paginate(20);
+                $users = User::where('role', 'user')
+                    ->when($gender, fn($q) => $q->where('gender', $gender))
+                    ->orderBy('created_at', 'desc')->paginate(20);
             } else {
                 die("You do not have permission to access this area!");
             }
         }
 
+        // Without this, clicking to page 2+ silently drops the gender filter (and search term)
+        // from the URL - Laravel's paginator only keeps query-string params it's told about.
+        $users->appends($request->query());
+
         $on_page = 'Utilizatori';
-        return view('admin.users', compact('users', 'on_page'));
+        return view('admin.users', compact('users', 'on_page', 'gender'));
     }
 
     /**

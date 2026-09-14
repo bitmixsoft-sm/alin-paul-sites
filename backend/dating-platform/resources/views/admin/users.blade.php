@@ -19,6 +19,43 @@
                                         </form>
                                         <a href="/admin/users?option=banned" class="add-admin au-btn au-btn-icon au-btn--blue">
                                         <i class="fas fa-ban"></i>Utilizatori blocati</a>
+                                        {{-- Plain GET links (page reload), same pattern as "Utilizatori blocati" above -
+                                             deliberately separate from the "Cauta utilizatori" box above, which is a
+                                             live AJAX search (search_users() in dating.js) with its own endpoint;
+                                             wiring gender into that too would mean touching that endpoint as well,
+                                             for a feature that's really just "let me browse only the women/men"
+                                             rather than "search by gender AND name at once".
+                                             .add-admin (used by "Utilizatori blocati" above) is position: absolute;
+                                             right: 45px - a SECOND element with that same class lands exactly on top
+                                             of the first instead of next to it, which is what made "Toti"/"Femei"
+                                             invisible (stacked underneath "Barbati"/the banned button). theme.css
+                                             already has .add-admin-second (position: relative; margin-left: 45px)
+                                             for exactly this "one more header action button" case - applied to this
+                                             wrapper once, with the 3 links laid out normally (flex) inside it. --}}
+                                        {{-- .au-btn's own line-height:45px/padding:0 35px makes a full-size button -
+                                             fine for a single header action, too bulky for 3 small filter toggles
+                                             side by side, so those are overridden smaller here instead of used
+                                             as-is. --}}
+                                        <div class="add-admin-second" style="gap:6px; align-items:center;">
+                                            <a href="/admin/users" style="padding:0 14px; font-size:12px;" class="au-btn {{ $gender === null ? 'au-btn--blue' : 'au-btn--green' }}">Toti</a>
+                                            <a href="/admin/users?gender=female" style="padding:0 14px; font-size:12px;" class="au-btn {{ $gender === 'female' ? 'au-btn--blue' : 'au-btn--green' }}">Femei</a>
+                                            <a href="/admin/users?gender=male" style="padding:0 14px; font-size:12px;" class="au-btn {{ $gender === 'male' ? 'au-btn--blue' : 'au-btn--green' }}">Barbati</a>
+                                        </div>
+                                    @if($gender !== null)
+                                        {{-- Without this, an admin who filtered to one gender and forgot about it
+                                             later would just see a short/empty-looking list with no clue why -
+                                             reported live as a real point of confusion. display:block/width:100%/
+                                             clear:both forced explicitly - this page's surrounding elements
+                                             (.add-admin/.add-admin-second) use position:absolute/relative in a way
+                                             that made a plain .alert div render inline next to them instead of
+                                             dropping to its own full-width line, so this doesn't rely on ambient
+                                             block-flow behavior to do the right thing. --}}
+                                        <div class="alert alert-info" style="display:block; width:100%; clear:both; text-align:center; margin: 15px 0;">
+                                            <i class="fas fa-filter"></i>
+                                            Momentan filtrat: <strong>{{ $gender === 'female' ? 'doar profile Femei' : 'doar profile Barbati' }}</strong>.
+                                            <a href="/admin/users">Afiseaza toti utilizatorii</a>.
+                                        </div>
+                                    @endif
                                     <div class="table-responsive table-data">
                                         <table class="table">
                                             <thead>

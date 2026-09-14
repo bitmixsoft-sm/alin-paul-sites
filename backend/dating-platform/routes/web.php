@@ -190,6 +190,12 @@ Route::put('/admin/ai-profiles/{aiProfile}', 'AdminAIProfileController@update')-
 Route::delete('/admin/ai-profiles/{aiProfile}', 'AdminAIProfileController@destroy')->name('admin_ai_profiles_destroy')->middleware(['auth', 'can:manage,App\\AIProfile']);
 Route::post('/admin/ai-profiles/{aiProfile}/distill-style', 'AdminAIProfileController@distillStyle')->name('admin_ai_profiles_distill_style')->middleware(['auth', 'can:manage,App\\AIProfile']);
 
+Route::get('/admin/style-learning', 'AdminStyleLearningController@index')->name('admin_style_learning_index')->middleware('auth');
+Route::post('/admin/style-learning/{user}/distill', 'AdminStyleLearningController@distill')->name('admin_style_learning_distill')->middleware('auth');
+Route::post('/admin/style-learning/apply', 'AdminStyleLearningController@apply')->name('admin_style_learning_apply')->middleware('auth');
+Route::post('/admin/style-learning/{user}/clear', 'AdminStyleLearningController@clear')->name('admin_style_learning_clear')->middleware('auth');
+Route::post('/admin/style-learning/preview', 'AdminStyleLearningController@preview')->name('admin_style_learning_preview')->middleware('auth');
+
 Route::get('/admin/ai-settings', 'AdminAISettingController@index')->name('admin_ai_settings_index')->middleware(['auth', 'can:manage,App\\AIProfile']);
 Route::post('/admin/ai-settings', 'AdminAISettingController@update')->name('admin_ai_settings_update')->middleware(['auth', 'can:manage,App\\AIProfile']);
 

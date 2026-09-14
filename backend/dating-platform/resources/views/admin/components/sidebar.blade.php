@@ -46,6 +46,10 @@
                         <a href="/admin/ai-settings">
                             <i class="fas fa-cogs"></i>AI Settings</a>
                     </li>
+                    <li @if($on_page == 'AI Style Learning') class="active" @endif>
+                        <a href="/admin/style-learning">
+                            <i class="fas fa-graduation-cap"></i>AI Style Learning</a>
+                    </li>
                 @endif
                 <li @if($on_page == 'Comenzi') class="active" @endif>
                     <a href="/admin/orders">

@@ -215,6 +215,7 @@ class ChatBotController extends Controller
                 message: $text,
                 systemPrompt: $persona->build($user_to),
                 history: $this->recentHistory($user_to->id, $user_from->id),
+                styleGuide: $this->resolveStyleGuide($user_to),
             );
         } catch (Throwable $throwable) {
             Log::error('AI chat auto-reply generation failed.', [
@@ -268,6 +269,19 @@ class ChatBotController extends Controller
         }
 
         return true;
+    }
+
+    /**
+     * The style-learning feature's payoff: if an admin has distilled (or copied from another
+     * profile - see AdminStyleLearningController) a conversational style guide for this
+     * profile, feed it into the same styleGuide slot AIOrchestratorService::
+     * generateAssistantResponse() already uses for the AI Companions catalog.
+     */
+    private function resolveStyleGuide(User $user): ?string
+    {
+        $styleGuide = trim((string) (($user->learning_snapshot ?? [])['style_guide'] ?? ''));
+
+        return $styleGuide !== '' ? $styleGuide : null;
     }
 
     /**

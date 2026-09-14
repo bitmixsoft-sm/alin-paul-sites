@@ -63,7 +63,7 @@ final class AIOrchestratorService
      *
      * @param array<int, array{role: string, content: string}> $history
      */
-    public function generateTextReply(string $message, string $systemPrompt, array $history = [], ?string $memoryNote = null): string
+    public function generateTextReply(string $message, string $systemPrompt, array $history = [], ?string $memoryNote = null, ?string $styleGuide = null): string
     {
         $request = new OrchestratorRequestData(
             userId: 0,
@@ -73,6 +73,7 @@ final class AIOrchestratorService
             voiceId: '',
             history: $history,
             memoryNote: $memoryNote,
+            styleGuide: $styleGuide,
         );
 
         return $this->generateAssistantResponse($request, Emotion::fallback());

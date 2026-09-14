@@ -22,6 +22,10 @@ class User extends Authenticatable
         'firstname', 'lastname', 'gender', 'email', 'password', 'username', 'profile_image', 'cover_image', 'birthday', 'background_image'
     ];
 
+    protected $casts = [
+        'learning_snapshot' => 'array',
+    ];
+
     /**
      * The attributes that should be hidden for arrays.
      *
