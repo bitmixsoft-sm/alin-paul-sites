@@ -20,6 +20,14 @@
                             <input type="hidden" id="csrf_token" value="{{ csrf_token() }}">
                             <h3 class="title-3 m-b-30">
                                 <i class="fas fa-graduation-cap"></i> AI Style Learning
+                                {{-- Plain vanilla-JS overlay, not a Bootstrap .modal - this admin theme's CSS
+                                     doesn't fully support Bootstrap's modal/list styling (reported live: no
+                                     scrolling, list numbers rendered as tiny superscripts, the footer button
+                                     stretched to a huge blank rectangle) - a hand-styled overlay sidesteps all
+                                     of that instead of fighting the theme's incomplete Bootstrap CSS. --}}
+                                <button type="button" class="au-btn au-btn--blue" style="padding:0 14px; font-size:12px; vertical-align:middle;" onclick="document.getElementById('style-learning-help-overlay').style.display='flex';">
+                                    <i class="fas fa-question-circle"></i> Ajutor
+                                </button>
                             </h3>
                             {{-- .user-data doesn't add its own horizontal padding (the tables/cards below get
                                  away with it because Bootstrap's .card/.table already carry their own) - a
@@ -29,7 +37,89 @@
                                 sa invete din propriul istoric de mesaje, in unul din doua moduri, sau sa copiaza ce a invatat deja un alt profil:
                                 <strong>Stil (ton)</strong> - AI-ul se inspira din abordare/ton, dar formuleaza mereu liber, propozitii noi;
                                 <strong>Fraze exacte</strong> - AI-ul refoloseste, aproape cuvant cu cuvant, mesaje reale care au functionat bine inainte.
+                                Apasa <strong>"Ajutor"</strong> de mai sus pentru o explicatie completa, pas cu pas.
                             </p>
+
+                            {{-- Full walkthrough for the admin/client - same text sent to the client explaining
+                                 this feature, kept here so it's always available in-page instead of only in a
+                                 chat/email that gets lost. Hand-styled overlay (see the "Ajutor" button above for
+                                 why, not a Bootstrap .modal) - display:none by default, toggled via plain
+                                 element.style.display, closed by the X, the "Am inteles" button, or clicking the
+                                 dark backdrop itself (but not clicks inside the white card, so selecting/copying
+                                 the text doesn't accidentally close it). --}}
+                            {{-- top/left/right/bottom set explicitly, not the "inset: 0" shorthand - reported
+                                 live: with inset, this rendered at its normal in-page position (right below the
+                                 paragraph above, under the fixed admin topbar) instead of covering the full
+                                 viewport from the very top - some effective rendering path here doesn't apply
+                                 inset the same way as the four longhands. --}}
+                            <div id="style-learning-help-overlay" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,.6); z-index:999999; align-items:flex-start; justify-content:center; padding:40px 15px; overflow-y:auto;" onclick="if(event.target===this){this.style.display='none';}">
+                                <div style="background:#fff; border-radius:6px; max-width:800px; width:100%; padding:25px 30px; position:relative; line-height:1.6;">
+                                    <button type="button" style="position:absolute; top:12px; right:16px; background:none; border:none; font-size:24px; line-height:1; cursor:pointer; color:#666;" onclick="document.getElementById('style-learning-help-overlay').style.display='none';">&times;</button>
+                                    <h4 style="margin:0 0 15px;">Cum functioneaza "AI Style Learning"</h4>
+                                    <div>
+                                            <p>
+                                                Raspunsurile automate AI ale profilurilor feminine (cand un barbat scrie unui profil si AI-ul
+                                                raspunde in numele ei) foloseau pana acum doar un text "Persona AI" scris manual de admin.
+                                                Aceasta functie permite ca AI-ul sa <strong>invete</strong> din conversatiile anterioare ale unui
+                                                profil (sau ale celui mai performant profil), in <strong>doua moduri diferite</strong>, pentru a
+                                                raspunde intr-un stil similar, cu o abordare la fel de convingatoare.
+                                            </p>
+
+                                            <h6 style="font-weight:700; margin:18px 0 8px;">Cele doua moduri de invatare</h6>
+                                            <ul style="list-style:disc; padding-left:22px; margin:0 0 12px;">
+                                                <li style="margin-bottom:8px;">
+                                                    <strong>Stil (ton)</strong> - AI-ul invata doar tonul si abordarea generala (cat de calduros
+                                                    vorbeste, cum flirteaza, cum directioneaza conversatia spre abonament) - dar formuleaza mereu
+                                                    propozitii noi, libere. Nu repeta niciodata cuvant cu cuvant ceva dintr-o conversatie reala.
+                                                </li>
+                                                <li>
+                                                    <strong>Fraze exacte</strong> - AI-ul primeste o selectie de mesaje reale, exacte, care au
+                                                    functionat foarte bine in trecut, si le refoloseste aproape cuvant cu cuvant atunci cand se
+                                                    potrivesc cu momentul conversatiei - in loc sa formuleze ceva nou, foloseste direct fraze deja
+                                                    dovedite ca sunt eficiente.
+                                                </li>
+                                            </ul>
+                                            <p>Adminul poate alege liber, pentru fiecare profil in parte, care dintre cele doua moduri sa fie activ.</p>
+
+                                            <h6 style="font-weight:700; margin:18px 0 8px;">Cei 4 pasi pe care ii poate face adminul</h6>
+                                            <ol style="list-style:decimal; padding-left:22px; margin:0 0 12px;">
+                                                <li style="margin-bottom:8px;">
+                                                    <strong>Tabelul "Profilurile cu cele mai multe conversii"</strong> - arata automat care profil
+                                                    feminin a adus cele mai multe plati/abonamente in ultimele 7 zile. Ajuta la decizia al cui
+                                                    stil/frazele cui merita "invatate" de sistem.
+                                                </li>
+                                                <li style="margin-bottom:8px;">
+                                                    <strong>Tabelul "Toate profilurile"</strong> - aici exista doua butoane pentru fiecare profil:
+                                                    <strong>"Invata stil"</strong> (genereaza un ghid de ton/abordare din conversatiile proprii) si
+                                                    <strong>"Invata fraze"</strong> (extrage cele mai eficiente mesaje reale, exacte, din
+                                                    conversatiile proprii). Se poate apasa oricare dintre cele doua (sau ambele, dar doar ultima
+                                                    apasata ramane activa pentru profilul respectiv).
+                                                </li>
+                                                <li style="margin-bottom:8px;">
+                                                    <strong>"Aplica ce a invatat un profil altor profiluri"</strong> - se selecteaza profilul sursa
+                                                    (impreuna cu modul lui, stil sau fraze), se bifeaza profilurile tinta, si se apasa "Aplica" -
+                                                    astfel ce a invatat un profil poate fi transferat catre alte profiluri.
+                                                </li>
+                                                <li>
+                                                    <strong>"Previzualizare / testeaza raspunsul unui profil"</strong> - se selecteaza un profil,
+                                                    se scrie un mesaj de test, si sistemul arata alaturi ce ar raspunde cu ce a invatat si fara -
+                                                    astfel se vede imediat daca se schimba ceva si daca modul ales da rezultatul dorit.
+                                                </li>
+                                            </ol>
+
+                                            <h6 style="font-weight:700; margin:18px 0 8px;">Flux de lucru recomandat</h6>
+                                            <ol style="list-style:decimal; padding-left:22px; margin:0;">
+                                                <li style="margin-bottom:8px;">Verifica clasamentul → alege profilul cu cele mai bune rezultate.</li>
+                                                <li style="margin-bottom:8px;">Incearca mai intai "Invata stil" pentru acel profil, testeaza in Previzualizare.</li>
+                                                <li style="margin-bottom:8px;">Daca doresti un rezultat mai apropiat de conversatiile reale, incearca si "Invata fraze" pe acelasi profil, si compara din nou in Previzualizare.</li>
+                                                <li>Alege modul care suna mai bine, apoi aplica-l si la alte profiluri din sectiunea "Aplica ce a invatat un profil altor profiluri".</li>
+                                            </ol>
+                                    </div>
+                                    <div style="text-align:right; margin-top:20px;">
+                                        <button type="button" class="au-btn au-btn--blue" style="padding:0 20px; font-size:13px;" onclick="document.getElementById('style-learning-help-overlay').style.display='none';">Am inteles</button>
+                                    </div>
+                                </div>
+                            </div>
 
                             {{-- Ranking: which profile has actually converted clients the best, per the client's
                                  request - "the profile that brought the biggest profit convincing clients to
@@ -254,6 +344,19 @@
 </div>
 
 <script>
+// Moves the help overlay to be a direct child of <body> instead of staying nested inside
+// .page-container/.main-content/etc - reported live: even at z-index: 999999, the fixed admin
+// topbar (.header-desktop, z-index: 3) still painted on top of it. That only happens if some
+// ancestor between this element and <body> creates its own stacking context ranked below the
+// topbar's - in which case no z-index on a descendant, however high, can ever escape it. Since
+// nothing in this admin theme's CSS looked deliberately built for that (no ancestor has its own
+// z-index/transform/opacity set), relocating the element in the DOM sidesteps the mystery
+// entirely instead of chasing exactly which ancestor is responsible.
+var helpOverlay = document.getElementById('style-learning-help-overlay');
+if (helpOverlay) {
+    document.body.appendChild(helpOverlay);
+}
+
 document.querySelectorAll('.use-as-source-btn').forEach(function (btn) {
     btn.addEventListener('click', function () {
         var select = document.getElementById('source_user_id');
