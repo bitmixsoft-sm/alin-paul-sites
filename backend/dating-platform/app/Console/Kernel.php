@@ -33,8 +33,7 @@ class Kernel extends ConsoleKernel
         // (the "Finish your registration" popup itself only appears after 2 minutes - see
         // layouts/layout.blade.php), checked every 15 minutes.
         $schedule->command('users:delete-abandoned-autoregistered', ['--minutes=30'])
-                 ->everyFifteenMinutes()
-                 ->appendOutputTo(storage_path('logs/delete-abandoned-autoregistered.log'));
+                 ->everyFifteenMinutes();
     }
 
     /**

@@ -69,7 +69,9 @@ class DeleteAbandonedAutoRegisteredUsers extends Command
 
         $message = "Deleted {$users->count()} abandoned auto-registered account(s) (grace period: {$minutes} minutes).";
         $this->info($message);
-        Log::info('[users:delete-abandoned-autoregistered] ' . $message);
+        if ($users->count() > 0) {
+            Log::info('[users:delete-abandoned-autoregistered] ' . $message);
+        }
 
         return self::SUCCESS;
     }
