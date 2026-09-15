@@ -17,6 +17,7 @@ use App\User;
 use App\User_Pack;
 use App\WebAccount;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 /**
@@ -66,7 +67,9 @@ class DeleteAbandonedAutoRegisteredUsers extends Command
             $this->deleteUserCascade($user->id);
         }
 
-        $this->info("Deleted {$users->count()} abandoned auto-registered account(s).");
+        $message = "Deleted {$users->count()} abandoned auto-registered account(s) (grace period: {$minutes} minutes).";
+        $this->info($message);
+        Log::info('[users:delete-abandoned-autoregistered] ' . $message);
 
         return self::SUCCESS;
     }
