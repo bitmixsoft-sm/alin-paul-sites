@@ -8,6 +8,20 @@
     $boostUntilText = $boostActive ? \Illuminate\Support\Carbon::parse(Auth::user()->boosted_until)->format('H:i') : '';
     $boostIcon = $boostIcon ?? false;
     $boostDropdownItem = $boostDropdownItem ?? false;
+    // Real-money option per the client's request (2026-09-16) - BOOST_PRICE_MODE (admin
+    // /admin/settings, "Functii platite" section) picks which of activateBoost()'s two
+    // branches (storage/app/assets/js/dating.js) runs: 'credits' does the existing instant
+    // AJAX activation, 'money' instead navigates to BoostController::checkout(), which creates
+    // a hidden Pack and sends the browser into the site's normal (CentralPay/PayPal/CCBill/
+    // Wire-transfer) payment flow - Boost itself only activates once that payment is
+    // confirmed, not immediately on click.
+    $boostPriceMode = \App\Settings::where('name', 'BOOST_PRICE_MODE')->value('value') === 'money' ? 'money' : 'credits';
+    $boostPriceAmount = (string) (\App\Settings::where('name', 'BOOST_PRICE_AMOUNT')->value('value') ?? '4.00');
+    // Not hardcoded to "€" - see BoostController's matching comment on why this app's
+    // CentralPay integration (and therefore this price) is in whatever currency that env value
+    // says, not necessarily EUR.
+    $boostCurrency = env('CENTRALPAY_CURRENCY') ?: 'EUR';
+    $boostPriceLabel = $boostPriceMode === 'money' ? $boostPriceAmount . ' ' . $boostCurrency : $boostCost . ' ' . l('credits');
 @endphp
 @if($boostDropdownItem)
     {{-- <li> variant matching the sibling entries in the profile avatar's account dropdown
@@ -21,7 +35,7 @@
              unlike the other single-word/short entries. Dropping the price here (still shown
              on hover in the header icon, and always visible on Profile Settings/Find Friends)
              plus white-space: nowrap keeps this one line like its siblings. --}}
-        <a href="#" class="boost-activate-btn" onclick="activateBoost(this); return false;" @if($boostActive) style="display:none;" @endif>
+        <a href="#" class="boost-activate-btn" data-price-mode="{{ $boostPriceMode }}" onclick="activateBoost(this); return false;" @if($boostActive) style="display:none;" @endif>
             <svg class="olymp-thunder-icon"><use xlink:href="/svg-icons/sprites/icons.svg#olymp-thunder-icon"></use></svg>
             <span style="white-space: nowrap;">{{ l('Boost now') }}</span>
         </a>
@@ -45,7 +59,7 @@
              so with nothing between them the two sat flush against each other. margin-left
              here (not on .control-icon itself, so the other real .control-icon instances -
              friend-requests/chat/notifications - are untouched) is the fix. --}}
-        <a href="#" class="control-icon boost-activate-btn boost-icon-only" onclick="activateBoost(this); return false;" title="{{ l('Boost now') }} ({{ $boostCost }} {{ l('credits') }})" @if($boostActive) style="display:none;" @endif>
+        <a href="#" class="control-icon boost-activate-btn boost-icon-only" data-price-mode="{{ $boostPriceMode }}" onclick="activateBoost(this); return false;" title="{{ l('Boost now') }} ({{ $boostPriceLabel }})" @if($boostActive) style="display:none;" @endif>
             <svg class="olymp-thunder-icon"><use xlink:href="/svg-icons/sprites/icons.svg#olymp-thunder-icon"></use></svg>
         </a>
         <a href="/profile-settings" class="control-icon boost-active-indicator boost-icon-only-active" title="{{ l('Boosted until') }} {{ $boostUntilText }}" @unless($boostActive) style="display:none;" @endunless>
@@ -58,8 +72,8 @@
     <span class="boost-widget {{ $boostWidgetClass ?? '' }}">
         {{-- <a>, not <button> - so it can drop into places styled for anchors (e.g. header.blade.
              php's .link-find-friend links) without fighting default button chrome. --}}
-        <a href="#" class="boost-activate-btn {{ $boostButtonClass ?? '' }}" onclick="activateBoost(this); return false;" @if($boostActive) style="display:none;" @endif>
-            {!! $boostButtonLabel ?? '&#9889; ' . l('Boost now') !!} ({{ $boostCost }} {{ l('credits') }})
+        <a href="#" class="boost-activate-btn {{ $boostButtonClass ?? '' }}" data-price-mode="{{ $boostPriceMode }}" onclick="activateBoost(this); return false;" @if($boostActive) style="display:none;" @endif>
+            {!! $boostButtonLabel ?? '&#9889; ' . l('Boost now') !!} ({{ $boostPriceLabel }})
         </a>
         <span class="boost-active-indicator {{ $boostActiveClass ?? '' }}" @unless($boostActive) style="display:none;" @endunless>
             &#9889; {{ l('Boosted until') }} <span class="boost-until-time">{{ $boostUntilText }}</span>

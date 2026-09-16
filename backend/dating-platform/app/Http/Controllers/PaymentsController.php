@@ -76,13 +76,29 @@ public function webhook($provider, $path, Request $request) {
         if($request->type != 'PAYMENTREQUEST_TRANSACTION_SUCCEEDED'){
             $order->status = 'Declined';
             $order->save();
-            
+
             return;
         }
-       
+
         $user = User::where('id', $order->user_id)->firstOrFail();
         $pack = Pack::where('id', $order->package_id)->firstOrFail();
-        
+
+        // A paid-feature purchase (BoostController::checkout(), and whatever similar features
+        // get added later - see FeatureActivationRegistry) uses a hidden Pack tagged with a
+        // feature_key instead of a real, browsable one - handled here, before the normal
+        // credits/User_Pack grant below, since that grant is a deliberate no-op for these
+        // (credits: 0, type: 'credits') but the real effect (e.g. setting boosted_until) still
+        // needs to happen exactly once, on this first "Pending" -> "Accepted" transition.
+        if ($pack->feature_key !== null) {
+            if ($order->status === 'Pending') {
+                \App\Services\FeatureActivationRegistry::activate($pack->feature_key, $user, $pack->feature_duration_minutes);
+                $order->status = 'Accepted';
+                $order->save();
+            }
+
+            return;
+        }
+
         if($order->status == 'Pending'){
             $order->status = 'Accepted';
             $order->save();
@@ -221,8 +237,10 @@ public function webhook($provider, $path, Request $request) {
                 
                 // If call returns body in response, you can get the deserialized version from the result attribute of the response
             }catch (HttpException $ex) {
+                \Log::error('[PaymentsController::accepted] PayPal capture failed: ' . $ex->getMessage());
                 return redirect('/packages?payment=denied');
             }catch (\PayPalHttp\HttpException $ex) {
+                \Log::error('[PaymentsController::accepted] PayPal capture failed: ' . $ex->getMessage());
                 return redirect('/packages?payment=denied');
             }
 
@@ -241,6 +259,19 @@ public function webhook($provider, $path, Request $request) {
         //Set permissions
         $user = User::where('id', $order->user_id)->firstOrFail();
         $pack = Pack::where('id', $order->package_id)->firstOrFail();
+
+        // Shared success handler for CentralPay's redirect-based confirmation, CCBill, and
+        // PayPal alike - a paid-feature purchase (BoostController::checkout(), and whatever
+        // similar features get added later) uses a hidden Pack tagged with a feature_key
+        // instead of a real, browsable one - see FeatureActivationRegistry. Handled here,
+        // before the normal credits/User_Pack grant below, since that grant is a deliberate
+        // no-op for these (credits: 0, type: 'credits') but the real effect (e.g. setting
+        // boosted_until) still needs to happen.
+        if ($pack->feature_key !== null) {
+            \App\Services\FeatureActivationRegistry::activate($pack->feature_key, $user, $pack->feature_duration_minutes);
+            return redirect('/profile-settings?payment=accepted');
+        }
+
         $user->credits = $user->credits+$pack->credits;
         $user->save();
         if($pack->type != 'credits'){
@@ -490,7 +521,16 @@ public function webhook($provider, $path, Request $request) {
                 $url = $payment->generateRecurringUrl($order->price, ['order_id'=>$order->id, 'centralpay_subscription_id' => $pack->centralpay_model_id, 'email'=>Auth::user()->email ?? '']);
             }else{
                 $url = $payment->generateNormalUrl($order->price, ['order_id'=>$order->id, 'email'=>Auth::user()->email ?? '']);
-            }    
+            }
+
+            // generateNormalUrl()/generateRecurringUrl() return false (and already log the
+            // real reason - see CentralpayPaymentService) when CentralPay's API itself refuses
+            // the request - redirect(false) would otherwise throw here instead of taking the
+            // user to the same "didn't go through" page every other provider's own failure
+            // path already uses.
+            if (!$url) {
+                return redirect('/packages?payment=denied');
+            }
 
             return redirect($url);
         } elseif($active_payment=="PAYPAL") {
@@ -536,7 +576,7 @@ public function webhook($provider, $path, Request $request) {
                 $order->hash = $response->result->id;
                 $order->save();
             }catch (\PayPalHttp\HttpException $ex) {
-                    // if($_SERVER['REMOTE_ADDR']=="82.78.230.101") { 
+                    // if($_SERVER['REMOTE_ADDR']=="82.78.230.101") {
                     //    echo "<pre style='background: #fff;'>";
                     //    print_r($ex->getMessage());
                     //    print_r($ex->getFile());
@@ -544,8 +584,10 @@ public function webhook($provider, $path, Request $request) {
                     //    echo "</pre>";
                     //    exit();
                     // }
+                \Log::error('[PaymentsController::newpayment] PayPal order creation failed: ' . $ex->getMessage());
                 return redirect('/packages?payment=denied');
             }catch (HttpException $ex) {
+                \Log::error('[PaymentsController::newpayment] PayPal order creation failed: ' . $ex->getMessage());
                 return redirect('/packages?payment=denied');
             }
 

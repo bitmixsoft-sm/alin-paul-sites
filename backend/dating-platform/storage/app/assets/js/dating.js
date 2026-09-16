@@ -2674,6 +2674,18 @@ function activateBoost(btn) {
     var isIconOnly = $btn.hasClass('boost-icon-only');
     var $err = $btn.closest('.boost-widget').find('.boost-error-msg');
     $err.hide().text('');
+
+    // BOOST_PRICE_MODE (admin /admin/settings) - components/boost-widget.blade.php renders
+    // this data attribute on every instance of the button. 'money' sends the browser to
+    // BoostController::checkout(), a plain page (not a JSON API) that redirects on into
+    // whichever payment provider(s) the admin has active - Boost only actually turns on once
+    // that payment is confirmed on the server, so there's no instant success/credits update to
+    // show here the way the credits path has.
+    if ($btn.attr('data-price-mode') === 'money') {
+        window.location.href = '/profile/boost/checkout';
+        return;
+    }
+
     $.ajax({
         url: '/profile/boost',
         type: 'POST',

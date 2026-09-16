@@ -159,13 +159,15 @@ class CentralpayPaymentService
                 if($ret->paymentRequestId && $ret->breakdowns[0]->endpoint!='') {
                    return $ret->breakdowns[0]->endpoint;
                 }
+
+                \Log::error('Centralpay: generateNormalUrl failed, API response: ' . $result);
             } catch(Exception $e) {
                 \Log::error($e->getMessage());
             }
             return false;
     }
-    
-    
+
+
     public function generateRecurringUrl($amount, $userInfo) {
         try {
                 $amount = (int)($amount * 100);
@@ -224,6 +226,8 @@ class CentralpayPaymentService
                 if($ret->paymentRequestId && $ret->breakdowns[0]->endpoint!='') {
                    return $ret->breakdowns[0]->endpoint;
                 }
+
+                \Log::error('Centralpay: generateRecurringUrl failed, API response: ' . $result);
             } catch(Exception $e) {
                 \Log::error($e->getMessage());
             }
