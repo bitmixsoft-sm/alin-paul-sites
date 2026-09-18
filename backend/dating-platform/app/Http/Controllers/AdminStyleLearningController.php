@@ -93,6 +93,39 @@ final class AdminStyleLearningController extends Controller
     }
 
     /**
+     * Live search for the "Site extern" username field (admin/ai_style_learning.blade.php) -
+     * usernames aren't listed anywhere for an external site (unlike local profiles, which get
+     * a proper <select> further down this page), and typing one in blind risks a typo silently
+     * matching nothing. Female-only, same scope as everywhere else in this feature. Limited to
+     * 15 results - this is a live-as-you-type suggestion list, not a full directory.
+     */
+    public function searchExternalUsers(Request $request): JsonResponse
+    {
+        $this->authorizeAdmin();
+
+        $validated = $request->validate([
+            'connection' => ['required', 'string'],
+            'q' => ['required', 'string', 'min:2'],
+        ]);
+
+        if (! ExternalSiteRegistry::exists($validated['connection'])) {
+            return response()->json(['error' => 'Site extern necunoscut sau neconfigurat.'], 422);
+        }
+
+        $matches = User::on($validated['connection'])
+            ->where('gender', 'female')
+            ->where(function ($query) use ($validated) {
+                $query->where('username', 'like', '%' . $validated['q'] . '%')
+                    ->orWhere('firstname', 'like', '%' . $validated['q'] . '%');
+            })
+            ->orderBy('username')
+            ->limit(15)
+            ->get(['username', 'firstname', 'lastname']);
+
+        return response()->json(['results' => $matches]);
+    }
+
+    /**
      * Learns from a profile's message history on a DIFFERENT site instead of $user's own -
      * client's follow-up request, 2026-09-18: "invete de la un profil de pe alt site" (e.g.
      * wizoox.com). Only possible because that other site is the exact same codebase (same

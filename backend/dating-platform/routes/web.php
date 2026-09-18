@@ -194,6 +194,7 @@ Route::post('/admin/ai-profiles/{aiProfile}/distill-style', 'AdminAIProfileContr
 Route::get('/admin/style-learning', 'AdminStyleLearningController@index')->name('admin_style_learning_index')->middleware('auth');
 Route::post('/admin/style-learning/{user}/distill', 'AdminStyleLearningController@distill')->name('admin_style_learning_distill')->middleware('auth');
 Route::post('/admin/style-learning/{user}/distill-external', 'AdminStyleLearningController@distillFromExternal')->name('admin_style_learning_distill_external')->middleware('auth');
+Route::get('/admin/style-learning/external-search', 'AdminStyleLearningController@searchExternalUsers')->name('admin_style_learning_external_search')->middleware('auth');
 Route::post('/admin/style-learning/apply', 'AdminStyleLearningController@apply')->name('admin_style_learning_apply')->middleware('auth');
 Route::post('/admin/style-learning/{user}/clear', 'AdminStyleLearningController@clear')->name('admin_style_learning_clear')->middleware('auth');
 Route::post('/admin/style-learning/preview', 'AdminStyleLearningController@preview')->name('admin_style_learning_preview')->middleware('auth');

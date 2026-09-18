@@ -52,10 +52,39 @@
                                  paragraph above, under the fixed admin topbar) instead of covering the full
                                  viewport from the very top - some effective rendering path here doesn't apply
                                  inset the same way as the four longhands. --}}
+                            {{-- Reported live (2026-09-18): headings rendered SMALLER than the body text below
+                                 them, numbered lists rendered as barely-visible tiny superscripts (this admin
+                                 theme's native <ol>/list-style:decimal support is broken - already known, see
+                                 the note above on why this overlay exists at all instead of a Bootstrap
+                                 .modal). Fixed with an explicit, self-contained style block (sized relative to
+                                 nothing the theme controls) plus custom numbered/bulleted lists built from CSS
+                                 counters and ::before pseudo-elements instead of relying on the theme's <ol>/
+                                 <ul> rendering at all. --}}
+                            <style>
+                                #style-learning-help-overlay .help-content { font-size: 16px; line-height: 1.7; color: #2a2a2a; }
+                                #style-learning-help-overlay .help-content h4 { font-size: 23px; font-weight: 700; margin: 0 0 18px; color: #1a1a1a; }
+                                #style-learning-help-overlay .help-content h6 { font-size: 18px; font-weight: 700; margin: 26px 0 10px; color: #1a1a1a; }
+                                #style-learning-help-overlay .help-content p { font-size: 16px; margin: 0 0 14px; }
+                                #style-learning-help-overlay .help-content strong { font-weight: 700; }
+                                #style-learning-help-overlay .help-content .help-note { font-size: 14px; color: #777; }
+                                #style-learning-help-overlay .help-steps { list-style: none; counter-reset: help-step; padding: 0; margin: 0 0 16px; }
+                                #style-learning-help-overlay .help-steps > li { position: relative; counter-increment: help-step; padding: 0 0 0 40px; margin-bottom: 14px; min-height: 26px; }
+                                #style-learning-help-overlay .help-steps > li::before {
+                                    content: counter(help-step);
+                                    position: absolute; left: 0; top: 0;
+                                    width: 26px; height: 26px; border-radius: 50%;
+                                    background: #4a6cf7; color: #fff;
+                                    font-size: 14px; font-weight: 700;
+                                    display: flex; align-items: center; justify-content: center;
+                                }
+                                #style-learning-help-overlay .help-bullets { list-style: none; padding: 0; margin: 0 0 14px; }
+                                #style-learning-help-overlay .help-bullets > li { position: relative; padding: 0 0 0 22px; margin-bottom: 12px; }
+                                #style-learning-help-overlay .help-bullets > li::before { content: "\2022"; position: absolute; left: 2px; top: 0; font-size: 20px; line-height: 1.2; color: #4a6cf7; }
+                            </style>
                             <div id="style-learning-help-overlay" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,.6); z-index:999999; align-items:flex-start; justify-content:center; padding:40px 15px; overflow-y:auto;" onclick="if(event.target===this){this.style.display='none';}">
-                                <div style="background:#fff; border-radius:6px; max-width:800px; width:100%; padding:25px 30px; position:relative; line-height:1.6;">
+                                <div class="help-content" style="background:#fff; border-radius:6px; max-width:800px; width:100%; padding:30px 34px; position:relative;">
                                     <button type="button" style="position:absolute; top:12px; right:16px; background:none; border:none; font-size:24px; line-height:1; cursor:pointer; color:#666;" onclick="document.getElementById('style-learning-help-overlay').style.display='none';">&times;</button>
-                                    <h4 style="margin:0 0 15px;">Cum functioneaza "AI Style Learning"</h4>
+                                    <h4>Cum functioneaza "AI Style Learning"</h4>
                                     <div>
                                             <p>
                                                 Raspunsurile automate AI ale profilurilor feminine (cand un barbat scrie unui profil si AI-ul
@@ -65,9 +94,9 @@
                                                 raspunde intr-un stil similar, cu o abordare la fel de convingatoare.
                                             </p>
 
-                                            <h6 style="font-weight:700; margin:18px 0 8px;">Cele doua moduri de invatare</h6>
-                                            <ul style="list-style:disc; padding-left:22px; margin:0 0 12px;">
-                                                <li style="margin-bottom:8px;">
+                                            <h6>Cele doua moduri de invatare</h6>
+                                            <ul class="help-bullets">
+                                                <li>
                                                     <strong>Stil (ton)</strong> - AI-ul invata doar tonul si abordarea generala (cat de calduros
                                                     vorbeste, cum flirteaza, cum directioneaza conversatia spre abonament) - dar formuleaza mereu
                                                     propozitii noi, libere. Nu repeta niciodata cuvant cu cuvant ceva dintr-o conversatie reala.
@@ -81,14 +110,14 @@
                                             </ul>
                                             <p>Adminul poate alege liber, pentru fiecare profil in parte, care dintre cele doua moduri sa fie activ.</p>
 
-                                            <h6 style="font-weight:700; margin:18px 0 8px;">Cei 4 pasi pe care ii poate face adminul</h6>
-                                            <ol style="list-style:decimal; padding-left:22px; margin:0 0 12px;">
-                                                <li style="margin-bottom:8px;">
+                                            <h6>Cei 4 pasi pe care ii poate face adminul</h6>
+                                            <ol class="help-steps">
+                                                <li>
                                                     <strong>Tabelul "Profilurile cu cele mai multe conversii"</strong> - arata automat care profil
                                                     feminin a adus cele mai multe plati/abonamente in ultimele 7 zile. Ajuta la decizia al cui
                                                     stil/frazele cui merita "invatate" de sistem.
                                                 </li>
-                                                <li style="margin-bottom:8px;">
+                                                <li>
                                                     <strong>Tabelul "Toate profilurile"</strong> - aici exista butoane pentru fiecare profil:
                                                     <strong>"Invata stil"</strong> (genereaza un ghid de ton/abordare din conversatiile proprii),
                                                     <strong>"Invata fraze"</strong> (extrage cele mai eficiente mesaje reale, exacte, din
@@ -97,7 +126,7 @@
                                                     username-ul profilului de acolo)@endif. Se poate apasa oricare dintre optiuni (dar doar
                                                     ultima folosita ramane activa pentru profilul respectiv).
                                                 </li>
-                                                <li style="margin-bottom:8px;">
+                                                <li>
                                                     <strong>"Aplica ce a invatat un profil altor profiluri"</strong> - se selecteaza profilul sursa
                                                     (impreuna cu modul lui, stil sau fraze), se bifeaza profilurile tinta, si se apasa "Aplica" -
                                                     astfel ce a invatat un profil poate fi transferat catre alte profiluri.
@@ -109,11 +138,47 @@
                                                 </li>
                                             </ol>
 
-                                            <h6 style="font-weight:700; margin:18px 0 8px;">Flux de lucru recomandat</h6>
-                                            <ol style="list-style:decimal; padding-left:22px; margin:0;">
-                                                <li style="margin-bottom:8px;">Verifica clasamentul → alege profilul cu cele mai bune rezultate.</li>
-                                                <li style="margin-bottom:8px;">Incearca mai intai "Invata stil" pentru acel profil, testeaza in Previzualizare.</li>
-                                                <li style="margin-bottom:8px;">Daca doresti un rezultat mai apropiat de conversatiile reale, incearca si "Invata fraze" pe acelasi profil, si compara din nou in Previzualizare.</li>
+                                            @if(!empty($externalSites))
+                                                <h6>Invatarea de pe un alt site ("Site extern")</h6>
+                                                <p>
+                                                    Site-uri precum {{ implode(', ', $externalSites) }} folosesc exact acelasi sistem ca si
+                                                    trovamequi.me, doar pe alt domeniu - de aceea un profil de-al nostru poate invata direct din
+                                                    conversatiile unui profil de-acolo, nu doar din propriile conversatii de pe acest site.
+                                                </p>
+                                                <ol class="help-steps">
+                                                    <li>
+                                                        In tabelul "Toate profilurile", la profilul care ar trebui sa invete ceva, apasa butonul
+                                                        mov <strong>"Site extern"</strong> - se deschide un rand nou, chiar sub profilul respectiv.
+                                                    </li>
+                                                    <li>
+                                                        Alege din prima lista site-ul de pe care vrei sa invete (ex: {{ implode(', ', $externalSites) }}).
+                                                    </li>
+                                                    <li>
+                                                        In campul "cauta username..." incepe sa scrii numele sau username-ul profilului de pe
+                                                        acel site - apare automat o lista cu potriviri; <strong>click pe rezultatul dorit</strong>
+                                                        pentru a-l selecta exact (nu trebuie stiut/scris manual un ID, doar numele).
+                                                    </li>
+                                                    <li>
+                                                        Alege modul (<strong>Stil</strong> sau <strong>Fraze exacte</strong>, la fel ca la invatarea
+                                                        din propriile conversatii) si apasa <strong>"Invata de acolo"</strong>.
+                                                    </li>
+                                                    <li>
+                                                        In coloana "Ce a invatat" va aparea o notita <em>"(preluat de pe {{ implode(', ', $externalSites) }} / username)"</em>,
+                                                        ca sa se stie mereu de unde vine ce a invatat profilul respectiv.
+                                                    </li>
+                                                </ol>
+                                                <p class="help-note">
+                                                    Daca in viitor mai apare un alt site nou din care vrei sa se invete (nu doar cele listate mai
+                                                    sus), acesta trebuie configurat tehnic mai intai (acces la baza lui de date) - anunta
+                                                    dezvoltatorul cand apare aceasta nevoie.
+                                                </p>
+                                            @endif
+
+                                            <h6>Flux de lucru recomandat</h6>
+                                            <ol class="help-steps">
+                                                <li>Verifica clasamentul → alege profilul cu cele mai bune rezultate.</li>
+                                                <li>Incearca mai intai "Invata stil" pentru acel profil, testeaza in Previzualizare.</li>
+                                                <li>Daca doresti un rezultat mai apropiat de conversatiile reale, incearca si "Invata fraze" pe acelasi profil, si compara din nou in Previzualizare.</li>
                                                 <li>Alege modul care suna mai bine, apoi aplica-l si la alte profiluri din sectiunea "Aplica ce a invatat un profil altor profiluri".</li>
                                             </ol>
                                     </div>
@@ -313,8 +378,13 @@
                                                                             @endforeach
                                                                         </select>
                                                                     </div>
-                                                                    <div class="col-auto">
-                                                                        <input type="text" name="username" class="form-control form-control-sm" placeholder="username pe site-ul extern" required>
+                                                                    <div class="col-auto" style="position:relative;">
+                                                                        {{-- Live search instead of a blind text field - usernames aren't
+                                                                             listed anywhere for an external site the way local profiles
+                                                                             get a proper <select> below, and a typo here would silently
+                                                                             match nothing. See searchExternalUsers() below. --}}
+                                                                        <input type="text" name="username" class="form-control form-control-sm external-username-input" autocomplete="off" placeholder="cauta username..." required>
+                                                                        <div class="external-username-results" style="display:none; position:absolute; top:100%; left:0; z-index:20; background:#fff; border:1px solid #ccc; border-radius:4px; max-height:180px; overflow-y:auto; min-width:220px; box-shadow:0 2px 6px rgba(0,0,0,.15);"></div>
                                                                     </div>
                                                                     <div class="col-auto">
                                                                         <select name="mode" class="form-control form-control-sm" required>
@@ -413,6 +483,76 @@ function toggleExternalRow(profileId) {
         row.style.display = row.style.display === 'none' ? 'table-row' : 'none';
     }
 }
+
+// Live username search for the "Site extern" rows (searchExternalUsers() in the controller) -
+// debounced so it doesn't fire an AJAX request on every single keystroke, and scoped with
+// event delegation (one listener for the whole page) since these input rows are hidden/shown
+// dynamically rather than all present from the start.
+(function () {
+    var debounceTimers = new WeakMap();
+
+    document.addEventListener('input', function (event) {
+        if (!event.target.classList.contains('external-username-input')) { return; }
+
+        var input = event.target;
+        var resultsBox = input.parentElement.querySelector('.external-username-results');
+        var connectionSelect = input.closest('form').querySelector('[name="connection"]');
+        var query = input.value.trim();
+
+        clearTimeout(debounceTimers.get(input));
+
+        if (query.length < 2) {
+            resultsBox.style.display = 'none';
+            return;
+        }
+
+        debounceTimers.set(input, setTimeout(function () {
+            var url = '{{ route('admin_style_learning_external_search') }}?connection='
+                + encodeURIComponent(connectionSelect.value) + '&q=' + encodeURIComponent(query);
+
+            fetch(url, { headers: { 'Accept': 'application/json' } })
+                .then(function (resp) { return resp.json(); })
+                .then(function (data) {
+                    var results = data.results || [];
+                    resultsBox.innerHTML = '';
+
+                    if (results.length === 0) {
+                        resultsBox.innerHTML = '<div style="padding:6px 10px; color:#888; font-size:12px;">Niciun rezultat</div>';
+                    } else {
+                        results.forEach(function (row) {
+                            var item = document.createElement('div');
+                            item.style.cssText = 'padding:6px 10px; cursor:pointer; font-size:13px;';
+                            item.textContent = row.username + ' (' + (row.firstname || '') + ' ' + (row.lastname || '') + ')';
+                            item.addEventListener('mouseenter', function () { item.style.background = '#f0f0f0'; });
+                            item.addEventListener('mouseleave', function () { item.style.background = ''; });
+                            item.addEventListener('click', function () {
+                                input.value = row.username;
+                                resultsBox.style.display = 'none';
+                            });
+                            resultsBox.appendChild(item);
+                        });
+                    }
+
+                    resultsBox.style.display = 'block';
+                })
+                .catch(function () {
+                    resultsBox.style.display = 'none';
+                });
+        }, 300));
+    });
+
+    // Clicking anywhere outside a results box closes it - otherwise it stays open forever once
+    // opened, covering whatever's rendered below it in the table.
+    document.addEventListener('click', function (event) {
+        if (event.target.classList.contains('external-username-input')) { return; }
+
+        document.querySelectorAll('.external-username-results').forEach(function (box) {
+            if (!box.contains(event.target)) {
+                box.style.display = 'none';
+            }
+        });
+    });
+})();
 
 document.querySelectorAll('.use-as-source-btn').forEach(function (btn) {
     btn.addEventListener('click', function () {
