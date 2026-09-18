@@ -436,7 +436,7 @@ section {
 /*-----------------------------------------------------*/
 /* ----- Buttons----- */
 .au-btn {
-    line-height: 45px;
+    line-height: 35px; /*45*/
     padding: 0 35px;
     text-transform: uppercase;
     color: #fff;

@@ -216,7 +216,7 @@
                                  for the same reason (this admin theme's Bootstrap .modal support is broken). --}}
                             <div id="learning-detail-overlay" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,.6); z-index:999999; align-items:flex-start; justify-content:center; padding:40px 15px; overflow-y:auto;" onclick="if(event.target===this){this.style.display='none';}">
                                 <div class="help-content" style="background:#fff; border-radius:6px; max-width:700px; width:100%; padding:30px 34px; position:relative;">
-                                    <button type="button" style="position:absolute; top:12px; right:16px; background:none; border:none; font-size:24px; line-height:1; cursor:pointer; color:#666;" onclick="document.getElementById('learning-detail-overlay').style.display='none';">&times;</button>
+                                    <button type="button" style="position:absolute; top:12px; right:16px; background:none; border:none; font-size:24px; line-height:1; cursor:pointer; color: #fff;background: #dc3545; border-radius: 10%;padding: 5px 10px;" onclick="document.getElementById('learning-detail-overlay').style.display='none';">&times;</button>
                                     <h4>Ce a invatat acest profil</h4>
                                     <div id="learning-detail-body"></div>
                                     <div style="text-align:right; margin-top:20px;">
@@ -458,33 +458,44 @@
                                                          room, instead of squeezing them into the already-tight action
                                                          cell above. --}}
                                                     <tr id="external-row-{{ $profile->id }}" style="display:none; background:#f8f7fc;">
-                                                        <td colspan="3">
+                                                        <td colspan="3" style="padding:18px 22px;">
                                                             <form action="{{ route('admin_style_learning_distill_external', $profile->id) }}" method="POST" onsubmit="return confirm('Inveti {{ $profile->name() }} din istoricul acelui profil de pe site-ul extern selectat? Aceasta apeleaza OpenAI o data.');">
                                                                 @csrf
-                                                                <div class="form-row align-items-center">
-                                                                    <div class="col-auto">
-                                                                        <select name="connection" class="form-control form-control-sm" required>
+                                                                {{-- Client's follow-up (2026-09-18): the fields looked mismatched in
+                                                                     size with no indication of what each one was for - fixed labels
+                                                                     above every field plus consistent explicit widths, instead of
+                                                                     leaving Bootstrap's <select>/<input> default sizing to fend for
+                                                                     itself. --}}
+                                                                <div style="font-size:11px; font-weight:700; color:#6f42c1; text-transform:uppercase; letter-spacing:.04em; margin-bottom:10px;">
+                                                                    Invata din conversatiile unui profil de pe un alt site
+                                                                </div>
+                                                                <div class="form-row align-items-end" style="row-gap:12px;">
+                                                                    <div class="col-auto" style="width:160px;">
+                                                                        <label style="font-size:11px; color:#777; margin-bottom:4px; display:block;">Site</label>
+                                                                        <select name="connection" class="form-control form-control-sm" style="height: auto; width:100%;" required>
                                                                             @foreach($externalSites as $connectionName => $label)
                                                                                 <option value="{{ $connectionName }}">{{ $label }}</option>
                                                                             @endforeach
                                                                         </select>
                                                                     </div>
-                                                                    <div class="col-auto" style="position:relative;">
+                                                                    <div class="col-auto" style="position:relative; width:260px;">
+                                                                        <label style="font-size:11px; color:#777; margin-bottom:4px; display:block;">Profil (username) de pe acel site</label>
                                                                         {{-- Live search instead of a blind text field - usernames aren't
                                                                              listed anywhere for an external site the way local profiles
                                                                              get a proper <select> below, and a typo here would silently
                                                                              match nothing. See searchExternalUsers() below. --}}
-                                                                        <input type="text" name="username" class="form-control form-control-sm external-username-input" autocomplete="off" placeholder="cauta username..." required>
-                                                                        <div class="external-username-results" style="display:none; position:absolute; top:100%; left:0; z-index:20; background:#fff; border:1px solid #ccc; border-radius:4px; max-height:180px; overflow-y:auto; min-width:220px; box-shadow:0 2px 6px rgba(0,0,0,.15);"></div>
+                                                                        <input type="text" name="username" class="form-control form-control-sm external-username-input" autocomplete="off" placeholder="cauta username..." style="width:100%;" required>
+                                                                        <div class="external-username-results" style="display:none; position:absolute; top:100%; left:0; z-index:20; background:#fff; border:1px solid #ccc; border-radius:4px; max-height:180px; overflow-y:auto; width:100%; box-shadow:0 2px 6px rgba(0,0,0,.15);"></div>
                                                                     </div>
-                                                                    <div class="col-auto">
-                                                                        <select name="mode" class="form-control form-control-sm" required>
+                                                                    <div class="col-auto" style="width:150px;">
+                                                                        <label style="font-size:11px; color:#777; margin-bottom:4px; display:block;">Mod de invatare</label>
+                                                                        <select name="mode" class="form-control form-control-sm" style="height: auto; width:100%;" required>
                                                                             <option value="style">Stil (ton)</option>
                                                                             <option value="phrases">Fraze exacte</option>
                                                                         </select>
                                                                     </div>
                                                                     <div class="col-auto">
-                                                                        <button type="submit" class="au-btn au-btn--blue" style="padding:0 14px; font-size:12px;">Invata de acolo</button>
+                                                                        <button type="submit" class="au-btn au-btn--blue" style="padding:0 16px; line-height:31px; font-size:12px;">Invata de acolo</button>
                                                                     </div>
                                                                 </div>
                                                             </form>
