@@ -113,17 +113,21 @@
                                             <h6>Cat de multa conversatie citeste sistemul</h6>
                                             <p>
                                                 Nu se trimite catre AI intreg istoricul unui profil (poate fi de ani de zile) - ar fi prea mult
-                                                pentru o singura cerere. Se ia mereu <strong>partea cea mai recenta</strong> care incape: cel mult
-                                                ultimele <strong>4000 de mesaje</strong> (ambele parti ale conversatiilor, nu doar mesajele
-                                                profilului), taiat apoi la cel mult <strong>40.000 de caractere</strong> - oricare limita se atinge
-                                                prima. Aceasta se aplica identic si la invatarea din propriile conversatii, si la invatarea de pe
-                                                un site extern.
+                                                pentru o singura cerere. Se ia mereu <strong>partea cea mai recenta</strong> care incape: implicit
+                                                cel mult ultimele <strong>4000 de mesaje</strong>, taiat apoi la cel mult <strong>40.000 de
+                                                caractere</strong> - oricare limita se atinge prima. Din setarile de mai jos se mai poate alege si
+                                                daca se citesc <strong>ambele parti</strong> ale conversatiilor sau <strong>doar mesajele
+                                                profilului</strong>. Toate trei se aplica identic si la invatarea din propriile conversatii, si la
+                                                invatarea de pe un site extern.
                                             </p>
                                             <p class="help-note">
-                                                Aceste doua limite (4000 mesaje / 40.000 caractere) sunt un setaj tehnic in codul aplicatiei
-                                                (fisierul <code>ProfileTranscriptBuilder.php</code>), nu ceva reglabil din aceasta pagina - daca la
-                                                un moment dat vrei sa inveti din mai multa sau mai putina conversatie, anunta dezvoltatorul sa
-                                                modifice aceasta valoare.
+                                                Aceste 3 valori se pot modifica din
+                                                <a href="/admin/settings">Setari</a> → categoria <strong>"AI Style Learning"</strong>
+                                                (<code>AI_STYLE_LEARNING_MAX_MESSAGES</code>, <code>AI_STYLE_LEARNING_MAX_CHARS</code>,
+                                                <code>AI_STYLE_LEARNING_INCLUDE_BOTH_PARTIES</code>). Atentie insa: o valoare mai mare la
+                                                primele doua inseamna mai mult text trimis catre OpenAI la fiecare invatare - costa (taxa API
+                                                OpenAI) si incetineste raspunsul, nu este un "cu cat mai mult, cu atat mai bine" gratuit (acelasi
+                                                avertisment apare si acolo, langa cele doua campuri).
                                             </p>
 
                                             <h6>Cei 4 pasi pe care ii poate face adminul</h6>
