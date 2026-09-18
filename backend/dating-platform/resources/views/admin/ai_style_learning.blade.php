@@ -83,7 +83,7 @@
                             </style>
                             <div id="style-learning-help-overlay" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,.6); z-index:999999; align-items:flex-start; justify-content:center; padding:40px 15px; overflow-y:auto;" onclick="if(event.target===this){this.style.display='none';}">
                                 <div class="help-content" style="background:#fff; border-radius:6px; max-width:800px; width:100%; padding:30px 34px; position:relative;">
-                                    <button type="button" style="position:absolute; top:12px; right:16px; background:none; border:none; font-size:24px; line-height:1; cursor:pointer; color:#666;" onclick="document.getElementById('style-learning-help-overlay').style.display='none';">&times;</button>
+                                    <button type="button" style="position:absolute; top:12px; right:16px; background:none; border:none; font-size:24px; line-height:1; cursor:pointer; color: #fff;background: #dc3545; border-radius: 10%;padding: 5px 10px;" onclick="document.getElementById('style-learning-help-overlay').style.display='none';">&times;</button>
                                     <h4>Cum functioneaza "AI Style Learning"</h4>
                                     <div>
                                             <p>
