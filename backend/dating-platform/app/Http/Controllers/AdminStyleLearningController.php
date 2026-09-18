@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Services\AI\AIOrchestratorService;
+use App\Services\AI\ExternalSiteRegistry;
 use App\Services\AI\PersonaPromptBuilder;
 use App\Services\AI\ProfileConversionRankingService;
 use App\Services\AI\ProfileTranscriptBuilder;
@@ -47,7 +48,9 @@ final class AdminStyleLearningController extends Controller
             ->orderBy('firstname')
             ->get(['id', 'firstname', 'lastname', 'learning_snapshot']);
 
-        return view('admin.ai_style_learning', compact('on_page', 'ranked', 'profiles'));
+        $externalSites = ExternalSiteRegistry::list();
+
+        return view('admin.ai_style_learning', compact('on_page', 'ranked', 'profiles', 'externalSites'));
     }
 
     /**
@@ -87,6 +90,72 @@ final class AdminStyleLearningController extends Controller
         $modeLabel = $mode === 'phrases' ? 'fraze exacte' : 'stil (ton)';
 
         return back()->with('status', 'A invatat ' . $modeLabel . ' din propriile conversatii ale lui ' . $user->name() . ' si a salvat.');
+    }
+
+    /**
+     * Learns from a profile's message history on a DIFFERENT site instead of $user's own -
+     * client's follow-up request, 2026-09-18: "invete de la un profil de pe alt site" (e.g.
+     * wizoox.com). Only possible because that other site is the exact same codebase (same
+     * users/messages schema) - see config/database.php's externalSiteConnections() and
+     * ExternalSiteRegistry for what's configured, and ProfileTranscriptBuilder's $connection
+     * param for how the actual query gets pointed at it.
+     *
+     * The external profile is looked up by USERNAME, not numeric id - admins identify profiles
+     * by username everywhere else in this app (/admin/users/{username}, /profile/{username});
+     * the numeric id is never shown anywhere, so requiring it here would send the admin
+     * digging through phpMyAdmin for no reason.
+     */
+    public function distillFromExternal(Request $request, User $user, ProfileTranscriptBuilder $transcripts, StyleDistillationService $distillation): RedirectResponse
+    {
+        $this->authorizeAdmin();
+        $this->authorizeFemale($user);
+
+        $validated = $request->validate([
+            'connection' => ['required', 'string'],
+            'username' => ['required', 'string'],
+            'mode' => ['required', 'in:style,phrases'],
+        ]);
+
+        if (! ExternalSiteRegistry::exists($validated['connection'])) {
+            return back()->with('status', 'Site extern necunoscut sau neconfigurat.');
+        }
+
+        $externalUser = User::on($validated['connection'])
+            ->where('username', $validated['username'])
+            ->first();
+
+        if (! $externalUser) {
+            return back()->with('status', 'Nu s-a gasit niciun profil cu username-ul "' . $validated['username'] . '" pe site-ul extern selectat.');
+        }
+
+        $transcript = $transcripts->build($externalUser->id, connection: $validated['connection']);
+
+        if (trim($transcript) === '') {
+            return back()->with('status', $externalUser->username . ' (site extern) nu are inca istoric de mesaje din care sa invete.');
+        }
+
+        $externalLabel = (ExternalSiteRegistry::list()[$validated['connection']] ?? $validated['connection']) . ' / ' . $externalUser->username;
+
+        try {
+            if ($validated['mode'] === 'phrases') {
+                $phrases = $distillation->extractPhrases($transcript);
+
+                if (empty($phrases)) {
+                    return back()->with('status', 'Nu s-au gasit fraze potrivite in conversatiile lui ' . $externalUser->username . ' (site extern).');
+                }
+
+                $this->saveLearning($user, mode: 'phrases', phrases: $phrases, sourceUserId: 0, sourceExternalLabel: $externalLabel);
+            } else {
+                $styleGuide = $distillation->distill($transcript);
+                $this->saveLearning($user, mode: 'style', styleGuide: $styleGuide, sourceUserId: 0, sourceExternalLabel: $externalLabel);
+            }
+        } catch (Throwable $throwable) {
+            return back()->with('status', 'Invatarea a esuat: ' . $throwable->getMessage());
+        }
+
+        $modeLabel = $validated['mode'] === 'phrases' ? 'fraze exacte' : 'stil (ton)';
+
+        return back()->with('status', $user->name() . ' a invatat ' . $modeLabel . ' de la ' . $externalUser->username . ' (site extern) si a salvat.');
     }
 
     /**
@@ -202,7 +271,7 @@ final class AdminStyleLearningController extends Controller
     /**
      * @param array<int, string>|null $phrases
      */
-    private function saveLearning(User $user, string $mode, ?string $styleGuide = null, ?array $phrases = null, int $sourceUserId = 0): void
+    private function saveLearning(User $user, string $mode, ?string $styleGuide = null, ?array $phrases = null, int $sourceUserId = 0, ?string $sourceExternalLabel = null): void
     {
         $user->learning_snapshot = [
             'mode' => $mode,
@@ -210,6 +279,10 @@ final class AdminStyleLearningController extends Controller
             'phrase_examples' => $phrases,
             'updated_at' => now()->toIso8601String(),
             'source_user_id' => $sourceUserId,
+            // Set only for distillFromExternal() - the local source_user_id is meaningless
+            // (0) when the source lives in a different site's database, so
+            // admin/ai_style_learning.blade.php shows this instead of "(preluat de la #0)".
+            'source_external_label' => $sourceExternalLabel,
         ];
         $user->save();
     }

@@ -18,14 +18,19 @@ use App\User;
  * profile with years of history this means "as much of the recent history as fits", not
  * literally every message ever sent - worth surfacing to the client as a real limitation, not a
  * corner cut for convenience.
+ *
+ * $connection (client's follow-up request, 2026-09-18) optionally points this at one of the
+ * external sites configured in config/database.php/ExternalSiteRegistry instead of this app's
+ * own database - same users/messages schema, since it's the same codebase on a different
+ * domain, so no other change is needed here beyond which connection the two queries run on.
  */
 final class ProfileTranscriptBuilder
 {
-    public function build(int $femaleUserId, int $maxChars = 40000): string
+    public function build(int $femaleUserId, int $maxChars = 40000, ?string $connection = null): string
     {
-        $femaleName = User::where('id', $femaleUserId)->value('firstname') ?: 'Her';
+        $femaleName = User::on($connection)->where('id', $femaleUserId)->value('firstname') ?: 'Her';
 
-        $messages = Message::query()
+        $messages = Message::on($connection)
             ->where('from_user', $femaleUserId)
             ->orWhere('to_user', $femaleUserId)
             ->orderByDesc('id')

@@ -1,5 +1,54 @@
 <?php
 
+/**
+ * External sites the "AI Style Learning" feature can pull a profile's message history from
+ * (client's request, 2026-09-18) - each is a separate deployment of this exact same codebase
+ * (same users/messages schema) on a different domain, e.g. wizoox.com, reachable from this
+ * server's own MySQL (confirmed for wizoox: same physical host, connects over 127.0.0.1 - no
+ * VPN/tunnel needed). Numbered env vars (EXTERNAL_SITE_1_*, EXTERNAL_SITE_2_*, ...) instead of a
+ * fixed list, so adding another site later is just adding one more numbered block to .env, no
+ * code change - see .env.example-style block below and App\Services\AI\ExternalSiteRegistry,
+ * which reads this same array back out to list what's configured for the admin UI.
+ */
+function externalSiteConnections(): array
+{
+    $connections = [];
+    $i = 1;
+
+    while (env("EXTERNAL_SITE_{$i}_DB_HOST")) {
+        $connections["external_site_{$i}"] = [
+            'driver' => 'mysql',
+            'host' => env("EXTERNAL_SITE_{$i}_DB_HOST"),
+            'port' => env("EXTERNAL_SITE_{$i}_DB_PORT", '3306'),
+            'database' => env("EXTERNAL_SITE_{$i}_DB_DATABASE"),
+            'username' => env("EXTERNAL_SITE_{$i}_DB_USERNAME"),
+            'password' => env("EXTERNAL_SITE_{$i}_DB_PASSWORD"),
+            'unix_socket' => '',
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'strict' => true,
+            'modes' => [
+                'STRICT_TRANS_TABLES',
+                'NO_ZERO_IN_DATE',
+                'NO_ZERO_DATE',
+                'ERROR_FOR_DIVISION_BY_ZERO',
+                'NO_AUTO_CREATE_USER',
+                'NO_ENGINE_SUBSTITUTION',
+            ],
+            'engine' => null,
+            // Not a real Laravel connection option - piggy-backs on this same array so the
+            // display label lives right next to the credentials it describes, read back out by
+            // ExternalSiteRegistry, instead of needing a second place kept in sync by hand.
+            'label' => env("EXTERNAL_SITE_{$i}_LABEL", "Site extern {$i}"),
+        ];
+        $i++;
+    }
+
+    return $connections;
+}
+
 return [
 
     /*
@@ -31,7 +80,7 @@ return [
     |
     */
 
-    'connections' => [
+    'connections' => array_merge([
 
         'sqlite' => [
             'driver' => 'sqlite',
@@ -116,7 +165,7 @@ return [
             'prefix_indexes' => true,
         ],
 
-    ],
+    ], externalSiteConnections()),
 
     /*
     |--------------------------------------------------------------------------

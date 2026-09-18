@@ -89,11 +89,13 @@
                                                     stil/frazele cui merita "invatate" de sistem.
                                                 </li>
                                                 <li style="margin-bottom:8px;">
-                                                    <strong>Tabelul "Toate profilurile"</strong> - aici exista doua butoane pentru fiecare profil:
-                                                    <strong>"Invata stil"</strong> (genereaza un ghid de ton/abordare din conversatiile proprii) si
+                                                    <strong>Tabelul "Toate profilurile"</strong> - aici exista butoane pentru fiecare profil:
+                                                    <strong>"Invata stil"</strong> (genereaza un ghid de ton/abordare din conversatiile proprii),
                                                     <strong>"Invata fraze"</strong> (extrage cele mai eficiente mesaje reale, exacte, din
-                                                    conversatiile proprii). Se poate apasa oricare dintre cele doua (sau ambele, dar doar ultima
-                                                    apasata ramane activa pentru profilul respectiv).
+                                                    conversatiile proprii)@if(!empty($externalSites)), si <strong>"Site extern"</strong> (invata
+                                                    dintr-un profil de pe un alt site - {{ implode(', ', $externalSites) }} - introducand
+                                                    username-ul profilului de acolo)@endif. Se poate apasa oricare dintre optiuni (dar doar
+                                                    ultima folosita ramane activa pentru profilul respectiv).
                                                 </li>
                                                 <li style="margin-bottom:8px;">
                                                     <strong>"Aplica ce a invatat un profil altor profiluri"</strong> - se selecteaza profilul sursa
@@ -254,7 +256,9 @@
                                                         @else
                                                             <span class="badge badge-secondary">Nesetat</span>
                                                         @endif
-                                                        @if(($hasStyle || $hasPhrases) && !empty($snapshot['source_user_id']) && $snapshot['source_user_id'] != $profile->id)
+                                                        @if(($hasStyle || $hasPhrases) && !empty($snapshot['source_external_label']))
+                                                            <small class="text-muted">(preluat de pe {{ $snapshot['source_external_label'] }})</small>
+                                                        @elseif(($hasStyle || $hasPhrases) && !empty($snapshot['source_user_id']) && $snapshot['source_user_id'] != $profile->id)
                                                             <small class="text-muted">(preluat de la #{{ $snapshot['source_user_id'] }})</small>
                                                         @endif
                                                     </td>
@@ -273,6 +277,15 @@
                                                                 Invata fraze
                                                             </button>
                                                         </form>
+                                                        @if(!empty($externalSites))
+                                                            {{-- "Site extern" here is a small popover-style row shown/hidden via JS
+                                                                 (below), not its own modal - keeps each row self-contained instead
+                                                                 of one shared form at the bottom of the page that would need to
+                                                                 track which profile is the current target. --}}
+                                                            <button type="button" class="au-btn" style="padding:0 14px; font-size:12px; background:#6f42c1;" onclick="toggleExternalRow({{ $profile->id }})">
+                                                                Site extern
+                                                            </button>
+                                                        @endif
                                                         @if($hasStyle || $hasPhrases)
                                                             <form action="{{ route('admin_style_learning_clear', $profile->id) }}" method="POST" class="d-inline">
                                                                 @csrf
@@ -283,6 +296,40 @@
                                                         @endif
                                                     </td>
                                                 </tr>
+                                                @if(!empty($externalSites))
+                                                    {{-- Hidden by default (see toggleExternalRow() below) - a whole extra
+                                                         table row per profile so the site/username/mode inputs have real
+                                                         room, instead of squeezing them into the already-tight action
+                                                         cell above. --}}
+                                                    <tr id="external-row-{{ $profile->id }}" style="display:none; background:#f8f7fc;">
+                                                        <td colspan="3">
+                                                            <form action="{{ route('admin_style_learning_distill_external', $profile->id) }}" method="POST" onsubmit="return confirm('Inveti {{ $profile->name() }} din istoricul acelui profil de pe site-ul extern selectat? Aceasta apeleaza OpenAI o data.');">
+                                                                @csrf
+                                                                <div class="form-row align-items-center">
+                                                                    <div class="col-auto">
+                                                                        <select name="connection" class="form-control form-control-sm" required>
+                                                                            @foreach($externalSites as $connectionName => $label)
+                                                                                <option value="{{ $connectionName }}">{{ $label }}</option>
+                                                                            @endforeach
+                                                                        </select>
+                                                                    </div>
+                                                                    <div class="col-auto">
+                                                                        <input type="text" name="username" class="form-control form-control-sm" placeholder="username pe site-ul extern" required>
+                                                                    </div>
+                                                                    <div class="col-auto">
+                                                                        <select name="mode" class="form-control form-control-sm" required>
+                                                                            <option value="style">Stil (ton)</option>
+                                                                            <option value="phrases">Fraze exacte</option>
+                                                                        </select>
+                                                                    </div>
+                                                                    <div class="col-auto">
+                                                                        <button type="submit" class="au-btn au-btn--blue" style="padding:0 14px; font-size:12px;">Invata de acolo</button>
+                                                                    </div>
+                                                                </div>
+                                                            </form>
+                                                        </td>
+                                                    </tr>
+                                                @endif
                                             @endforeach
                                         </tbody>
                                     </table>
@@ -355,6 +402,16 @@
 var helpOverlay = document.getElementById('style-learning-help-overlay');
 if (helpOverlay) {
     document.body.appendChild(helpOverlay);
+}
+
+// Shows/hides the per-profile "Site extern" row (see the table above) - a simple show/hide
+// toggle rather than tracking open/closed state, since re-clicking the button while the row is
+// already open should just close it again.
+function toggleExternalRow(profileId) {
+    var row = document.getElementById('external-row-' + profileId);
+    if (row) {
+        row.style.display = row.style.display === 'none' ? 'table-row' : 'none';
+    }
 }
 
 document.querySelectorAll('.use-as-source-btn').forEach(function (btn) {
