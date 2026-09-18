@@ -173,10 +173,11 @@
                                                         Alege din prima lista site-ul de pe care vrei sa invete (ex: {{ implode(', ', $externalSites) }}).
                                                     </li>
                                                     <li>
-                                                        Da click in campul "cauta username..." - daca nu stii niciun nume, apare direct o lista
-                                                        cu cateva profile de-acolo, de unde poti sa navighezi; sau incepe sa scrii numele/username-ul
-                                                        dorit pentru a filtra lista. <strong>Click pe rezultatul dorit</strong> pentru a-l selecta
-                                                        exact (nu trebuie stiut/scris manual un ID, doar numele).
+                                                        Da click in campul "cauta username..." - daca nu stii niciun nume, apar direct primele
+                                                        <strong>15 profile</strong> de-acolo (nu lista completa - doar cateva, de unde sa incepi),
+                                                        de unde poti sa navighezi; sau incepe sa scrii numele/username-ul dorit pentru a filtra
+                                                        lista la profilul cautat (tot cel mult 15 rezultate deodata). <strong>Click pe rezultatul
+                                                        dorit</strong> pentru a-l selecta exact (nu trebuie stiut/scris manual un ID, doar numele).
                                                     </li>
                                                     <li>
                                                         Alege modul (<strong>Stil</strong> sau <strong>Fraze exacte</strong>, la fel ca la invatarea
@@ -409,7 +410,10 @@
                                                                  already carries learning_snapshot), and copied into the shared
                                                                  overlay on click - see showLearningDetail() below. --}}
                                                             <br>
-                                                            <button type="button" class="au-btn" style="padding:0 10px; font-size:11px; margin-top:4px;" onclick="showLearningDetail({{ $profile->id }})">
+                                                            {{-- Same "no color modifier class = invisible until :hover" theme bug
+                                                                 as .btn-outline-* elsewhere on this page (see the Sterge/Site
+                                                                 extern buttons) - an explicit background fixes it here too. --}}
+                                                            <button type="button" class="au-btn" style="padding:0 10px; font-size:11px; margin-top:4px; background:#17a2b8; color:#fff;" onclick="showLearningDetail({{ $profile->id }})">
                                                                 Vezi ce a invatat
                                                             </button>
                                                         @endif
