@@ -110,6 +110,22 @@
                                             </ul>
                                             <p>Adminul poate alege liber, pentru fiecare profil in parte, care dintre cele doua moduri sa fie activ.</p>
 
+                                            <h6>Cat de multa conversatie citeste sistemul</h6>
+                                            <p>
+                                                Nu se trimite catre AI intreg istoricul unui profil (poate fi de ani de zile) - ar fi prea mult
+                                                pentru o singura cerere. Se ia mereu <strong>partea cea mai recenta</strong> care incape: cel mult
+                                                ultimele <strong>4000 de mesaje</strong> (ambele parti ale conversatiilor, nu doar mesajele
+                                                profilului), taiat apoi la cel mult <strong>40.000 de caractere</strong> - oricare limita se atinge
+                                                prima. Aceasta se aplica identic si la invatarea din propriile conversatii, si la invatarea de pe
+                                                un site extern.
+                                            </p>
+                                            <p class="help-note">
+                                                Aceste doua limite (4000 mesaje / 40.000 caractere) sunt un setaj tehnic in codul aplicatiei
+                                                (fisierul <code>ProfileTranscriptBuilder.php</code>), nu ceva reglabil din aceasta pagina - daca la
+                                                un moment dat vrei sa inveti din mai multa sau mai putina conversatie, anunta dezvoltatorul sa
+                                                modifice aceasta valoare.
+                                            </p>
+
                                             <h6>Cei 4 pasi pe care ii poate face adminul</h6>
                                             <ol class="help-steps">
                                                 <li>
@@ -124,7 +140,10 @@
                                                     conversatiile proprii)@if(!empty($externalSites)), si <strong>"Site extern"</strong> (invata
                                                     dintr-un profil de pe un alt site - {{ implode(', ', $externalSites) }} - introducand
                                                     username-ul profilului de acolo)@endif. Se poate apasa oricare dintre optiuni (dar doar
-                                                    ultima folosita ramane activa pentru profilul respectiv).
+                                                    ultima folosita ramane activa pentru profilul respectiv). Odata invatat ceva, apare si un
+                                                    buton <strong>"Vezi ce a invatat"</strong> - arata exact textul ghidului de stil sau lista
+                                                    completa de fraze salvate, ca sa se stie mereu ce foloseste efectiv AI-ul, nu doar ca "ceva"
+                                                    a fost invatat.
                                                 </li>
                                                 <li>
                                                     <strong>"Aplica ce a invatat un profil altor profiluri"</strong> - se selecteaza profilul sursa
@@ -154,9 +173,10 @@
                                                         Alege din prima lista site-ul de pe care vrei sa invete (ex: {{ implode(', ', $externalSites) }}).
                                                     </li>
                                                     <li>
-                                                        In campul "cauta username..." incepe sa scrii numele sau username-ul profilului de pe
-                                                        acel site - apare automat o lista cu potriviri; <strong>click pe rezultatul dorit</strong>
-                                                        pentru a-l selecta exact (nu trebuie stiut/scris manual un ID, doar numele).
+                                                        Da click in campul "cauta username..." - daca nu stii niciun nume, apare direct o lista
+                                                        cu cateva profile de-acolo, de unde poti sa navighezi; sau incepe sa scrii numele/username-ul
+                                                        dorit pentru a filtra lista. <strong>Click pe rezultatul dorit</strong> pentru a-l selecta
+                                                        exact (nu trebuie stiut/scris manual un ID, doar numele).
                                                     </li>
                                                     <li>
                                                         Alege modul (<strong>Stil</strong> sau <strong>Fraze exacte</strong>, la fel ca la invatarea
@@ -184,6 +204,26 @@
                                     </div>
                                     <div style="text-align:right; margin-top:20px;">
                                         <button type="button" class="au-btn au-btn--blue" style="padding:0 20px; font-size:13px;" onclick="document.getElementById('style-learning-help-overlay').style.display='none';">Am inteles</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- "Vezi ce a invatat" (client's follow-up, 2026-09-18: "honnan tudja az admin mit
+                                 szedett be") - shows the actual saved style guide text or phrase list for one
+                                 profile, copied in from that profile's hidden <template> (see the table below) by
+                                 showLearningDetail(). Same hand-styled-overlay pattern as the help overlay above,
+                                 for the same reason (this admin theme's Bootstrap .modal support is broken). --}}
+                            <div id="learning-detail-overlay" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,.6); z-index:999999; align-items:flex-start; justify-content:center; padding:40px 15px; overflow-y:auto;" onclick="if(event.target===this){this.style.display='none';}">
+                                <div class="help-content" style="background:#fff; border-radius:6px; max-width:700px; width:100%; padding:30px 34px; position:relative;">
+                                    <button type="button" style="position:absolute; top:12px; right:16px; background:none; border:none; font-size:24px; line-height:1; cursor:pointer; color:#666;" onclick="document.getElementById('learning-detail-overlay').style.display='none';">&times;</button>
+                                    <h4>Ce a invatat acest profil</h4>
+                                    <div id="learning-detail-body"></div>
+                                    <div style="text-align:right; margin-top:20px;">
+                                        <button type="button" class="au-btn" style="padding:0 20px; font-size:13px; background:#6c757d;" onclick="document.getElementById('learning-detail-overlay').style.display='none';">Inchide</button>
+                                        {{-- Answers the OTHER half of the client's question ("mukodik e valjoban") -
+                                             points straight at the Previzualizare tool further down the page instead
+                                             of duplicating a live test inside this overlay too. --}}
+                                        <button type="button" class="au-btn au-btn--blue test-in-preview-btn" style="padding:0 20px; font-size:13px;" onclick="document.getElementById('learning-detail-overlay').style.display='none'; document.getElementById('preview_user_id').scrollIntoView({behavior:'smooth', block:'center'});">Testeaza in Previzualizare</button>
                                     </div>
                                 </div>
                             </div>
@@ -311,6 +351,39 @@
                                                     $hasStyle = $mode === 'style' && !empty($snapshot['style_guide']);
                                                     $hasPhrases = $mode === 'phrases' && !empty($snapshot['phrase_examples']);
                                                 @endphp
+                                                @if($hasStyle || $hasPhrases)
+                                                    {{-- Not rendered/visible on its own - <template> content is inert
+                                                         until JS copies it into #learning-detail-body (showLearningDetail()
+                                                         below). One per profile, built server-side from the already-loaded
+                                                         $profiles collection, so opening this never needs its own AJAX call. --}}
+                                                    <template id="learning-detail-{{ $profile->id }}">
+                                                        <p><strong>Profil:</strong> {{ $profile->name() }}</p>
+                                                        <p><strong>Mod:</strong> {{ $hasPhrases ? 'Fraze exacte' : 'Stil (ton)' }}</p>
+                                                        <p><strong>Sursa:</strong>
+                                                            @if(!empty($snapshot['source_external_label']))
+                                                                {{ $snapshot['source_external_label'] }} (site extern)
+                                                            @elseif(!empty($snapshot['source_user_id']) && $snapshot['source_user_id'] != $profile->id)
+                                                                profilul #{{ $snapshot['source_user_id'] }}
+                                                            @else
+                                                                propriile conversatii
+                                                            @endif
+                                                        </p>
+                                                        @if(!empty($snapshot['updated_at']))
+                                                            <p><strong>Actualizat:</strong> {{ \Illuminate\Support\Carbon::parse($snapshot['updated_at'])->format('d.m.Y H:i') }}</p>
+                                                        @endif
+                                                        @if($hasStyle)
+                                                            <p><strong>Ghidul de stil salvat:</strong></p>
+                                                            <div style="white-space:pre-wrap; background:#f5f5f5; border-radius:4px; padding:12px; font-size:14px;">{{ $snapshot['style_guide'] }}</div>
+                                                        @else
+                                                            <p><strong>Frazele salvate ({{ count($snapshot['phrase_examples']) }}):</strong></p>
+                                                            <ol style="padding-left:20px; font-size:14px;">
+                                                                @foreach($snapshot['phrase_examples'] as $phrase)
+                                                                    <li style="margin-bottom:6px;">{{ $phrase }}</li>
+                                                                @endforeach
+                                                            </ol>
+                                                        @endif
+                                                    </template>
+                                                @endif
                                                 <tr>
                                                     <td>{{ $profile->name() }}</td>
                                                     <td>
@@ -325,6 +398,20 @@
                                                             <small class="text-muted">(preluat de pe {{ $snapshot['source_external_label'] }})</small>
                                                         @elseif(($hasStyle || $hasPhrases) && !empty($snapshot['source_user_id']) && $snapshot['source_user_id'] != $profile->id)
                                                             <small class="text-muted">(preluat de la #{{ $snapshot['source_user_id'] }})</small>
+                                                        @endif
+                                                        @if($hasStyle || $hasPhrases)
+                                                            {{-- Client's follow-up (2026-09-18): "honnan tudja az admin mit
+                                                                 szedett be" - up to now the badge/source note above was the
+                                                                 only feedback; this shows the ACTUAL saved content (the style
+                                                                 guide text, or the full phrase list), not just that something
+                                                                 non-empty exists. Content is pre-rendered into a hidden
+                                                                 <template> below (no extra AJAX call needed - $profiles
+                                                                 already carries learning_snapshot), and copied into the shared
+                                                                 overlay on click - see showLearningDetail() below. --}}
+                                                            <br>
+                                                            <button type="button" class="au-btn" style="padding:0 10px; font-size:11px; margin-top:4px;" onclick="showLearningDetail({{ $profile->id }})">
+                                                                Vezi ce a invatat
+                                                            </button>
                                                         @endif
                                                     </td>
                                                     <td class="text-right">
@@ -474,6 +561,36 @@ if (helpOverlay) {
     document.body.appendChild(helpOverlay);
 }
 
+var learningDetailOverlay = document.getElementById('learning-detail-overlay');
+if (learningDetailOverlay) {
+    document.body.appendChild(learningDetailOverlay);
+}
+
+// "Vezi ce a invatat" (client's follow-up, 2026-09-18) - copies the profile's pre-rendered
+// <template> (server-side, in the table above - no AJAX call needed) into the shared overlay's
+// body and shows it. Also remembers which profile this was for, so the overlay's own
+// "Testeaza in Previzualizare" button can preselect the same profile there instead of leaving
+// the admin to find it again in that dropdown.
+function showLearningDetail(profileId) {
+    var template = document.getElementById('learning-detail-' + profileId);
+    var body = document.getElementById('learning-detail-body');
+    if (!template || !body) { return; }
+
+    body.innerHTML = template.innerHTML;
+    document.getElementById('learning-detail-overlay').dataset.profileId = profileId;
+    document.getElementById('learning-detail-overlay').style.display = 'flex';
+}
+
+document.querySelectorAll('#learning-detail-overlay .test-in-preview-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+        var profileId = document.getElementById('learning-detail-overlay').dataset.profileId;
+        var previewSelect = document.getElementById('preview_user_id');
+        if (profileId && previewSelect) {
+            previewSelect.value = profileId;
+        }
+    });
+});
+
 // Shows/hides the per-profile "Site extern" row (see the table above) - a simple show/hide
 // toggle rather than tracking open/closed state, since re-clicking the button while the row is
 // already open should just close it again.
@@ -491,54 +608,70 @@ function toggleExternalRow(profileId) {
 (function () {
     var debounceTimers = new WeakMap();
 
+    function runExternalSearch(input, query) {
+        var resultsBox = input.parentElement.querySelector('.external-username-results');
+        var connectionSelect = input.closest('form').querySelector('[name="connection"]');
+        var url = '{{ route('admin_style_learning_external_search') }}?connection='
+            + encodeURIComponent(connectionSelect.value) + '&q=' + encodeURIComponent(query);
+
+        fetch(url, { headers: { 'Accept': 'application/json' } })
+            .then(function (resp) { return resp.json(); })
+            .then(function (data) {
+                var results = data.results || [];
+                resultsBox.innerHTML = '';
+
+                if (results.length === 0) {
+                    resultsBox.innerHTML = '<div style="padding:6px 10px; color:#888; font-size:12px;">Niciun rezultat</div>';
+                } else {
+                    results.forEach(function (row) {
+                        var item = document.createElement('div');
+                        item.style.cssText = 'padding:6px 10px; cursor:pointer; font-size:13px;';
+                        item.textContent = row.username + ' (' + (row.firstname || '') + ' ' + (row.lastname || '') + ')';
+                        item.addEventListener('mouseenter', function () { item.style.background = '#f0f0f0'; });
+                        item.addEventListener('mouseleave', function () { item.style.background = ''; });
+                        item.addEventListener('click', function () {
+                            input.value = row.username;
+                            resultsBox.style.display = 'none';
+                        });
+                        resultsBox.appendChild(item);
+                    });
+                }
+
+                resultsBox.style.display = 'block';
+            })
+            .catch(function () {
+                resultsBox.style.display = 'none';
+            });
+    }
+
     document.addEventListener('input', function (event) {
         if (!event.target.classList.contains('external-username-input')) { return; }
 
         var input = event.target;
-        var resultsBox = input.parentElement.querySelector('.external-username-results');
-        var connectionSelect = input.closest('form').querySelector('[name="connection"]');
         var query = input.value.trim();
 
         clearTimeout(debounceTimers.get(input));
 
         if (query.length < 2) {
-            resultsBox.style.display = 'none';
+            input.parentElement.querySelector('.external-username-results').style.display = 'none';
             return;
         }
 
-        debounceTimers.set(input, setTimeout(function () {
-            var url = '{{ route('admin_style_learning_external_search') }}?connection='
-                + encodeURIComponent(connectionSelect.value) + '&q=' + encodeURIComponent(query);
+        debounceTimers.set(input, setTimeout(function () { runExternalSearch(input, query); }, 300));
+    });
 
-            fetch(url, { headers: { 'Accept': 'application/json' } })
-                .then(function (resp) { return resp.json(); })
-                .then(function (data) {
-                    var results = data.results || [];
-                    resultsBox.innerHTML = '';
+    // Client's follow-up (2026-09-18): "what if the admin doesn't know what names even exist
+    // there?" - clicking into an EMPTY field now shows an initial browsable list (first 15
+    // alphabetically - see searchExternalUsers()'s $term === '' case) instead of requiring the
+    // admin to already know at least 2 letters of a real name before this is any use at all.
+    // No debounce here - it's one immediate lookup on focus, not a keystroke-driven stream.
+    document.addEventListener('focusin', function (event) {
+        if (!event.target.classList.contains('external-username-input')) { return; }
 
-                    if (results.length === 0) {
-                        resultsBox.innerHTML = '<div style="padding:6px 10px; color:#888; font-size:12px;">Niciun rezultat</div>';
-                    } else {
-                        results.forEach(function (row) {
-                            var item = document.createElement('div');
-                            item.style.cssText = 'padding:6px 10px; cursor:pointer; font-size:13px;';
-                            item.textContent = row.username + ' (' + (row.firstname || '') + ' ' + (row.lastname || '') + ')';
-                            item.addEventListener('mouseenter', function () { item.style.background = '#f0f0f0'; });
-                            item.addEventListener('mouseleave', function () { item.style.background = ''; });
-                            item.addEventListener('click', function () {
-                                input.value = row.username;
-                                resultsBox.style.display = 'none';
-                            });
-                            resultsBox.appendChild(item);
-                        });
-                    }
-
-                    resultsBox.style.display = 'block';
-                })
-                .catch(function () {
-                    resultsBox.style.display = 'none';
-                });
-        }, 300));
+        var input = event.target;
+        if (input.value.trim() === '') {
+            runExternalSearch(input, '');
+        }
     });
 
     // Clicking anywhere outside a results box closes it - otherwise it stays open forever once

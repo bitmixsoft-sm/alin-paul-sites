@@ -68,6 +68,18 @@
                                                                     @if($setting->name === 'BOOST_PRICE_AMOUNT')
                                                                         <small class="form-text text-muted">Moneda: <strong>EUR</strong></small>
                                                                     @endif
+                                                                    {{-- Client's explicit request (2026-09-18): make sure raising these isn't
+                                                                         read as a free "the bigger the better" lever - see
+                                                                         ProfileTranscriptBuilder, which sends this much text to OpenAI on
+                                                                         every single "Invata stil"/"Invata fraze"/"Site extern" click. --}}
+                                                                    @if(in_array($setting->name, ['AI_STYLE_LEARNING_MAX_MESSAGES', 'AI_STYLE_LEARNING_MAX_CHARS']))
+                                                                        <small class="form-text text-danger">
+                                                                            Atentie: o valoare mai mare inseamna mai mult text trimis catre OpenAI
+                                                                            la fiecare "Invata stil"/"Invata fraze" - asta costa (taxa API OpenAI)
+                                                                            si incetineste raspunsul. Nu este un "cu cat mai mult, cu atat mai
+                                                                            bine" gratuit.
+                                                                        </small>
+                                                                    @endif
                                                                 </div>
                                                                 @elseif($setting->type == 'toggle' && (str_ends_with($setting->name, '_ENABLED') || str_ends_with($setting->name, '_ACTIVE')))
                                                                     {{-- A visual on/off switch instead of the plain Da/Nu dropdown other
@@ -98,7 +110,20 @@
                                                                         <option @if($setting->value == 'yes') selected @endif value="yes">Da</option>
                                                                         <option @if($setting->value == 'no') selected @endif value="no">Nu</option>
                                                                     </select>
-                                                                </div>
+                                                                    {{-- Client's follow-up (2026-09-18): explain what this actually
+                                                                         changes, not just its raw setting name - see
+                                                                         ProfileTranscriptBuilder's docblock for the full reasoning
+                                                                         behind the "Da" default. --}}
+                                                                    @if($setting->name === 'AI_STYLE_LEARNING_INCLUDE_BOTH_PARTIES')
+                                                                        <small class="form-text text-muted">
+                                                                            <strong>Da</strong> (recomandat) - AI-ul vede intreaga conversatie
+                                                                            (si ce a scris profilul, si ce a scris clientul) - ajuta la
+                                                                            "Stil (ton)", ca sa inteleaga la ce a reactionat asa.
+                                                                            <strong>Nu</strong> - AI-ul vede doar mesajele scrise de profil,
+                                                                            fara raspunsurile clientului - poate fi mai curat pentru
+                                                                            "Fraze exacte", dar se pierde contextul conversatiei.
+                                                                        </small>
+                                                                    @endif
                                                                 @elseif(strpos($setting->type, 'select|')!==false)
                                                                 <div class="col col-sm-6">
                                                                     <select name="{{$setting->id}}" class="form-control"

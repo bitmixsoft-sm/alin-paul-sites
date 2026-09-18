@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\AI;
 
 use App\Message;
+use App\Settings;
 use App\User;
 
 /**
@@ -23,18 +24,39 @@ use App\User;
  * external sites configured in config/database.php/ExternalSiteRegistry instead of this app's
  * own database - same users/messages schema, since it's the same codebase on a different
  * domain, so no other change is needed here beyond which connection the two queries run on.
+ *
+ * The message-count cap, character cap, and whether both sides of the conversation are included
+ * (client's follow-up, 2026-09-18: "esetleg nagy munka lenne hogy ezt betenni egy beallitasba")
+ * are admin-editable via /admin/settings (category "AI Style Learning") instead of hardcoded -
+ * see the migration that added those 3 rows. $maxChars stays overridable by a caller too (falls
+ * back to the setting only when not passed explicitly), for any future caller that needs its own
+ * value without touching the site-wide default.
  */
 final class ProfileTranscriptBuilder
 {
-    public function build(int $femaleUserId, int $maxChars = 40000, ?string $connection = null): string
+    public function build(int $femaleUserId, ?int $maxChars = null, ?string $connection = null): string
     {
+        $maxChars ??= (int) (Settings::where('name', 'AI_STYLE_LEARNING_MAX_CHARS')->value('value') ?? 40000);
+        $maxMessages = (int) (Settings::where('name', 'AI_STYLE_LEARNING_MAX_MESSAGES')->value('value') ?? 4000);
+        // Default 'yes' (the original, only behavior before this setting existed) - including
+        // the other party's lines gives the AI context for WHY a line was said, which matters
+        // more for "Stil (ton)" than the trade-off (a very slim chance the AI misattributes a
+        // client's line as hers when extracting "Fraze exacte") costs.
+        $includeBothParties = (Settings::where('name', 'AI_STYLE_LEARNING_INCLUDE_BOTH_PARTIES')->value('value') ?? 'yes') !== 'no';
+
         $femaleName = User::on($connection)->where('id', $femaleUserId)->value('firstname') ?: 'Her';
 
-        $messages = Message::on($connection)
-            ->where('from_user', $femaleUserId)
-            ->orWhere('to_user', $femaleUserId)
+        $messagesQuery = Message::on($connection);
+
+        if ($includeBothParties) {
+            $messagesQuery->where('from_user', $femaleUserId)->orWhere('to_user', $femaleUserId);
+        } else {
+            $messagesQuery->where('from_user', $femaleUserId);
+        }
+
+        $messages = $messagesQuery
             ->orderByDesc('id')
-            ->limit(4000)
+            ->limit($maxMessages)
             ->get(['from_user', 'to_user', 'message']);
 
         $lines = [];

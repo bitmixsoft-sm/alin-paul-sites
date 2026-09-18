@@ -97,7 +97,13 @@ final class AdminStyleLearningController extends Controller
      * usernames aren't listed anywhere for an external site (unlike local profiles, which get
      * a proper <select> further down this page), and typing one in blind risks a typo silently
      * matching nothing. Female-only, same scope as everywhere else in this feature. Limited to
-     * 15 results - this is a live-as-you-type suggestion list, not a full directory.
+     * 15 results - this is a suggestion list, not a full directory.
+     *
+     * $q is optional (client's follow-up, 2026-09-18: "mi van ha nem tudja milyen nevek
+     * vannak?" - what if the admin has no idea what names even exist there) - an empty $q
+     * returns the first 15 alphabetically instead of nothing, so clicking into the field with
+     * nothing typed yet still shows something to browse/get a feel for, rather than requiring
+     * the admin already know a name before this is any use at all.
      */
     public function searchExternalUsers(Request $request): JsonResponse
     {
@@ -105,18 +111,22 @@ final class AdminStyleLearningController extends Controller
 
         $validated = $request->validate([
             'connection' => ['required', 'string'],
-            'q' => ['required', 'string', 'min:2'],
+            'q' => ['nullable', 'string'],
         ]);
 
         if (! ExternalSiteRegistry::exists($validated['connection'])) {
             return response()->json(['error' => 'Site extern necunoscut sau neconfigurat.'], 422);
         }
 
+        $term = trim($validated['q'] ?? '');
+
         $matches = User::on($validated['connection'])
             ->where('gender', 'female')
-            ->where(function ($query) use ($validated) {
-                $query->where('username', 'like', '%' . $validated['q'] . '%')
-                    ->orWhere('firstname', 'like', '%' . $validated['q'] . '%');
+            ->when($term !== '', function ($query) use ($term) {
+                $query->where(function ($query) use ($term) {
+                    $query->where('username', 'like', '%' . $term . '%')
+                        ->orWhere('firstname', 'like', '%' . $term . '%');
+                });
             })
             ->orderBy('username')
             ->limit(15)
