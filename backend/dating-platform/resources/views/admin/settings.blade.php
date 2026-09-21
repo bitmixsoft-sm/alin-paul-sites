@@ -151,7 +151,7 @@
                             <div class="row">
                                 <div class="col-md-12">
                                     <div class="copyright">
-                                        <p>Copyright © 2019 Modele De Site. All rights reserved.</p>
+                                        <p>Copyright © {{ date('Y') }} Modele De Site. All rights reserved.</p>
                                     </div>
                                 </div>
                             </div>
