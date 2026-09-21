@@ -37,7 +37,7 @@ use Illuminate\Support\Facades\Storage;
  */
 class DeleteAbandonedAutoRegisteredUsers extends Command
 {
-    protected $signature = 'users:delete-abandoned-autoregistered {--minutes=30 : How old (in minutes) an unfinished auto-registered account must be before it is deleted}';
+    protected $signature = 'users:delete-abandoned-autoregistered {--minutes=30 : How old (in minutes) an unfinished auto-registered account must be before it is deleted} {--dry-run : List the matching accounts without deleting anything}';
 
     protected $description = 'Deletes auto-registered ("fake") accounts that never completed registration within the grace period';
 
@@ -57,11 +57,27 @@ class DeleteAbandonedAutoRegisteredUsers extends Command
         // that overwrites it with a real address (complete_fake()). role/gender are the same
         // fixed values fakeregister() always sets, kept here as an extra safety net so this
         // can never touch anything but genuinely auto-registered accounts.
-        $users = User::where('email', 'like', '%@' . $host)
+        // fakeregister() builds the address from $_SERVER['SERVER_NAME'], which on production is
+        // "www.trovamequi.me" (confirmed from live data) while APP_URL's host is the bare domain -
+        // matching only '%@<host>' silently skipped every www. one. Both variants are matched.
+        $bareHost = preg_replace('/^www\./i', '', $host);
+
+        $users = User::where(function ($query) use ($bareHost) {
+                $query->where('email', 'like', '%@' . $bareHost)
+                    ->orWhere('email', 'like', '%@www.' . $bareHost);
+            })
             ->where('role', 'user')
             ->where('gender', 'male')
             ->where('created_at', '<', now()->subMinutes($minutes))
-            ->get(['id']);
+            ->get(['id', 'email', 'created_at']);
+
+        if ($this->option('dry-run')) {
+            foreach ($users as $user) {
+                $this->line("{$user->id}\t{$user->email}\t{$user->created_at}");
+            }
+            $this->info("DRY RUN: {$users->count()} account(s) would be deleted (grace period: {$minutes} minutes). Nothing was deleted.");
+            return self::SUCCESS;
+        }
 
         foreach ($users as $user) {
             $this->deleteUserCascade($user->id);
