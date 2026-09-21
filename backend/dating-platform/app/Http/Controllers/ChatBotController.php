@@ -14,6 +14,7 @@ use App\ChatBotTrain;
 use App\WelcomeMessage;
 use App\Events\NewMessage;
 use App\Services\AI\AIOrchestratorService;
+use App\Services\AI\ChatSalesPrompts;
 use App\Services\AI\PersonaPromptBuilder;
 use App\Services\AdminAlertService;
 use Throwable;
@@ -219,6 +220,7 @@ class ChatBotController extends Controller
                 history: $this->recentHistory($user_to->id, $user_from->id),
                 styleGuide: $styleGuide,
                 phraseExamples: $phraseExamples,
+                userStatusNote: ChatSalesPrompts::userStatusNote($user_from),
             );
         } catch (Throwable $throwable) {
             Log::error('AI chat auto-reply generation failed.', [

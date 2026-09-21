@@ -32,6 +32,9 @@ final class AISetting extends Model
         'openai_model',
         'text_ai_enabled',
         'live_ai_video_enabled',
+        'chat_instructions_enabled',
+        'chat_general_instructions',
+        'chat_product_knowledge',
     ];
 
     protected $casts = [
@@ -47,6 +50,7 @@ final class AISetting extends Model
         'openai_api_key' => 'encrypted',
         'text_ai_enabled' => 'boolean',
         'live_ai_video_enabled' => 'boolean',
+        'chat_instructions_enabled' => 'boolean',
     ];
 
     public static function current(): self
@@ -210,6 +214,26 @@ final class AISetting extends Model
      * default — unlike text_ai_enabled, this is a materially more expensive feature that
      * also needs a Simli Face ID configured per profile before it can work at all.
      */
+    public function chatInstructionsEnabled(): bool
+    {
+        return (bool) $this->chat_instructions_enabled;
+    }
+
+    // Empty (never saved / cleared) falls back to the default draft - see ChatSalesPrompts.
+    public function chatGeneralInstructions(): string
+    {
+        $text = trim((string) $this->chat_general_instructions);
+
+        return $text !== '' ? $text : \App\Services\AI\ChatSalesPrompts::DEFAULT_GENERAL_INSTRUCTIONS;
+    }
+
+    public function chatProductKnowledge(): string
+    {
+        $text = trim((string) $this->chat_product_knowledge);
+
+        return $text !== '' ? $text : \App\Services\AI\ChatSalesPrompts::DEFAULT_PRODUCT_KNOWLEDGE;
+    }
+
     public function liveAiVideoEnabled(): bool
     {
         return (bool) $this->live_ai_video_enabled;

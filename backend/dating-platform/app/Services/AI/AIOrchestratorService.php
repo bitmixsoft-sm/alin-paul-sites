@@ -66,7 +66,7 @@ final class AIOrchestratorService
     /**
      * @param array<int, string>|null $phraseExamples
      */
-    public function generateTextReply(string $message, string $systemPrompt, array $history = [], ?string $memoryNote = null, ?string $styleGuide = null, ?array $phraseExamples = null): string
+    public function generateTextReply(string $message, string $systemPrompt, array $history = [], ?string $memoryNote = null, ?string $styleGuide = null, ?array $phraseExamples = null, ?string $userStatusNote = null): string
     {
         $request = new OrchestratorRequestData(
             userId: 0,
@@ -78,6 +78,8 @@ final class AIOrchestratorService
             memoryNote: $memoryNote,
             styleGuide: $styleGuide,
             phraseExamples: $phraseExamples,
+            chatSalesMode: true,
+            userStatusNote: $userStatusNote,
         );
 
         return $this->generateAssistantResponse($request, Emotion::fallback());
@@ -246,8 +248,22 @@ final class AIOrchestratorService
         $messages = [
             ['role' => 'system', 'content' => $request->systemPrompt],
             ['role' => 'system', 'content' => $identityGuardrail],
-            ['role' => 'system', 'content' => $salesGuardrail],
         ];
+
+        // Real-chat text auto-reply only (generateTextReply sets chatSalesMode): the admin-editable
+        // instructions + product knowledge + this man's paying status replace the deliberately mild
+        // one-line guardrail below - client's request 2026-09-21, see ChatSalesPrompts. Switched off
+        // in AI Settings (or any other caller, e.g. AI Companions) = the original guardrail, unchanged.
+        if ($request->chatSalesMode && $aiSetting->chatInstructionsEnabled()) {
+            $messages[] = ['role' => 'system', 'content' => $aiSetting->chatGeneralInstructions()];
+            $messages[] = ['role' => 'system', 'content' => ChatSalesPrompts::renderProductKnowledge($aiSetting->chatProductKnowledge())];
+
+            if ($request->userStatusNote !== null && $request->userStatusNote !== '') {
+                $messages[] = ['role' => 'system', 'content' => $request->userStatusNote];
+            }
+        } else {
+            $messages[] = ['role' => 'system', 'content' => $salesGuardrail];
+        }
 
         if ($request->styleGuide !== null && $request->styleGuide !== '') {
             $messages[] = [

@@ -138,6 +138,35 @@
                                             </div>
                                         </div>
 
+                                        {{-- Client's request (2026-09-21): the AI told stories instead of leading the
+                                             conversation toward a subscription. See App\Services\AI\ChatSalesPrompts. --}}
+                                        <div class="row form-group">
+                                            <div class="col col-md-3"><label class="form-control-label">Sales Instructions</label></div>
+                                            <div class="col-12 col-md-9">
+                                                <select name="chat_instructions_enabled" class="form-control">
+                                                    <option value="1" @if($aiSetting->chatInstructionsEnabled()) selected @endif>Active</option>
+                                                    <option value="0" @if(! $aiSetting->chatInstructionsEnabled()) selected @endif>Inactive (old behavior)</option>
+                                                </select>
+                                                <small class="form-text text-muted">When Active, the AI auto-reply follows the two texts below (and is told whether the man already has a paid subscription, so it doesn't pitch one to paying members). When Inactive, it goes back to the original single mild sentence ("guide the user toward premium features without being pushy"). Affects only the text auto-reply of real profiles.</small>
+                                            </div>
+                                        </div>
+
+                                        <div class="row form-group">
+                                            <div class="col col-md-3"><label class="form-control-label">General Instructions</label></div>
+                                            <div class="col-12 col-md-9">
+                                                <textarea name="chat_general_instructions" rows="12" class="form-control" style="font-size:13px;">{{ $aiSetting->chatGeneralInstructions() }}</textarea>
+                                                <small class="form-text text-muted">Rules the AI follows in EVERY reply, for every profile: message length, reply language, the goal (subscription + long conversations), how to handle price/camera questions. Written in English because the model follows English instructions most reliably - it still replies in the language the man writes in. Leave empty (or unchanged) to use the built-in default. Test changes with the Preview tool on the <a href="/admin/style-learning">AI Style Learning</a> page (it simulates a non-paying member).</small>
+                                            </div>
+                                        </div>
+
+                                        <div class="row form-group">
+                                            <div class="col col-md-3"><label class="form-control-label">Product Knowledge</label></div>
+                                            <div class="col-12 col-md-9">
+                                                <textarea name="chat_product_knowledge" rows="8" class="form-control" style="font-size:13px;">{{ $aiSetting->chatProductKnowledge() }}</textarea>
+                                                <small class="form-text text-muted">What the AI knows about what the site sells, so it can answer "is it paid?" or "can we use the camera?" correctly instead of dodging. <code>{packages}</code> is replaced live with the real package list and prices from the Packages page, and <code>{chat_rule}</code> with the current free-message / credits rule from Settings - keep them so this never goes out of date. Anything else here (e.g. camera rules) is your text to adjust.</small>
+                                            </div>
+                                        </div>
+
                                         <div class="row form-group">
                                             <div class="col col-md-3"><label class="form-control-label">Live AI Video Call</label></div>
                                             <div class="col-12 col-md-9">

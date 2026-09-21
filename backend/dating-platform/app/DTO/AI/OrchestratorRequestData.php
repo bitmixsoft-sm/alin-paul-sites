@@ -22,6 +22,9 @@ final readonly class OrchestratorRequestData
         public ?string $memoryNote = null,
         /** @var array<int, string>|null */
         public ?array $phraseExamples = null,
+        /** Set only by generateTextReply() (real-chat text auto-reply) - see ChatSalesPrompts. */
+        public bool $chatSalesMode = false,
+        public ?string $userStatusNote = null,
     ) {
     }
 }

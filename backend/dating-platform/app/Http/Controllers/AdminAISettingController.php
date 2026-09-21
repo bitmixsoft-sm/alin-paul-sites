@@ -56,6 +56,9 @@ final class AdminAISettingController extends Controller
             'openai_model' => ['nullable', 'string', 'max:100'],
             'text_ai_enabled' => ['required', 'in:0,1'],
             'live_ai_video_enabled' => ['required', 'in:0,1'],
+            'chat_instructions_enabled' => ['nullable', 'in:0,1'],
+            'chat_general_instructions' => ['nullable', 'string', 'max:8000'],
+            'chat_product_knowledge' => ['nullable', 'string', 'max:8000'],
         ]);
 
         $aiSetting = AISetting::current();
@@ -89,6 +92,30 @@ final class AdminAISettingController extends Controller
         $aiSetting->openai_model = trim((string) ($validated['openai_model'] ?? ''));
         $aiSetting->text_ai_enabled = (bool) ((int) $validated['text_ai_enabled']);
         $aiSetting->live_ai_video_enabled = (bool) ((int) $validated['live_ai_video_enabled']);
+
+        if (array_key_exists('chat_instructions_enabled', $validated) && $validated['chat_instructions_enabled'] !== null) {
+            $aiSetting->chat_instructions_enabled = (bool) ((int) $validated['chat_instructions_enabled']);
+        }
+
+        // Saved as null (= "use the built-in default", see ChatSalesPrompts) when left empty or
+        // identical to the default, so future improvements to the default still reach admins who
+        // never actually customized it, instead of being frozen at whatever it said on the day
+        // they first pressed Save.
+        foreach ([
+            'chat_general_instructions' => \App\Services\AI\ChatSalesPrompts::DEFAULT_GENERAL_INSTRUCTIONS,
+            'chat_product_knowledge' => \App\Services\AI\ChatSalesPrompts::DEFAULT_PRODUCT_KNOWLEDGE,
+        ] as $field => $default) {
+            if (! array_key_exists($field, $validated)) {
+                continue;
+            }
+
+            $normalize = static fn (string $text): string => trim(str_replace("
+", "
+", $text));
+            $submitted = $normalize((string) $validated[$field]);
+
+            $aiSetting->{$field} = ($submitted === '' || $submitted === $normalize($default)) ? null : $submitted;
+        }
 
         $aiSetting->save();
 

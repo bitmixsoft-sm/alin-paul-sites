@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Services\AI\AIOrchestratorService;
+use App\Services\AI\ChatSalesPrompts;
 use App\Services\AI\ExternalSiteRegistry;
 use App\Services\AI\PersonaPromptBuilder;
 use App\Services\AI\ProfileConversionRankingService;
@@ -271,11 +272,14 @@ final class AdminStyleLearningController extends Controller
         $systemPrompt = $persona->build($user);
         [$styleGuide, $phraseExamples] = $this->resolveLearning($user);
         $hasLearning = $styleGuide !== null || $phraseExamples !== null;
+        // The preview has no real conversation - it simulates a free (non-paying) member, which is the
+        // case the sales instructions (AI Settings) need to be tested against.
+        $statusNote = ChatSalesPrompts::userStatusNote(null);
 
         try {
-            $without = $orchestrator->generateTextReply(message: $validated['message'], systemPrompt: $systemPrompt);
+            $without = $orchestrator->generateTextReply(message: $validated['message'], systemPrompt: $systemPrompt, userStatusNote: $statusNote);
             $with = $hasLearning
-                ? $orchestrator->generateTextReply(message: $validated['message'], systemPrompt: $systemPrompt, styleGuide: $styleGuide, phraseExamples: $phraseExamples)
+                ? $orchestrator->generateTextReply(message: $validated['message'], systemPrompt: $systemPrompt, styleGuide: $styleGuide, phraseExamples: $phraseExamples, userStatusNote: $statusNote)
                 : null;
         } catch (Throwable $throwable) {
             return response()->json(['error' => $throwable->getMessage()], 502);
