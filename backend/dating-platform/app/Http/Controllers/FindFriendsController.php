@@ -101,61 +101,17 @@ class FindFriendsController extends Controller
         $user = $query->firstOrFail();
         $activeTheme = ActiveTheme::current();
 
-        $tpl = '<div data-user-id="' . $user->id . '" class="col col-xl-3 col-lg-6 col-md-6 col-sm-6 col-12 find_friends_item">
-                        <div class="ui-block" data-mh="friend-groups-item"
-                            style=\'';
-        if ($user->images->count() > 0) {
-            $tpl .= 'background: url("/storage/images/' . $user->images->take(1)[0]->name . '");';
-        }
-        $tpl .= 'height:415px;\' >
-                                <span class="find_friends_status span-online">Online</span>
-                                <!-- Friend Item -->
-                                <div class="friend-item friend-groups">
+        // Same shared card partial as the first page load and search() - see
+        // components/find_friends_card.blade.php. forceOnline: this is only ever called the
+        // moment the user comes online (online.js setFindFriendsUserState), before users.status
+        // is necessarily updated, so the badge must not depend on it.
+        $tpl = view('components.find_friends_card', [
+            'user' => $user,
+            'activeTheme' => $activeTheme,
+            'isRouletteSlot' => false,
+            'forceOnline' => true,
+        ])->render();
 
-                                    <div class="friend-item-content">
-
-                                        <div class="friend-avatar">
-
-                                            <div class="author-thumb find-friends-item">';
-
-        if ($user->images->count() == 0) {
-            $tpl .= '<a href="/profile/' . $user->username . '"><img
-                                                            src="/storage/images/' . $user->profile_image() . '"
-                                                            alt="' . $user->name() . '"></a>';
-        }
-        $tpl .= '</div>
-                                        </div>
-                                        <div class="friend-actions">
-                                            <div class="author-content">
-                                                <a href="/profile/' . $user->username . '"
-                                                    class="h5 author-name">' . $user->name();
-        if ($user->age() != 0) {
-            $tpl .= ', ' . $user->age();
-        }
-        $tpl .= '</a>
-                                            </div>
-                                            <div class="control-block-button">
-                                                <a href="/profile/' . $user->username . '" class="  btn btn-control bg-blue"'
-                                                    . ($activeTheme === 'rosewood' ? '' : '
-                                                    data-toggle="tooltip" data-placement="top"
-                                                    data-original-title="' . l("See Profile") . '"') . '>
-                                                    ' . l("See Profile") . '
-                                                </a>';
-        if (Auth::check()) {
-            $tpl .= '<a href="#" data-id="' . $user->id . '"
-                                                        onclick="chat_open(this,event);" class="btn btn-control bg-purple"
-                                                        data-toggle="tooltip" data-placement="top"
-                                                        data-original-title="' . l("Start chatting") . '">
-                                                        ' . l("Chat") . '
-                                                    </a>';
-        }
-        $tpl .= '</div>
-                                        </div>
-                                    </div>
-                                </div>
-                        </div>
-                    </div>';
-                    
         return response()->json(['tpl' => $tpl]);
 
     }
@@ -215,132 +171,18 @@ class FindFriendsController extends Controller
             $tpl = '<div class="find-friends-no-result"><span>No results</span></div>';
             return response()->json(['tpl' => $tpl, 'results' => 0]);
         }
-        // Only read/branched on for the 'binder' theme's real 3D card flip (see themes/
-        // binder.css's "collectible-card" section) - every other theme (classic included)
-        // takes the exact same code path as before this was added, byte-for-byte.
+        // Every theme - classic and binder included - renders the exact same partial as the first
+        // page load (find_friends.blade.php), so "load more"/search cards can never drift from the
+        // real ones again. This used to hand-build its own HTML per theme, which had no
+        // .find_friends_item wrapper (unstyled/narrow cards under bloom, nordic, rosewood, ...) and
+        // never included the hover-preview video for any theme.
         $activeTheme = ActiveTheme::current();
         foreach ($users as $user) {
-            $com = '';
-            if (Auth::check()) {
-                foreach ($user->commonFriends()->take(5) as $common) {
-                    $com .= '<li data-toggle="tooltip" data-placement="top" title="" data-original-title="' . $common->name() . '">
-                                <a href="/profile/' . $common->username . '">
-                                    <img src="/storage/images/' . $common->profile_image() . '" alt="' . $common->name() . '">
-                                </a>
-                            </li>';
-                }
-            }
-            if ($activeTheme === 'binder') {
-                // Mirrors find_friends.blade.php's own @if($activeTheme === 'binder') branch
-                // for the real (initial page load) cards - a real front/back flip needs a
-                // second "back face" element (name + actual See Profile/Chat links again),
-                // not just CSS, so this AJAX "load more"/search path needs the same structural
-                // branch to keep infinite-scroll-loaded cards visually identical to the ones
-                // rendered on first load (the same principle every theme in this project
-                // follows for the plain, non-flip card look).
-                $tpl .= '<div class="col col-xl-3 col-lg-6 col-md-6 col-sm-6 col-12 find_friends_item">
-            <div class="ui-block" data-mh="friend-groups-item" ';
-                if ($user->images->count() > 0) {
-                    $tpl .= 'style="background: url(\'/storage/images/' . $user->images->take(1)[0]->name . '\');"';
-                }
-                $tpl .= '>';
-                if ($user->status == 'online' || $user->gender == 'female') {
-                    $tpl .= '<span class="find_friends_status span-online">Online</span>';
-                } else {
-                    $tpl .= '<span class="find_friends_status span-offline">Offline</span>';
-                }
-                $tpl .= '<div class="friend-item friend-groups binder-flip">
-                    <div class="friend-item-content">
-                        <div class="friend-avatar">
-                            <div class="author-thumb find-friends-item">';
-                if ($user->images->count() == 0) {
-                    $tpl .= '<a href="/profile/' . $user->username . '"><img src="/storage/images/' . $user->profile_image() . '" alt="' . $user->name() . '"></a>';
-                }
-                $tpl .= '</div>
-                        </div>
-                        <div class="friend-actions" data-initial="' . strtoupper(substr($user->name(), 0, 1)) . '">
-                            <div class="author-content">
-                                <a href="/profile/' . $user->username . '" class="h5 author-name">' . $user->name();
-                if ($user->age() != 0) {
-                    $tpl .= ', ' . $user->age();
-                }
-                $tpl .= '</a>
-                            </div>
-                        </div>
-                        <div class="friend-actions-back">
-                            <div class="author-content">
-                                <a href="/profile/' . $user->username . '" class="h5 author-name">' . $user->name();
-                if ($user->age() != 0) {
-                    $tpl .= ', ' . $user->age();
-                }
-                $tpl .= '</a>
-                            </div>
-                            <div class="control-block-button">
-                                <a href="/profile/' . $user->username . '" class="  btn btn-control bg-blue" data-toggle="tooltip" data-placement="top" data-original-title="' . l("See Profile") . '">' . l("See Profile") . '</a>';
-                if (Auth::check()) {
-                    $tpl .= '<a href="#" data-id="' . $user->id . '" onclick="chat_open(this,event);" class="btn btn-control bg-purple" data-toggle="tooltip" data-placement="top" data-original-title="' . l("Start chatting") . '">' . l("Chat") . '</a>';
-                }
-                $tpl .= '</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>';
-                continue;
-            }
-            $tpl .= '<div class="col col-xl-3 col-lg-6 col-md-6 col-sm-6 col-12">
-            <div class="ui-block" data-mh="friend-groups-item" ';
-            if ($user->images->count() > 0) {
-                $tpl .= 'style="background: url(\'/storage/images/' . $user->images->take(1)[0]->name . '\');"';
-            }
-            $tpl .= '>
-
-                <!-- Friend Item -->
-
-                <div class="friend-item friend-groups">
-
-                    <div class="friend-item-content">
-
-                        <div class="friend-avatar">
-                            <div class="author-thumb find-friends-item">';
-            if ($user->images->count() == 0) {
-                $tpl .= '<a href="/profile/' . $user->username . '"><img src="/storage/images/' . $user->profile_image() . '" alt="' . $user->name() . '"></a>';
-            }
-            $tpl .= '</div>
-                            <div class="author-content">
-                                <a href="/profile/' . $user->username . '" class="h5 author-name">' . $user->name();
-            if ($user->age() != 0) {
-                $tpl .= ', ' . $user->age();
-            }
-            $tpl .= '</a>';
-            if ($user->status == 'online' || $user->gender == 'female') {
-                $tpl .= '<span class="span-online">Online</span>';
-            } else {
-                $tpl .= '<span class="span-offline">Offline</span>';
-            }
-            $tpl .= '</div>
-                        </div>
-
-                        <ul class="friends-harmonic">
-                            ' . $com . '
-                        </ul>
-
-
-                        <div class="control-block-button">
-                            <a href="/profile/' . $user->username . '" class="  btn btn-control bg-blue" data-toggle="tooltip" data-placement="top" data-original-title="' . l("See Profile") . '">
-                                <svg class="olymp-magnifying-glass-icon"><use xlink:href="svg-icons/sprites/icons.svg#olymp-magnifying-glass-icon"></use></svg>
-                            </a>';
-            if (Auth::check()) {
-                $tpl .= '<a href="#" data-id="' . $user->id . '" onclick="chat_open(this,event);" class="btn btn-control bg-purple" data-toggle="tooltip" data-placement="top" data-original-title="' . l("Start chatting") . '">
-                                <svg class="olymp-chat---messages-icon"><use xlink:href="/svg-icons/sprites/icons.svg#olymp-chat---messages-icon"></use></svg>
-                            </a>';
-            }
-            $tpl .= '</div>
-                    </div>
-                </div>
-
-            </div>
-        </div>';
+            $tpl .= view('components.find_friends_card', [
+                'user' => $user,
+                'activeTheme' => $activeTheme,
+                'isRouletteSlot' => false,
+            ])->render();
         }
 
         return response()->json(['tpl' => $tpl]);

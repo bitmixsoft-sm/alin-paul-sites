@@ -1702,6 +1702,15 @@ font-size: 22px;
    the always-visible name/button overlay instead of behind it. Starts fully transparent and
    paused (see the mouseenter/mouseleave binding in find_friends.blade.php) so it only plays
    while actually hovered, not for every card with a video simultaneously. */
+/* isolation: isolate makes each card's .ui-block its own stacking context. The video's
+   z-index: -1 only paints ABOVE the .ui-block's photo background (and still below the
+   name/buttons) when its parent is a stacking context - otherwise it drops into an ancestor's
+   context and is painted BEHIND the photo, i.e. never visible. Only the binder theme happened
+   to work, because its .ui-block already has z-index: 1; every other theme (bloom, nordic,
+   rosewood, aurora, velvet, volt, classic) left it as a plain position: relative box. */
+#find_friends_results .ui-block {
+    isolation: isolate;
+}
 .find-friends-hover-video {
     position: absolute;
     inset: 0;

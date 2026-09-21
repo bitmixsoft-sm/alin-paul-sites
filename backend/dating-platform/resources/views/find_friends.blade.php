@@ -160,137 +160,11 @@
         <div id="find_friends_results" class="row">
             @if ($users->count() != 0)
                 @foreach ($users as $user)
-                    <div data-user-id="{{$user->id}}" class="col col-xl-3 col-lg-6 col-md-6 col-sm-6 col-12 find_friends_item">
-                        <div @if (!$loop->first || !$show_roulette) class="ui-block" @endif data-mh="friend-groups-item"
-                            style="@if ($user->images->count() > 0) background: url('/storage/images/{{ $user->images->take(1)[0]->name }}');@endif  height:415px;" >
-                            @if ((!$loop->first || !$show_roulette) && $user->video)
-                                {{-- Same admin-uploaded video already used as the chat popup's background
-                                     (ChatController::get()/setRealAiChatBackgroundVideo in dating.js) -
-                                     played muted/looped on hover here as a preview, mirroring that. Starts
-                                     paused (no autoplay) and is only played/shown via JS on hover
-                                     (see the mouseenter/mouseleave binding below) so idle cards with a
-                                     video don't all download/decode video simultaneously on page load. --}}
-                                <video class="find-friends-hover-video" muted loop playsinline preload="none">
-                                    <source src="{{ asset('storage/videos/'.$user->video) }}" type="video/mp4">
-                                </video>
-                            @endif
-                            @if ($user->status == 'online' || $user->gender == 'female')
-                                <span class="find_friends_status span-online">Online</span>
-                            @else
-                                <span class="find_friends_status span-offline">Offline</span>
-                            @endif
-                            {{-- Per the client's explicit answer on the Boost feature (2026-09-09): boosted
-                                 profiles should be recognizable to admins/editors specifically ("sa se simta
-                                 clientii mai importanti", staff should notice/pay more attention to them) -
-                                 not to other regular users, who only ever get the silent ordering advantage
-                                 (applyBoostOrdering() in FindFriendsController). isAdmin() covers both admin
-                                 and editor roles (see User::isAdmin()). --}}
-                            @if (Auth::check() && Auth::user()->isAdmin() && $user->boosted_until && \Illuminate\Support\Carbon::parse($user->boosted_until)->isFuture())
-                                <span class="find_friends_boosted_badge" title="{{ l('Boosted until') }} {{ \Illuminate\Support\Carbon::parse($user->boosted_until)->format('H:i') }}">
-                                    &#9889; {{ l('Boosted') }}
-                                </span>
-                            @endif
-                            @if ($loop->first && auth()->check() && $show_roulette)
-                                @include('components.roulette_spinner', [
-                                    'width' => '295px',
-                                    'height' => '295px',
-                                ])
-                            @else
-                                <!-- Friend Item -->
-                                <div class="friend-item friend-groups @if($activeTheme === 'binder') binder-flip @endif">
-
-                                    <div class="friend-item-content">
-
-                                        <div class="friend-avatar">
-
-                                            <div class="author-thumb find-friends-item">
-                                                @if ($user->images->count() == 0)
-                                                    <a href="/profile/{{ $user->username }}"><img
-                                                            src="/storage/images/{{ $user->profile_image() }}"
-                                                            alt="{{ $user->name() }}"></a>
-                                                @endif
-                                            </div>
-                                        </div>
-                                        {{-- @auth
-                                            <ul class="friends-harmonic">
-                                                @foreach ($user->commonFriendsRefactored()->take(5) as $common)
-                                                <li data-toggle="tooltip" data-placement="top" title="" data-original-title="{{$common->name()}}">
-                                                    <a href="/profile/{{$common->username}}">
-                                                        <img src="/storage/images/{{$common->profile_image()}}" alt="{{$common->name()}}">
-                                                    </a>
-                                                </li>
-                                                @endforeach
-                                            </ul>
-                                        @endauth --}}
-                                        <div class="friend-actions" @if($activeTheme === 'binder') data-initial="{{ strtoupper(substr($user->name(), 0, 1)) }}" @endif>
-                                            <div class="author-content">
-                                                <a href="/profile/{{ $user->username }}"
-                                                    class="h5 author-name">{{ $user->name() }} @if ($user->age() != 0)
-                                                        , {{ $user->age() }}
-                                                    @endif
-                                                </a>
-                                            </div>
-                                            @unless($activeTheme === 'binder')
-                                            <div class="control-block-button @guest justify-content-center @endguest">
-                                                {{-- No data-toggle="tooltip" on the See Profile caption under Rosewood - see
-                                                     the AI-profile block above for why (redundant with the always-visible
-                                                     caption text, and mispositions itself once this button is reshaped
-                                                     this drastically). The Chat/message FAB keeps its tooltip. --}}
-                                                <a href="/profile/{{ $user->username }}" class="  btn btn-control bg-blue"
-                                                    @unless($activeTheme === 'rosewood')
-                                                    data-toggle="tooltip" data-placement="top"
-                                                    data-original-title="{{ l('See Profile') }}"
-                                                    @endunless>
-                                                    {{ l('See Profile') }}
-                                                </a>
-                                                @auth
-                                                    <a href="#" data-id="{{ $user->id }}"
-                                                        onclick="chat_open(this,event);" class="btn btn-control bg-purple"
-                                                        data-toggle="tooltip" data-placement="top"
-                                                        data-original-title="{{ l('Start chatting') }}">
-                                                        {{ l('Chat') }}
-                                                    </a>
-                                                @endauth
-                                            </div>
-                                            @endunless
-                                        </div>
-                                        {{-- Binder-only: real 3D card flip "back face" - see themes/binder.css's
-                                             "collectible-card" section, and FindFriendsController::search()'s
-                                             matching branch for AJAX "load more" cards. Duplicates the name +
-                                             the SAME real See Profile/Chat actions every theme already has,
-                                             just revealed on flip instead of always visible - no new data, no
-                                             new behavior. --}}
-                                        @if($activeTheme === 'binder')
-                                        <div class="friend-actions-back">
-                                            <div class="author-content">
-                                                <a href="/profile/{{ $user->username }}"
-                                                    class="h5 author-name">{{ $user->name() }} @if ($user->age() != 0)
-                                                        , {{ $user->age() }}
-                                                    @endif
-                                                </a>
-                                            </div>
-                                            <div class="control-block-button @guest justify-content-center @endguest">
-                                                <a href="/profile/{{ $user->username }}" class="  btn btn-control bg-blue"
-                                                    data-toggle="tooltip" data-placement="top"
-                                                    data-original-title="{{ l('See Profile') }}">
-                                                    {{ l('See Profile') }}
-                                                </a>
-                                                @auth
-                                                    <a href="#" data-id="{{ $user->id }}"
-                                                        onclick="chat_open(this,event);" class="btn btn-control bg-purple"
-                                                        data-toggle="tooltip" data-placement="top"
-                                                        data-original-title="{{ l('Start chatting') }}">
-                                                        {{ l('Chat') }}
-                                                    </a>
-                                                @endauth
-                                            </div>
-                                        </div>
-                                        @endif
-                                    </div>
-                                </div>
-                            @endif
-                        </div>
-                    </div>
+                    @include('components.find_friends_card', [
+                        'user' => $user,
+                        'activeTheme' => $activeTheme,
+                        'isRouletteSlot' => $loop->first && $show_roulette,
+                    ])
                 @endforeach
             @else
                 <div class="find-friends-no-result"><span>{{ l('No results') }}</span></div>
@@ -1057,19 +931,23 @@
          append to) the one above - the layout only @yield's this section once - so this has
          to be its own <script> tag inside the SAME section rather than a second @section call. --}}
     <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        document.querySelectorAll('.find_friends_item').forEach(function (item) {
-            var video = item.querySelector('.find-friends-hover-video');
-            if (!video) { return; }
-            item.addEventListener('mouseenter', function () {
-                video.currentTime = 0;
-                video.play().catch(function () {});
-            });
-            item.addEventListener('mouseleave', function () {
-                video.pause();
-            });
-        });
-    });
+    // Delegated (capture phase - mouseenter/mouseleave don't bubble) instead of binding per
+    // card at page load, so cards appended later by "load more"/search (rendered through the
+    // same components/find_friends_card partial) get the hover preview too.
+    function findFriendsHoverVideo(event, play) {
+        var item = event.target;
+        if (!item.classList || !item.classList.contains('find_friends_item')) { return; }
+        var video = item.querySelector('.find-friends-hover-video');
+        if (!video) { return; }
+        if (play) {
+            video.currentTime = 0;
+            video.play().catch(function () {});
+        } else {
+            video.pause();
+        }
+    }
+    document.addEventListener('mouseenter', function (event) { findFriendsHoverVideo(event, true); }, true);
+    document.addEventListener('mouseleave', function (event) { findFriendsHoverVideo(event, false); }, true);
     </script>
     @endsection
 @endauth
