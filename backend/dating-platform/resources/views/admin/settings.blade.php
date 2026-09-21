@@ -124,6 +124,7 @@
                                                                             "Fraze exacte", dar se pierde contextul conversatiei.
                                                                         </small>
                                                                     @endif
+                                                                </div>
                                                                 @elseif(strpos($setting->type, 'select|')!==false)
                                                                 <div class="col col-sm-6">
                                                                     <select name="{{$setting->id}}" class="form-control"
