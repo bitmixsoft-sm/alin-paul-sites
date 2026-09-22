@@ -12,8 +12,9 @@
         // silently reset to 0 - only which ONE the admin actually edits changes with the mode.
         $unlockMoneyMode = \App\Settings::where('name', 'CONTENT_UNLOCK_PRICE_MODE')->value('value') === 'money';
     @endphp
-    <div style="background:#fff; border-radius:6px; width:260px; padding:20px; color:#333; font-size:13px;">
-        <h6 style="margin:0 0 14px; font-weight:700;">Pret continut</h6>
+    <div style="background:#fff; border-radius:6px; width:260px; padding:20px; color:#333; font-size:13px; position:relative;">
+        <button type="button" onclick="document.getElementById('admin-price-editor-overlay').style.display='none';" aria-label="Inchide" style="position:absolute; top:8px; right:10px; border:none; background:none; font-size:20px; line-height:1; color:#888; cursor:pointer; padding:0;">&times;</button>
+        <h6 style="margin:0 20px 14px 0; font-weight:700;">Pret continut</h6>
 
         <label style="display:{{ $unlockMoneyMode ? 'block' : 'none' }}; margin-bottom:10px;">Pret EUR
             <input type="number" step="0.01" min="0" id="admin-price-eur-input" class="form-control" style="width:100%; margin-top:4px;">
