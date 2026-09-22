@@ -327,5 +327,9 @@
 			<img src="/svg-icons/back-to-top.svg" alt="arrow" class="back-icon">
 		</a>
 
+		@if(Auth::user()->isAdmin())
+			@include('components.admin-price-editor-modal')
+		@endif
+
         @endauth
 @endsection

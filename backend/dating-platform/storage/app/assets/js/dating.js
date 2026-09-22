@@ -2718,22 +2718,32 @@ function activateBoost(btn) {
     });
 }
 
-// Admin/editor per-photo/album price editor (components/admin-price-editor.blade.php) -
-// client's request, 2026-09-21/22. Toggles the small inline panel; closes any other one already
-// open so at most one is visible at a time.
-function adminPriceEditorToggle(btn) {
-    var panel = $(btn).siblings('.admin-price-editor-panel');
-    var isOpen = panel.is(':visible');
-    $('.admin-price-editor-panel').hide();
-    if (!isOpen) {
-        panel.show();
+// Admin/editor per-photo/album price editor (components/admin-price-editor.blade.php +
+// admin-price-editor-modal.blade.php) - client's request, 2026-09-21/22. ONE shared modal
+// (relocated to <body>, same pattern as the AI Style Learning overlays) rather than a per-card
+// dropdown - the per-card version inherited unpredictable sizing from this page's own CSS.
+(function () {
+    var overlay = document.getElementById('admin-price-editor-overlay');
+    if (overlay) {
+        document.body.appendChild(overlay);
     }
+})();
+
+var adminPriceEditorTarget = null;
+
+function adminPriceEditorOpen(btn) {
+    adminPriceEditorTarget = { type: btn.getAttribute('data-type'), id: btn.getAttribute('data-id') };
+    document.getElementById('admin-price-eur-input').value = btn.getAttribute('data-price');
+    document.getElementById('admin-price-credits-input').value = btn.getAttribute('data-price-credits');
+    document.getElementById('admin-price-editor-overlay').style.display = 'flex';
 }
 
-function adminPriceEditorSave(saveBtn, type, id) {
-    var $panel = $(saveBtn).closest('.admin-price-editor-panel');
-    var price = $panel.find('.price-eur-input').val();
-    var priceCredits = $panel.find('.price-credits-input').val();
+function adminPriceEditorSave() {
+    if (!adminPriceEditorTarget) {
+        return;
+    }
+    var price = document.getElementById('admin-price-eur-input').value;
+    var priceCredits = document.getElementById('admin-price-credits-input').value;
 
     $.ajax({
         url: '/admin/content-price',
@@ -2741,8 +2751,8 @@ function adminPriceEditorSave(saveBtn, type, id) {
         dataType: 'JSON',
         data: {
             _token: $('input[name="_token"]').first().val(),
-            type: type,
-            id: id,
+            type: adminPriceEditorTarget.type,
+            id: adminPriceEditorTarget.id,
             price: price,
             price_credits: priceCredits
         },
