@@ -13,7 +13,7 @@
         $unlockMoneyMode = \App\Settings::where('name', 'CONTENT_UNLOCK_PRICE_MODE')->value('value') === 'money';
     @endphp
     <div style="background:#fff; border-radius:6px; width:260px; padding:20px; color:#333; font-size:13px; position:relative;">
-        <button type="button" onclick="document.getElementById('admin-price-editor-overlay').style.display='none';" aria-label="Inchide" style="position:absolute; top:8px; right:10px; font-size:20px; line-height:1; cursor:pointer; color: #fff;background: #dc3545; border-radius: 10%;padding: 5px 10px;">&times;</button>
+        <button type="button" onclick="document.getElementById('admin-price-editor-overlay').style.display='none';" aria-label="Inchide" style="position:absolute; top:8px; right:10px; font-size:20px; line-height:1; cursor:pointer; color: #fff;background: #dc3545; border-radius: 10%; border-width:1px; border-color:#dc3545; padding: 5px 10px;">&times;</button>
         <h6 style="margin:0 20px 14px 0; font-weight:700;">Pret continut</h6>
 
         <label style="display:{{ $unlockMoneyMode ? 'block' : 'none' }}; margin-bottom:10px;">Pret EUR
