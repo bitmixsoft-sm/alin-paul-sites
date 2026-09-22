@@ -6,8 +6,18 @@
      .find_friends_item, so under Bloom (masonry) appended cards rendered as narrow unstyled strips.
      Expects: $user, $activeTheme, $isRouletteSlot (bool); optional $forceOnline (bool). --}}
 <div data-user-id="{{$user->id}}" class="col col-xl-3 col-lg-6 col-md-6 col-sm-6 col-12 find_friends_item">
+    @php
+        // Priced-photo paywall (client's request, 2026-09-21/22) - found live, 2026-09-22: this
+        // card background is whichever photo happens to be this user's FIRST uploaded image
+        // (any role, not specifically her designated profile picture - $user->images->take(1),
+        // unordered by role), so a priced gallery photo could end up as the full-size card
+        // background here, bypassing the paywall everywhere else already handles correctly.
+        // displayName() applies the same lock/blur rule as everywhere else instead of the raw
+        // filename.
+        $cardBgImage = $user->images->first();
+    @endphp
     <div @if (!$isRouletteSlot) class="ui-block" @endif data-mh="friend-groups-item"
-        style="@if ($user->images->count() > 0) background: url('/storage/images/{{ $user->images->take(1)[0]->name }}');@endif  height:415px;" >
+        style="@if ($cardBgImage) background: url('/storage/images/{{ $cardBgImage->displayName() }}');@endif  height:415px;" >
         @if (!$isRouletteSlot && $user->video)
             {{-- Same admin-uploaded video already used as the chat popup's background
                  (ChatController::get()/setRealAiChatBackgroundVideo in dating.js) -

@@ -101,7 +101,12 @@
 			@foreach($user as $usr)
 			<div class="optionContainer col-md-4" onclick="show_step(2,{{$usr->id}})" >
 				
-				<div class="option images" style="background: url('/storage/images/{{$usr->images->take(1)->first()->name}}');">
+				{{-- Priced-photo paywall (client's request, 2026-09-21/22) - this pre-registration
+				     teaser page has no logged-in viewer to unlock anything for, so
+				     displayName() (falls back to the blurred copy for anyone who can't view a
+				     priced photo, guests included) is enough here - no unlock button needed on
+				     a page nobody can buy anything from yet. --}}
+				<div class="option images" style="background: url('/storage/images/{{$usr->images->take(1)->first()->displayName()}}');">
 
 					<div class="optionContent">
 						
@@ -127,7 +132,7 @@
 			@foreach($usr->images()->skip(1)->take(3)->get() as $img)
 			<div class="optionContainer col-md-4" onclick="show_step(3)">
 				
-				<div class="option images" style="background: url('/storage/images/{{$img->name}}');">
+				<div class="option images" style="background: url('/storage/images/{{$img->displayName()}}');">
 
 					<div class="optionContent">
 						

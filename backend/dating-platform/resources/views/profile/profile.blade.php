@@ -55,27 +55,47 @@
                                         <p>{{$post->getContent()->name}}</p>
 
                                         @if($post->getcontent()->privacy == '')
+                                            @php
+                                                // Priced-album paywall (client's request, 2026-09-21/22) - same fix as
+                                                // newsfeed.blade.php, applied here too since this profile Timeline tab
+                                                // turned out to be a SEPARATE template rendering the exact same album
+                                                // post structure with its own, until-now-unpatched copy of this block
+                                                // (found live, 2026-09-22: a priced photo was still shown un-blurred
+                                                // here to a regular visitor even though newsfeed.blade.php and the
+                                                // gallery pages already handled it correctly).
+                                                $timelineAlbum = $post->getContent();
+                                                $timelineAlbumLocked = $timelineAlbum->isPriced() && ! $timelineAlbum->isUnlockedBy(Auth::user());
+                                            @endphp
+                                            @if($timelineAlbumLocked)
+                                                <div class="post-thumb" style="position:relative;">
+                                                    <img src="/storage/images/{{ optional($timelineAlbum->images->first())->displayNameInAlbum($timelineAlbum) }}" alt="photo">
+                                                    @include('components.content-unlock-overlay', ['type' => 'album', 'id' => $timelineAlbum->id, 'price' => $timelineAlbum->effectivePrice(), 'locked' => true])
+                                                </div>
+                                            @else
                                             <div class="post-block-photo">
                                                 @foreach($post->getContent()->images->take(5) as $image)
-                                                    <a href="/storage/images/{{$image->name}}"
+                                                    @php $timelineImgLocked = ! $image->isViewableInAlbum(Auth::user(), $timelineAlbum); @endphp
+                                                    <a href="/storage/images/{{$image->displayNameInAlbum($timelineAlbum)}}"
                                                        class="col @if($post->getContent()->images->count() < 5) half-width @else col-3-width @endif"
-                                                       onclick="get_album(this);"
+                                                       style="position:relative;"
+                                                       onclick="{{ $timelineImgLocked ? 'return false;' : 'get_album(this);' }}"
                                                        data-album="{{$post->getContent()->id}}">
                                                         <div class="post-photo-cont">
-                                                            <img src="/storage/images/{{$image->name}}" alt="photo">
+                                                            <img src="/storage/images/{{$image->displayNameInAlbum($timelineAlbum)}}" alt="photo">
                                                         </div>
+                                                        @include('components.content-unlock-overlay', ['type' => 'image', 'id' => $image->id, 'price' => $image->effectivePrice(), 'locked' => $timelineImgLocked])
                                                     </a>
                                                 @endforeach
                                                 @if($post->getContent()->images->count() > 6)
                                                     @php
                                                         $image = $post->getContent()->images->slice(5)->take(1)->first();
                                                     @endphp
-                                                    <a href="/storage/images/{{$image->name}}"
+                                                    <a href="/storage/images/{{$image->displayNameInAlbum($timelineAlbum)}}"
                                                        onclick="get_album(this);"
                                                        data-album="{{$post->getContent()->id}}"
                                                        class="more-photos col-3-width">
                                                         <div class="post-photo-cont">
-                                                            <img src="/storage/images/{{$image->name}}" alt="photo">
+                                                            <img src="/storage/images/{{$image->displayNameInAlbum($timelineAlbum)}}" alt="photo">
                                                         </div>
                                                         <span
                                                             class="h2">+{{$post->getContent()->images->count()-5}}</span>
@@ -85,17 +105,18 @@
                                                         @php
                                                             $image = $post->getContent()->images->slice(5)->take(1)->first();
                                                         @endphp
-                                                        <a href="/storage/images/{{$image->name}}"
+                                                        <a href="/storage/images/{{$image->displayNameInAlbum($timelineAlbum)}}"
                                                            class="col @if($post->getContent()->images->count() < 5) half-width @else col-3-width @endif"
                                                            onclick="get_album(this);"
                                                            data-album="{{$post->getContent()->id}}">
                                                             <div class="post-photo-cont">
-                                                                <img src="/storage/images/{{$image->name}}" alt="photo">
+                                                                <img src="/storage/images/{{$image->displayNameInAlbum($timelineAlbum)}}" alt="photo">
                                                             </div>
                                                         </a>
                                                     @endif
                                                 @endif
                                             </div>
+                                            @endif
                                         @else
                                             <div class="post-thumb">
                                                 <a href="#" onclick="get_album(this);" data-protect="true"
@@ -151,7 +172,7 @@
                                                 <a class="h6 post__author-name fn"
                                                    href="/profile/{{$post->getUser()->username}}">{{$post->getUser()->name()}}</a> {{l("uploaded a")}}
                                                 <a class="new-photo-popup"
-                                                   href="/storage/images/{{$post->getContent()->name}}">{{l("new photo")}}</a>
+                                                   href="/storage/images/{{$post->getContent()->displayName()}}">{{l("new photo")}}</a>
                                                 <div class="post__date">
                                                     <time class="published" datetime="2017-03-24T18:18">
                                                         {{$post->getContent()->created_at->format('d/m/y H:i')}}
@@ -175,11 +196,16 @@
 
                                         </div>
 
-                                        <div class="post-thumb">
-                                            <a href="/storage/images/{{$post->getContent()->name}}"
-                                               class="js-zoom-image">
-                                                <img src="/storage/images/{{$post->getContent()->name}}" alt="photo">
+                                        @php
+                                            $timelineImg = $post->getContent();
+                                            $timelineSingleImgLocked = ! $timelineImg->isViewableBy(Auth::user());
+                                        @endphp
+                                        <div class="post-thumb" style="position:relative;">
+                                            <a href="/storage/images/{{$timelineImg->displayName()}}"
+                                               class="js-zoom-image" @if($timelineSingleImgLocked) onclick="return false;" @endif>
+                                                <img src="/storage/images/{{$timelineImg->displayName()}}" alt="photo">
                                             </a>
+                                            @include('components.content-unlock-overlay', ['type' => 'image', 'id' => $timelineImg->id, 'price' => $timelineImg->effectivePrice(), 'locked' => $timelineSingleImgLocked])
                                         </div>
 
                                         <div class="post-additional-info inline-items">
@@ -472,11 +498,13 @@
 
                                     <ul class="widget w-last-photo js-zoom-gallery">
                                         @foreach($user->images->where('privacy', '')->take(9) as $image)
-                                            <a href="/storage/images/{{$image->name}}">
-                                                <li>
+                                            @php $lastPhotoLocked = ! $image->isViewableBy(Auth::user()); @endphp
+                                            <a href="/storage/images/{{$image->displayName()}}" @if($lastPhotoLocked) onclick="return false;" @endif>
+                                                <li style="position:relative;">
                                                     <div class="last-photo-widget-custom">
-                                                        <img src="/storage/images/{{$image->name}}" alt="photo">
+                                                        <img src="/storage/images/{{$image->displayName()}}" alt="photo">
                                                     </div>
+                                                    @include('components.content-unlock-overlay', ['type' => 'image', 'id' => $image->id, 'price' => $image->effectivePrice(), 'locked' => $lastPhotoLocked])
                                                 </li>
                                             </a>
                                         @endforeach

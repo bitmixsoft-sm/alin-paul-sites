@@ -71,12 +71,18 @@
                 <div class="tab-content">
                     <div class="tab-pane active" id="choose-album-first" role="tabpanel" aria-expanded="true">
                         <div id="choose-photo-item-container" class="row margin-bottom-50"> 
+                        {{-- Priced-photo paywall (client's request, 2026-09-21/22) - this modal's
+                             markup renders unconditionally whenever top-header-profile.blade.php
+                             is included, i.e. on ANY profile page, not only your own - found
+                             live, 2026-09-22, as another place a raw filename could leak into the
+                             page HTML regardless of who's actually viewing. displayName() applies
+                             the same rule as everywhere else. --}}
                         @foreach($user->images->where('privacy', '')->take(12) as $image)
                         <div class="choose-photo-item" data-mh="choose-item">
                             <div class="checks">
                                 <label class="custom-radio">
-                                    <img src="/storage/images/{{$image->name}}" alt="photo">
-                                    <input class="optionsRadios" type="checkbox" name="optionsRadios[]" value="{{$image->id}}" data-url="/storage/images/{{$image->name}}" data-role="{{$image->role}}">
+                                    <img src="/storage/images/{{$image->displayName()}}" alt="photo">
+                                    <input class="optionsRadios" type="checkbox" name="optionsRadios[]" value="{{$image->id}}" data-url="/storage/images/{{$image->displayName()}}" data-role="{{$image->role}}">
                                     <span class="circle"></span><span class="check"></span>
                                 </label>
                             </div>
@@ -100,7 +106,7 @@
                             @php $alb = $album->images()->latest()->first(); @endphp
                             @if($alb && $alb->pivot)
                             <figure>
-                                <img src="/storage/images/{{$alb->name}}" alt="photo">
+                                <img src="/storage/images/{{$alb->displayNameInAlbum($album)}}" alt="photo">
                                 <figcaption>
                                     <a href="#">{{$album->name}}</a>
                                     <span>Last Added: {{$alb->pivot->created_at ? $alb->pivot->created_at->format('d/m/Y H:i') : '-'}}</span>
