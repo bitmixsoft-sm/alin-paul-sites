@@ -2717,3 +2717,90 @@ function activateBoost(btn) {
         }
     });
 }
+
+// Admin/editor per-photo/album price editor (components/admin-price-editor.blade.php) -
+// client's request, 2026-09-21/22. Toggles the small inline panel; closes any other one already
+// open so at most one is visible at a time.
+function adminPriceEditorToggle(btn) {
+    var panel = $(btn).siblings('.admin-price-editor-panel');
+    var isOpen = panel.is(':visible');
+    $('.admin-price-editor-panel').hide();
+    if (!isOpen) {
+        panel.show();
+    }
+}
+
+function adminPriceEditorSave(saveBtn, type, id) {
+    var $panel = $(saveBtn).closest('.admin-price-editor-panel');
+    var price = $panel.find('.price-eur-input').val();
+    var priceCredits = $panel.find('.price-credits-input').val();
+
+    $.ajax({
+        url: '/admin/content-price',
+        type: 'POST',
+        dataType: 'JSON',
+        data: {
+            _token: $('input[name="_token"]').first().val(),
+            type: type,
+            id: id,
+            price: price,
+            price_credits: priceCredits
+        },
+        success: function () {
+            // Simplest correct refresh - the same photo/album can appear more than once on the
+            // page (grid + lightbox), and a price save is a rare, deliberate admin action where
+            // a brief reload is a fair trade for guaranteeing everything reflects the new price.
+            window.location.reload();
+        },
+        error: function () {
+            alert('Nu s-a putut salva pretul, incearca din nou.');
+        }
+    });
+}
+
+// Priced photo/album unlock (components/content-unlock-overlay.blade.php) - client's request,
+// 2026-09-21/22. Credits mode is an instant AJAX purchase (same pattern as activateBoost()'s
+// credits branch); money mode is a plain page navigation into ContentUnlockController::checkout()
+// (same pattern as Boost's money branch) since that flow ends in a server-side redirect chain,
+// not something an AJAX response can hand back.
+function contentUnlockClick(btn) {
+    var $btn = $(btn);
+    if ($btn.data('unlocking')) {
+        return;
+    }
+    var $overlay = $btn.closest('.content-unlock-overlay');
+    var type = $overlay.data('type');
+    var id = $overlay.data('id');
+    var priceMode = document.body.getAttribute('data-content-unlock-price-mode') || 'credits';
+
+    if (priceMode === 'money') {
+        window.location.href = '/content/unlock/checkout?type=' + encodeURIComponent(type) + '&id=' + encodeURIComponent(id);
+        return;
+    }
+
+    $btn.data('unlocking', true);
+    $.ajax({
+        url: '/content/unlock',
+        type: 'POST',
+        dataType: 'JSON',
+        data: {
+            _token: $('input[name="_token"]').first().val(),
+            type: type,
+            id: id
+        },
+        success: function () {
+            // Reloads rather than patching the DOM in place - the same photo can appear more
+            // than once on a page (e.g. a newsfeed thumbnail AND, once opened, the album
+            // lightbox), and a purchase is a rare, deliberate action where a brief reload is a
+            // fair trade for guaranteeing every occurrence updates correctly.
+            window.location.reload();
+        },
+        error: function (xhr) {
+            $btn.data('unlocking', false);
+            var message = (xhr.responseJSON && xhr.responseJSON.error === 'not_enough_credits')
+                ? 'Not enough credits.'
+                : 'Something went wrong, please try again.';
+            alert(message);
+        }
+    });
+}

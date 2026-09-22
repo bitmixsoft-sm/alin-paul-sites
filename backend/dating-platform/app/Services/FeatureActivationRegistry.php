@@ -34,20 +34,30 @@ final class FeatureActivationRegistry
      */
     public static function activate(string $featureKey, User $user, ?int $durationMinutes): bool
     {
-        switch ($featureKey) {
-            case 'boost':
-                $minutes = $durationMinutes ?? 45;
-                $user->boosted_until = now()->addMinutes($minutes);
-                $user->save();
+        if ($featureKey === 'boost') {
+            $minutes = $durationMinutes ?? 45;
+            $user->boosted_until = now()->addMinutes($minutes);
+            $user->save();
 
-                return true;
-
-            default:
-                Log::error('[FeatureActivationRegistry] Unknown feature_key on a paid order: ' . $featureKey, [
-                    'user_id' => $user->id,
-                ]);
-
-                return false;
+            return true;
         }
+
+        // "unlock_image:123" / "unlock_album:45" - the priced photo/album feature (client's
+        // request, 2026-09-21/22). Encodes the target id in the key itself (unlike 'boost',
+        // which has exactly one meaning) since a purchase here is always for one specific photo
+        // or album, not a flat feature toggle - see ContentUnlockService::checkout(), which
+        // builds the hidden Pack's feature_key this way.
+        if (str_starts_with($featureKey, 'unlock_image:') || str_starts_with($featureKey, 'unlock_album:')) {
+            [$prefix, $id] = explode(':', $featureKey, 2);
+            $type = $prefix === 'unlock_image' ? \App\ContentUnlock::TYPE_IMAGE : \App\ContentUnlock::TYPE_ALBUM;
+
+            return app(\App\Services\ContentUnlockService::class)->grant($user, $type, (int) $id, 'money');
+        }
+
+        Log::error('[FeatureActivationRegistry] Unknown feature_key on a paid order: ' . $featureKey, [
+            'user_id' => $user->id,
+        ]);
+
+        return false;
     }
 }

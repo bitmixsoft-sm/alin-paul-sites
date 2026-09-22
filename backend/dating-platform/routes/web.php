@@ -60,6 +60,10 @@ Route::post('/save-profile-info', 'ProfileController@update')->name('save-profil
 Route::post('/profile/boost', 'BoostController@activate')->name('profile_boost')->middleware('auth');
 Route::get('/profile/boost/checkout', 'BoostController@checkout')->name('profile_boost_checkout')->middleware('auth');
 
+Route::post('/content/unlock', 'ContentUnlockController@purchase')->name('content_unlock_purchase')->middleware('auth');
+Route::get('/content/unlock/checkout', 'ContentUnlockController@checkout')->name('content_unlock_checkout')->middleware('auth');
+Route::post('/admin/content-price', 'AdminContentPriceController@update')->name('admin_content_price_update')->middleware('auth');
+
 Route::post('/new-album', 'AlbumController@create')->name('new-album')->middleware('auth');
 
 Route::post('/add-album-photo', 'AlbumController@store')->name('add-album-photo')->middleware('auth');

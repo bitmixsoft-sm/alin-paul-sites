@@ -299,12 +299,19 @@ class AlbumController extends Controller
         $tpl_pag = '';
         $show_image = array();
         foreach ($album->images as $image) {
+                            // Priced photo/album paywall (client's request, 2026-09-21/22) -
+                            // displayNameInAlbum() swaps in the blurred copy's filename for a
+                            // photo the current visitor hasn't unlocked (and hasn't unlocked the
+                            // whole album either), same as everywhere else this photo can be
+                            // rendered - without this the lightbox would leak the real filename
+                            // even while the thumbnail grid correctly shows it blurred.
+                            $displayImageName = $image->displayNameInAlbum($album);
                             $tpl_slide .= '<div class="swiper-slide" data-id="'.$image->id.'"><div class="photo-item" data-swiper-parallax="-300" data-swiper-parallax-duration="500">';
                             $tpl_pag .= '<a href="#" class="slides-item" data-desc="'.$image->id.'">';
-                            $tpl_slide .= '<img src="/storage/images/'.$image->name.'" alt="photo">';
+                            $tpl_slide .= '<img src="/storage/images/'.$displayImageName.'" alt="photo">';
                             $tpl_slide .= '<div class="overlay"></div><div class="content"><a href="#" class="h6 title">'.$album->name.'</a></div></div></div>';
 
-                            $tpl_pag .= '<img src="/storage/images/'.$image->name.'" alt="slide">';
+                            $tpl_pag .= '<img src="/storage/images/'.$displayImageName.'" alt="slide">';
                             $tpl_pag .= '<div class="overlay overlay-dark"></div></a>';
 
                             //if(i == data.images.length-1){

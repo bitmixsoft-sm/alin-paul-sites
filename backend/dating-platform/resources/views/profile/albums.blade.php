@@ -75,8 +75,13 @@
 
 							<div class="photo-album-wrapper photo-zoom-gallery">
 								@foreach($images as $image)
-								<div data-id="{{$image->id}}" class="photo-item col-4-width" href="/storage/images/{{$image->name}}">
-									<img src="/storage/images/{{$image->name}}" alt="photo">
+								@php $galleryImgLocked = ! $image->isViewableBy(Auth::user()); @endphp
+								<div data-id="{{$image->id}}" class="photo-item col-4-width" href="/storage/images/{{$image->displayName()}}" style="position:relative;">
+									<img src="/storage/images/{{$image->displayName()}}" alt="photo">
+									@include('components.content-unlock-overlay', ['type' => 'image', 'id' => $image->id, 'price' => $image->effectivePrice(), 'locked' => $galleryImgLocked])
+									@if(Auth::user()->isAdmin())
+										@include('components.admin-price-editor', ['type' => 'image', 'id' => $image->id, 'price' => $image->price, 'priceCredits' => $image->price_credits])
+									@endif
 									@if($user->id == Auth::id() && Auth::user()->cover_image() != $image->name)
 										<a href="#" onclick="alert_delete_photo({{$image->id}});" class="del-photo-item"><svg class="olymp-close-icon"><use xlink:href="/svg-icons/sprites/icons.svg#olymp-close-icon"></use></svg></a>
 									@endif
@@ -116,13 +121,18 @@
 								@foreach($albums as $album)
 								<div class="photo-album-item-wrap col-4-width">															
 									<div class="photo-album-item" data-mh="album-item">
-										<div class="photo-item">
+										<div class="photo-item" style="position:relative;">
 											@if($album->privacy != "")
 											<img class="lock" src="/img/lock.png" alt="photo">
 											@else
-											<img src="/storage/images/{{$album->images()->latest()->first()->name}}" alt="photo">
+											@php $albumCoverLocked = $album->isPriced() && ! $album->isUnlockedBy(Auth::user()); @endphp
+											<img src="/storage/images/{{ optional($album->images()->latest()->first())->displayNameInAlbum($album) }}" alt="photo">
+											@include('components.content-unlock-overlay', ['type' => 'album', 'id' => $album->id, 'price' => $album->effectivePrice(), 'locked' => $albumCoverLocked])
 											@endif
-											
+											@if(Auth::user()->isAdmin())
+												@include('components.admin-price-editor', ['type' => 'album', 'id' => $album->id, 'price' => $album->price, 'priceCredits' => $album->price_credits])
+											@endif
+
 											<div class="overlay overlay-dark"></div>
 											<a href="#" class="post-add-icon">
 												<svg class="olymp-heart-icon"><use xlink:href="/svg-icons/sprites/icons.svg#olymp-heart-icon"></use></svg>

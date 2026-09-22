@@ -125,21 +125,38 @@
                     <p>{{$post->getContent()->name}}</p>
 
                     @if($post->getcontent()->privacy == '')
+                    @php
+                        // Priced-album paywall (client's request, 2026-09-21/22) - separate from
+                        // the existing password-protected album handling above/below (left
+                        // untouched, per the client's own instruction to leave that alone for
+                        // now). A 0-priced photo inside a priced album stays free for everyone
+                        // (client's answer #4) - see ImageGet::isViewableInAlbum().
+                        $newsfeedAlbum = $post->getContent();
+                        $albumLocked = $newsfeedAlbum->isPriced() && ! $newsfeedAlbum->isUnlockedBy(Auth::user());
+                    @endphp
+                    @if($albumLocked)
+                        <div class="post-thumb" style="position:relative;">
+                            <img src="/storage/images/{{ optional($newsfeedAlbum->images->first())->displayNameInAlbum($newsfeedAlbum) }}" alt="photo">
+                            @include('components.content-unlock-overlay', ['type' => 'album', 'id' => $newsfeedAlbum->id, 'price' => $newsfeedAlbum->effectivePrice(), 'locked' => true])
+                        </div>
+                    @else
                     <div class="post-block-photo">
                         @foreach($post->getContent()->images->take(5) as $image)
-                        <a href="/storage/images/{{$image->name}}" class="col @if($post->getContent()->images->count() < 5) half-width @else col-3-width @endif" onclick="get_album(this);" data-album="{{$post->getContent()->id}}">
+                        @php $imgLocked = ! $image->isViewableInAlbum(Auth::user(), $newsfeedAlbum); @endphp
+                        <a href="/storage/images/{{$image->displayNameInAlbum($newsfeedAlbum)}}" class="col @if($post->getContent()->images->count() < 5) half-width @else col-3-width @endif" style="position:relative;" onclick="{{ $imgLocked ? 'return false;' : 'get_album(this);' }}" data-album="{{$post->getContent()->id}}">
                             <div class="post-photo-cont">
-                                <img src="/storage/images/{{$image->name}}" alt="photo">
+                                <img src="/storage/images/{{$image->displayNameInAlbum($newsfeedAlbum)}}" alt="photo">
                             </div>
+                            @include('components.content-unlock-overlay', ['type' => 'image', 'id' => $image->id, 'price' => $image->effectivePrice(), 'locked' => $imgLocked])
                         </a>
                         @endforeach
                         @if($post->getContent()->images->count() > 6)
                         @php
                         $image = $post->getContent()->images->slice(5)->take(1)->first();
                         @endphp
-                        <a href="/storage/images/{{$image->name}}" onclick="get_album(this);" data-album="{{$post->getContent()->id}}" class="more-photos col-3-width">
+                        <a href="/storage/images/{{$image->displayNameInAlbum($newsfeedAlbum)}}" onclick="get_album(this);" data-album="{{$post->getContent()->id}}" class="more-photos col-3-width">
                             <div class="post-photo-cont">
-                                <img src="/storage/images/{{$image->name}}" alt="photo">
+                                <img src="/storage/images/{{$image->displayNameInAlbum($newsfeedAlbum)}}" alt="photo">
                             </div>
                             <span class="h2">+{{$post->getContent()->images->count()-5}}</span>
                         </a>
@@ -148,14 +165,15 @@
                         @php
                         $image = $post->getContent()->images->slice(5)->take(1)->first();
                         @endphp
-                            <a href="/storage/images/{{$image->name}}" class="col @if($post->getContent()->images->count() < 5) half-width @else col-3-width @endif" onclick="get_album(this);" data-album="{{$post->getContent()->id}}">
+                            <a href="/storage/images/{{$image->displayNameInAlbum($newsfeedAlbum)}}" class="col @if($post->getContent()->images->count() < 5) half-width @else col-3-width @endif" onclick="get_album(this);" data-album="{{$post->getContent()->id}}">
                             <div class="post-photo-cont">
-                                <img src="/storage/images/{{$image->name}}" alt="photo">
+                                <img src="/storage/images/{{$image->displayNameInAlbum($newsfeedAlbum)}}" alt="photo">
                             </div>
                         </a>
                         @endif
                         @endif
                     </div>
+                    @endif
                     @else
                         <div class="post-thumb">
                             <a href="#" onclick="get_album(this);" data-protect="true" data-album="{{$post->getContent()->id}}">
@@ -163,7 +181,7 @@
                             </a>
                         </div>
                     @endif
-                
+
                     <div class="post-additional-info inline-items">
                 
                         <a href="#" onclick="like_post({{$post->id}});" class="likes post-add-icon inline-items @if($post->liked()) active @endif">
@@ -198,7 +216,7 @@
                         <img src="/storage/images/{{$post->getUser()->profile_image()}}" alt="author">
                 
                         <div class="author-date">
-                            <a class="h6 post__author-name fn" href="/profile/{{$post->getUser()->username}}">{{$post->getUser()->name()}}</a> {{l("uploaded a")}} <a class="new-photo-popup" href="/storage/images/{{$post->getContent()->name}}">{{l("new photo")}}</a>
+                            <a class="h6 post__author-name fn" href="/profile/{{$post->getUser()->username}}">{{$post->getUser()->name()}}</a> {{l("uploaded a")}} <a class="new-photo-popup" href="/storage/images/{{$post->getContent()->displayName()}}">{{l("new photo")}}</a>
                             <div class="post__date">
                                 <time class="published" datetime="2017-03-24T18:18">
                                     {{$post->getContent()->created_at->format('d/m/y H:i')}}
@@ -216,10 +234,12 @@
                         @endif
                     </div>
                 
-                    <div class="post-thumb">
-                        <a href="/storage/images/{{$post->getContent()->name}}" class="js-zoom-image">
-                             <img src="/storage/images/{{$post->getContent()->name}}" alt="photo">
+                    @php $feedImg = $post->getContent(); $feedImgLocked = ! $feedImg->isViewableBy(Auth::user()); @endphp
+                    <div class="post-thumb" style="position:relative;">
+                        <a href="/storage/images/{{$feedImg->displayName()}}" class="js-zoom-image" @if($feedImgLocked) onclick="return false;" @endif>
+                             <img src="/storage/images/{{$feedImg->displayName()}}" alt="photo">
                         </a>
+                        @include('components.content-unlock-overlay', ['type' => 'image', 'id' => $feedImg->id, 'price' => $feedImg->effectivePrice(), 'locked' => $feedImgLocked])
                     </div>
                 
                     <div class="post-additional-info inline-items">
@@ -401,21 +421,38 @@
                     <p>{{$post->getContent()->name}}</p>
 
                     @if($post->getcontent()->privacy == '')
+                    @php
+                        // Priced-album paywall (client's request, 2026-09-21/22) - separate from
+                        // the existing password-protected album handling above/below (left
+                        // untouched, per the client's own instruction to leave that alone for
+                        // now). A 0-priced photo inside a priced album stays free for everyone
+                        // (client's answer #4) - see ImageGet::isViewableInAlbum().
+                        $newsfeedAlbum = $post->getContent();
+                        $albumLocked = $newsfeedAlbum->isPriced() && ! $newsfeedAlbum->isUnlockedBy(Auth::user());
+                    @endphp
+                    @if($albumLocked)
+                        <div class="post-thumb" style="position:relative;">
+                            <img src="/storage/images/{{ optional($newsfeedAlbum->images->first())->displayNameInAlbum($newsfeedAlbum) }}" alt="photo">
+                            @include('components.content-unlock-overlay', ['type' => 'album', 'id' => $newsfeedAlbum->id, 'price' => $newsfeedAlbum->effectivePrice(), 'locked' => true])
+                        </div>
+                    @else
                     <div class="post-block-photo">
                         @foreach($post->getContent()->images->take(5) as $image)
-                        <a href="/storage/images/{{$image->name}}" class="col @if($post->getContent()->images->count() < 5) half-width @else col-3-width @endif" onclick="get_album(this);" data-album="{{$post->getContent()->id}}">
+                        @php $imgLocked = ! $image->isViewableInAlbum(Auth::user(), $newsfeedAlbum); @endphp
+                        <a href="/storage/images/{{$image->displayNameInAlbum($newsfeedAlbum)}}" class="col @if($post->getContent()->images->count() < 5) half-width @else col-3-width @endif" style="position:relative;" onclick="{{ $imgLocked ? 'return false;' : 'get_album(this);' }}" data-album="{{$post->getContent()->id}}">
                             <div class="post-photo-cont">
-                                <img src="/storage/images/{{$image->name}}" alt="photo">
+                                <img src="/storage/images/{{$image->displayNameInAlbum($newsfeedAlbum)}}" alt="photo">
                             </div>
+                            @include('components.content-unlock-overlay', ['type' => 'image', 'id' => $image->id, 'price' => $image->effectivePrice(), 'locked' => $imgLocked])
                         </a>
                         @endforeach
                         @if($post->getContent()->images->count() > 6)
                         @php
                         $image = $post->getContent()->images->slice(5)->take(1)->first();
                         @endphp
-                        <a href="/storage/images/{{$image->name}}" onclick="get_album(this);" data-album="{{$post->getContent()->id}}" class="more-photos col-3-width">
+                        <a href="/storage/images/{{$image->displayNameInAlbum($newsfeedAlbum)}}" onclick="get_album(this);" data-album="{{$post->getContent()->id}}" class="more-photos col-3-width">
                             <div class="post-photo-cont">
-                                <img src="/storage/images/{{$image->name}}" alt="photo">
+                                <img src="/storage/images/{{$image->displayNameInAlbum($newsfeedAlbum)}}" alt="photo">
                             </div>
                             <span class="h2">+{{$post->getContent()->images->count()-5}}</span>
                         </a>
@@ -424,14 +461,15 @@
                         @php
                         $image = $post->getContent()->images->slice(5)->take(1)->first();
                         @endphp
-                            <a href="/storage/images/{{$image->name}}" class="col @if($post->getContent()->images->count() < 5) half-width @else col-3-width @endif" onclick="get_album(this);" data-album="{{$post->getContent()->id}}">
+                            <a href="/storage/images/{{$image->displayNameInAlbum($newsfeedAlbum)}}" class="col @if($post->getContent()->images->count() < 5) half-width @else col-3-width @endif" onclick="get_album(this);" data-album="{{$post->getContent()->id}}">
                             <div class="post-photo-cont">
-                                <img src="/storage/images/{{$image->name}}" alt="photo">
+                                <img src="/storage/images/{{$image->displayNameInAlbum($newsfeedAlbum)}}" alt="photo">
                             </div>
                         </a>
                         @endif
                         @endif
                     </div>
+                    @endif
                     @else
                         <div class="post-thumb">
                             <a href="#" onclick="get_album(this);" data-protect="true" data-album="{{$post->getContent()->id}}">
@@ -439,7 +477,7 @@
                             </a>
                         </div>
                     @endif
-                
+
                     <div class="post-additional-info inline-items">
                 
                         <a href="#" onclick="like_post({{$post->id}});" class="likes post-add-icon inline-items @if($post->liked()) active @endif">
@@ -474,7 +512,7 @@
                         <img src="/storage/images/{{$post->getUser()->profile_image()}}" alt="author">
                 
                         <div class="author-date">
-                            <a class="h6 post__author-name fn" href="/profile/{{$post->getUser()->username}}">{{$post->getUser()->name()}}</a> {{l("uploaded a")}} <a class="new-photo-popup" href="/storage/images/{{$post->getContent()->name}}">{{l("new photo")}}</a>
+                            <a class="h6 post__author-name fn" href="/profile/{{$post->getUser()->username}}">{{$post->getUser()->name()}}</a> {{l("uploaded a")}} <a class="new-photo-popup" href="/storage/images/{{$post->getContent()->displayName()}}">{{l("new photo")}}</a>
                             <div class="post__date">
                                 <time class="published" datetime="2017-03-24T18:18">
                                     {{$post->getContent()->created_at->format('d/m/y H:i')}}
@@ -492,10 +530,12 @@
                         @endif
                     </div>
                 
-                    <div class="post-thumb">
-                        <a href="/storage/images/{{$post->getContent()->name}}" class="js-zoom-image">
-                             <img src="/storage/images/{{$post->getContent()->name}}" alt="photo">
+                    @php $feedImg = $post->getContent(); $feedImgLocked = ! $feedImg->isViewableBy(Auth::user()); @endphp
+                    <div class="post-thumb" style="position:relative;">
+                        <a href="/storage/images/{{$feedImg->displayName()}}" class="js-zoom-image" @if($feedImgLocked) onclick="return false;" @endif>
+                             <img src="/storage/images/{{$feedImg->displayName()}}" alt="photo">
                         </a>
+                        @include('components.content-unlock-overlay', ['type' => 'image', 'id' => $feedImg->id, 'price' => $feedImg->effectivePrice(), 'locked' => $feedImgLocked])
                     </div>
                 
                     <div class="post-additional-info inline-items">
