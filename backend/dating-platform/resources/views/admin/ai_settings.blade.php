@@ -34,6 +34,18 @@
                                     <form action="/admin/ai-settings" method="POST" class="form-horizontal">
                                         @csrf
 
+                                        {{-- Client's follow-up (2026-09-23): this whole card used to read as one
+                                             undifferentiated list, but it actually configures TWO separate features that
+                                             happen to share a few settings - confusing, e.g. it looked like "Live Video Chat
+                                             Provider"/Tavus belonged to "Live AI Video Call" when they don't (verified against
+                                             the actual code: liveAvatarProvider()/TavusCviService are only ever read by
+                                             AIChatController - AI Companions - never by ChatController, which is what
+                                             "Live AI Video Call" actually gates; that one always uses Simli). Split into 3
+                                             clearly labeled groups instead: what's AI-Companions-only, what's real-profiles-only,
+                                             and what's genuinely shared by both. --}}
+                                        <h6 class="m-b-0"><strong>AI Companions - Live Video</strong></h6>
+                                        <p class="text-muted" style="font-size:13px;">Applies to the AI Companions catalog's own live video calls (a separate feature from real profiles, further below).</p>
+
                                         <div class="row form-group">
                                             <div class="col col-md-3"><label class="form-control-label">Live Video Chat Provider</label></div>
                                             <div class="col-12 col-md-9">
@@ -41,9 +53,38 @@
                                                     <option value="tavus_cvi" @if($aiSetting->liveAvatarProvider() === 'tavus_cvi') selected @endif>Tavus (CVI)</option>
                                                     <option value="simli" @if($aiSetting->liveAvatarProvider() === 'simli') selected @endif>Simli</option>
                                                 </select>
-                                                <small class="form-text text-muted">Powers the real-time "Start Live Video Session" call in the AI chat room. Only the matching Face ID field will be shown on the AI Profiles page.</small>
+                                                <small class="form-text text-muted">Powers the real-time "Start Live Video Session" call in the AI chat room. Only the matching Face ID field will be shown on the AI Profiles page. Does not affect real profiles' "Live AI Video Call" below - that one always uses Simli regardless of this choice.</small>
                                             </div>
                                         </div>
+
+                                        <div class="row form-group" id="tavus-api-key-row" style="@if($aiSetting->liveAvatarProvider() === 'simli') display:none; @endif">
+                                            <div class="col col-md-3"><label class="form-control-label">Tavus API Key</label></div>
+                                            <div class="col-12 col-md-9">
+                                                <input type="password" name="tavus_api_key" class="form-control" placeholder="{{ $aiSetting->tavus_api_key ? '•••••••• (saved — leave blank to keep)' : 'Enter Tavus API key' }}" autocomplete="new-password">
+                                                <small class="form-text text-muted">Only used when Live Video Chat Provider above is set to Tavus - irrelevant to real profiles, which never use Tavus.</small>
+                                            </div>
+                                        </div>
+
+                                        <hr>
+
+                                        <h6 class="m-b-0"><strong>Real profiles - Live AI Video Call</strong></h6>
+                                        <p class="text-muted" style="font-size:13px;">Lets men start a live AI video call with an AI-enabled real profile directly from the normal chat popup - independent of the AI Companions settings above.</p>
+
+                                        <div class="row form-group">
+                                            <div class="col col-md-3"><label class="form-control-label">Live AI Video Call</label></div>
+                                            <div class="col-12 col-md-9">
+                                                <select name="live_ai_video_enabled" class="form-control">
+                                                    <option value="1" @if($aiSetting->liveAiVideoEnabled()) selected @endif>Active</option>
+                                                    <option value="0" @if(! $aiSetting->liveAiVideoEnabled()) selected @endif>Inactive</option>
+                                                </select>
+                                                <small class="form-text text-muted">Master switch for this feature. <strong>Always uses Simli</strong> — Tavus isn't supported for real profiles since it needs a pre-trained video replica, which isn't possible for stock-photo profiles. Needs the Simli API Key further below filled in. Off by default: even when Active, a profile only shows the call button once an admin has manually created a Simli Face for her and saved its Face ID on her edit page.</small>
+                                            </div>
+                                        </div>
+
+                                        <hr>
+
+                                        <h6 class="m-b-0"><strong>Shared video settings</strong></h6>
+                                        <p class="text-muted" style="font-size:13px;">Used by whichever of the two features above is actually active for a given call - not specific to just one of them.</p>
 
                                         <div class="row form-group">
                                             <div class="col col-md-3"><label class="form-control-label">Live Video Window Style</label></div>
@@ -110,18 +151,11 @@
                                             </div>
                                         </div>
 
-                                        <div class="row form-group" id="tavus-api-key-row" style="@if($aiSetting->liveAvatarProvider() === 'simli') display:none; @endif">
-                                            <div class="col col-md-3"><label class="form-control-label">Tavus API Key</label></div>
-                                            <div class="col-12 col-md-9">
-                                                <input type="password" name="tavus_api_key" class="form-control" placeholder="{{ $aiSetting->tavus_api_key ? '•••••••• (saved — leave blank to keep)' : 'Enter Tavus API key' }}" autocomplete="new-password">
-                                            </div>
-                                        </div>
-
                                         <div class="row form-group">
                                             <div class="col col-md-3"><label class="form-control-label">Simli API Key</label></div>
                                             <div class="col-12 col-md-9">
                                                 <input type="password" name="simli_api_key" class="form-control" placeholder="{{ $aiSetting->simli_api_key ? '•••••••• (saved — leave blank to keep)' : 'Enter Simli API key' }}" autocomplete="new-password">
-                                                <small class="form-text text-muted">Required for the "Live AI Video Call" feature further below (real profiles) no matter what Live Avatar Provider is selected above — that provider choice only affects AI Companions. Also required here if Live Avatar Provider is set to Simli.</small>
+                                                <small class="form-text text-muted">Required for the "Live AI Video Call" feature further above (real profiles) no matter what Live Avatar Provider is selected above — that provider choice only affects AI Companions. Also required here if Live Avatar Provider is set to Simli.</small>
                                             </div>
                                         </div>
 
@@ -164,17 +198,6 @@
                                             <div class="col-12 col-md-9">
                                                 <textarea name="chat_product_knowledge" rows="8" class="form-control" style="font-size:13px;">{{ $aiSetting->chatProductKnowledge() }}</textarea>
                                                 <small class="form-text text-muted">What the AI knows about what the site sells, so it can answer "is it paid?" or "can we use the camera?" correctly instead of dodging. <code>{packages}</code> is replaced live with the real package list and prices from the Packages page, and <code>{chat_rule}</code> with the current free-message / credits rule from Settings - keep them so this never goes out of date. Anything else here (e.g. camera rules) is your text to adjust.</small>
-                                            </div>
-                                        </div>
-
-                                        <div class="row form-group">
-                                            <div class="col col-md-3"><label class="form-control-label">Live AI Video Call</label></div>
-                                            <div class="col-12 col-md-9">
-                                                <select name="live_ai_video_enabled" class="form-control">
-                                                    <option value="1" @if($aiSetting->liveAiVideoEnabled()) selected @endif>Active</option>
-                                                    <option value="0" @if(! $aiSetting->liveAiVideoEnabled()) selected @endif>Inactive</option>
-                                                </select>
-                                                <small class="form-text text-muted">Lets men start a live AI video call with an AI-enabled real profile directly from the normal chat popup. <strong>Always uses Simli, regardless of the Live Avatar Provider selected above</strong> — Tavus isn't supported for real profiles since it needs a pre-trained video replica, which isn't possible for stock-photo profiles. Make sure the Simli API Key above is filled in even if Live Avatar Provider is set to Tavus. Off by default: even when Active, a profile only shows the call button once an admin has manually created a Simli Face for her and saved its Face ID on her edit page.</small>
                                             </div>
                                         </div>
 
@@ -290,7 +313,7 @@
         if (!providerSelect || !tavusRow) { return; }
 
         // Simli API Key stays visible regardless of this selector - it's also required
-        // independently by the "Live AI Video Call" feature for real profiles further below.
+        // independently by the "Live AI Video Call" feature for real profiles further above.
         providerSelect.addEventListener('change', function () {
             tavusRow.style.display = providerSelect.value === 'simli' ? 'none' : '';
         });
