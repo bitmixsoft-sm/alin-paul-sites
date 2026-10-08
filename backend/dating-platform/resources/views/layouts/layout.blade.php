@@ -570,7 +570,11 @@ ttq.track('CompletePayment', {
          (not just the data-* attributes on the element) since Bootstrap only reads those
          attributes at the point .modal() is first called on the element - belt and suspenders
          so this never accidentally becomes dismissible regardless of call site. --}}
-    @if ($errors->any() && session()->hasOldInput('firstname'))
+    @if (($errors->any() && session()->hasOldInput('firstname')) || session('force_complete_registration'))
+        {{-- session('force_complete_registration'): set by PaymentsController::newpayment()
+             when a still-fake-email account tries to buy something - skips the normal
+             2-minute browsing grace period below entirely, since actually paying for
+             something isn't "just browsing". --}}
         <script type="text/javascript">
             $('#complete-register-form-popup').modal({backdrop: 'static', keyboard: false});
         </script>

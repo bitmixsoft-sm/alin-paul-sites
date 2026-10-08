@@ -433,6 +433,20 @@ public function webhook($provider, $path, Request $request) {
     
     
     function newpayment(Request $request) {
+        // Auto-registered ("fake") accounts (AutoRegisterController::fakeregister()) get a
+        // normal 2-minute grace period to browse before layouts/layout.blade.php forces the
+        // "Finish your registration" popup - found live, 2026-10-08: a visitor who clicks
+        // "buy" inside that window reaches CCBill's payment page with their placeholder
+        // name/email prefilled, instead of their own real billing details. Actually paying
+        // for something isn't "just browsing", so this skips that grace period entirely for
+        // a purchase attempt specifically, regardless of how long ago the account was
+        // created - same fake-email pattern check layout.blade.php and
+        // DeleteAbandonedAutoRegisteredUsers already use.
+        $fakeEmailPattern = '/@'.preg_quote($request->getHost(), '/').'$/i';
+        if (Auth::user()->email && preg_match($fakeEmailPattern, Auth::user()->email)) {
+            return redirect()->back()->with('force_complete_registration', true);
+        }
+
         $active_payment = str_replace("_ACTIVE", "", $request->payment_method);
         // $active_payment = \App\Settings::where('name', "PAYMENT_ACTIVE")->first()->value;
         
