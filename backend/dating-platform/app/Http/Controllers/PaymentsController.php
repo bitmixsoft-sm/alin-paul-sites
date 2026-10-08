@@ -624,11 +624,24 @@ public function webhook($provider, $path, Request $request) {
                 ? '&recurringPrice='.$recurringPrice.'&recurringPeriod='.$recurringPeriod.'&numRebills='.$numRebills
                 : '';
 
+            // Prefill (client's question, 2026-10-08): saves the buyer re-typing data the
+            // site already has. CCBill's documented prefill field names (ccbill.com/doc/?p=699)
+            // don't match our User columns 1:1 - only email/customer_fname/customer_lname/
+            // city/country are ours to fill; address1/state/zipcode have no equivalent on the
+            // users table, so those stay blank for the buyer to type. Blank fields are fine to
+            // include (CCBill just leaves them empty), so no need to conditionally omit them.
+            $prefillUser = Auth::user();
+            $prefillParams = '&email='.urlencode($prefillUser->email ?? '')
+                .'&customer_fname='.urlencode($prefillUser->firstname ?? '')
+                .'&customer_lname='.urlencode($prefillUser->lastname ?? '')
+                .'&city='.urlencode($prefillUser->city ?? '')
+                .'&country='.urlencode($prefillUser->country ?? '');
+
             if (optional($CCB_integration_mode)->value === 'flexforms') {
                 $flexId = optional($CCB_flex_id)->value ?: '';
-                $url = 'https://api.ccbill.com/wap-frontflex/flexforms/'.$flexId.'?clientSubacc='.$clientSubACC.'&initialPrice='.$formPrice.'&initialPeriod='.$formPeriod.$recurringParams.'&formPrice='.$formPrice.'&formPeriod='.$formPeriod.'&language=English&orderId='.$order->id.'&hash='.$formDigest.'&currencyCode='.$currencyCode.'&formDigest='.$formDigest;
+                $url = 'https://api.ccbill.com/wap-frontflex/flexforms/'.$flexId.'?clientSubacc='.$clientSubACC.'&initialPrice='.$formPrice.'&initialPeriod='.$formPeriod.$recurringParams.'&formPrice='.$formPrice.'&formPeriod='.$formPeriod.'&language=English&orderId='.$order->id.'&hash='.$formDigest.'&currencyCode='.$currencyCode.'&formDigest='.$formDigest.$prefillParams;
             } else {
-                $url = 'https://bill.ccbill.com/jpost/signup.cgi?clientAccnum='.$clientACC.'&clientSubacc='.$clientSubACC.'&initialPrice='.$formPrice.'&initialPeriod='.$formPeriod.$recurringParams.'&formName='.$formName.'&formPrice='.$formPrice.'&formPeriod='.$formPeriod.'&language=English&orderId='.$order->id.'&hash='.$formDigest.'&currencyCode='.$currencyCode.'&formDigest='.$formDigest;
+                $url = 'https://bill.ccbill.com/jpost/signup.cgi?clientAccnum='.$clientACC.'&clientSubacc='.$clientSubACC.'&initialPrice='.$formPrice.'&initialPeriod='.$formPeriod.$recurringParams.'&formName='.$formName.'&formPrice='.$formPrice.'&formPeriod='.$formPeriod.'&language=English&orderId='.$order->id.'&hash='.$formDigest.'&currencyCode='.$currencyCode.'&formDigest='.$formDigest.$prefillParams;
             }
 
             return redirect($url);
