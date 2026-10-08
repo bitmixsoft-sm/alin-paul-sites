@@ -618,21 +618,15 @@ public function webhook($provider, $path, Request $request) {
             $ccbillRecurringEnabled = optional(Settings::where('name', 'CCBILL_RECURRING_MODE')->first())->value === 'yes';
             $isRecurring = $ccbillRecurringEnabled && $pack->type != 'credits' && $pack->duration >= 30;
             if ($isRecurring) {
-                // TEMPORARY DIAGNOSTIC (2026-10-08): the "New Recurring Billing Option" form
-                // under CCBill's Pricing Admin labels its price range in US Dollars
-                // ("$10.00 to $199.00"), unlike the EUR-agnostic non-recurring Dynamic
-                // Pricing path that's already proven to work - testing whether this
-                // sub-account's recurring digest validation specifically requires USD
-                // (840) instead of the EUR (978) used everywhere else. If this turns out
-                // to be the actual fix, the real price shown to the buyer would need
-                // converting to USD (not just relabeled) before going further - this is
-                // ONLY to isolate the cause, not a finished fix. Revert to $currencyCode
-                // once confirmed either way.
-                $recurringCurrencyCode = 840;
+                // Tried currencyCode=840 (USD) here on 2026-10-08, on the theory that
+                // Pricing Admin's "New Recurring Billing Option" form labels its range in
+                // USD ("$10.00 to $199.00") unlike the EUR-agnostic non-recurring path -
+                // same "Invalid Digest" either way, so that wasn't it. Back to the
+                // documented formula/EUR; root cause still open, pending CCBill support.
                 $recurringPrice = $formPrice;
                 $recurringPeriod = $formPeriod;
                 $numRebills = 99;
-                $formDigest = md5($formPrice.$formPeriod.$recurringPrice.$recurringPeriod.$numRebills.$recurringCurrencyCode.$salt);
+                $formDigest = md5($formPrice.$formPeriod.$recurringPrice.$recurringPeriod.$numRebills.$currencyCode.$salt);
             } else {
                 $formDigest = md5($formPrice.$formPeriod.$currencyCode.$salt);
             }
@@ -659,8 +653,6 @@ public function webhook($provider, $path, Request $request) {
             $recurringParams = $isRecurring
                 ? '&recurringPrice='.$recurringPrice.'&recurringPeriod='.$recurringPeriod.'&numRebills='.$numRebills
                 : '';
-            // Must match whichever currencyCode the digest above was actually computed with.
-            $effectiveCurrencyCode = $isRecurring ? $recurringCurrencyCode : $currencyCode;
 
             // Prefill (client's question, 2026-10-08): saves the buyer re-typing data the
             // site already has. CCBill's documented prefill field names (ccbill.com/doc/?p=699)
@@ -677,9 +669,9 @@ public function webhook($provider, $path, Request $request) {
 
             if (optional($CCB_integration_mode)->value === 'flexforms') {
                 $flexId = optional($CCB_flex_id)->value ?: '';
-                $url = 'https://api.ccbill.com/wap-frontflex/flexforms/'.$flexId.'?clientSubacc='.$clientSubACC.'&initialPrice='.$formPrice.'&initialPeriod='.$formPeriod.$recurringParams.'&formPrice='.$formPrice.'&formPeriod='.$formPeriod.'&language=English&orderId='.$order->id.'&hash='.$formDigest.'&currencyCode='.$effectiveCurrencyCode.'&formDigest='.$formDigest.$prefillParams;
+                $url = 'https://api.ccbill.com/wap-frontflex/flexforms/'.$flexId.'?clientSubacc='.$clientSubACC.'&initialPrice='.$formPrice.'&initialPeriod='.$formPeriod.$recurringParams.'&formPrice='.$formPrice.'&formPeriod='.$formPeriod.'&language=English&orderId='.$order->id.'&hash='.$formDigest.'&currencyCode='.$currencyCode.'&formDigest='.$formDigest.$prefillParams;
             } else {
-                $url = 'https://bill.ccbill.com/jpost/signup.cgi?clientAccnum='.$clientACC.'&clientSubacc='.$clientSubACC.'&initialPrice='.$formPrice.'&initialPeriod='.$formPeriod.$recurringParams.'&formName='.$formName.'&formPrice='.$formPrice.'&formPeriod='.$formPeriod.'&language=English&orderId='.$order->id.'&hash='.$formDigest.'&currencyCode='.$effectiveCurrencyCode.'&formDigest='.$formDigest.$prefillParams;
+                $url = 'https://bill.ccbill.com/jpost/signup.cgi?clientAccnum='.$clientACC.'&clientSubacc='.$clientSubACC.'&initialPrice='.$formPrice.'&initialPeriod='.$formPeriod.$recurringParams.'&formName='.$formName.'&formPrice='.$formPrice.'&formPeriod='.$formPeriod.'&language=English&orderId='.$order->id.'&hash='.$formDigest.'&currencyCode='.$currencyCode.'&formDigest='.$formDigest.$prefillParams;
             }
 
             return redirect($url);
