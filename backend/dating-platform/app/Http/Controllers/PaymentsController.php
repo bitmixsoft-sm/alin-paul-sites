@@ -584,7 +584,14 @@ public function webhook($provider, $path, Request $request) {
             // CCBill's own documented default/max for "until cancelled" (matches this
             // sub-account's Feature Summary "Max Rebills: 99"), not literally infinite, but
             // far more than any real subscriber will reach.
-            $isRecurring = $pack->type != 'credits';
+            //
+            // duration >= 30 guard (found live, 2026-10-08): this CCBill sub-account's own
+            // Feature Summary lists "Recurring Billing: Min 30 days" - a recurring request
+            // for a shorter pack (e.g. the real "joy" package, type subscription-credits,
+            // duration 10) gets rejected outright ("Invalid Digest"). Packages shorter than
+            // that fall back to the plain one-time charge below instead of failing to sell
+            // at all - same as credits packs.
+            $isRecurring = $pack->type != 'credits' && $pack->duration >= 30;
             if ($isRecurring) {
                 $recurringPrice = $formPrice;
                 $recurringPeriod = $formPeriod;
