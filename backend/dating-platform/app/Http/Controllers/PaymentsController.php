@@ -606,13 +606,16 @@ public function webhook($provider, $path, Request $request) {
             // that fall back to the plain one-time charge below instead of failing to sell
             // at all - same as credits packs.
             //
-            // CCBILL_RECURRING_ENABLED (found live, 2026-10-08): even duration>=30 packages
+            // CCBILL_RECURRING_MODE (found live, 2026-10-08 - originally named
+            // CCBILL_RECURRING_ENABLED, renamed because that suffix made admin/
+            // settings.blade.php's shared enabler-switch script wrongly gray out the other,
+            // unrelated CCBill fields in the same category card): even duration>=30 packages
             // ("play", "exclusive king") are currently getting "Invalid Digest" once the
             // recurring params are added - root cause not confirmed with CCBill support yet.
             // Defaults to 'no' so those packages stay sellable as a one-time charge (exactly
             // like before the recurring work) until this is sorted out - flip to 'yes' in
             // admin/settings once CCBill confirms what's wrong, no redeploy needed.
-            $ccbillRecurringEnabled = optional(Settings::where('name', 'CCBILL_RECURRING_ENABLED')->first())->value === 'yes';
+            $ccbillRecurringEnabled = optional(Settings::where('name', 'CCBILL_RECURRING_MODE')->first())->value === 'yes';
             $isRecurring = $ccbillRecurringEnabled && $pack->type != 'credits' && $pack->duration >= 30;
             if ($isRecurring) {
                 $recurringPrice = $formPrice;
