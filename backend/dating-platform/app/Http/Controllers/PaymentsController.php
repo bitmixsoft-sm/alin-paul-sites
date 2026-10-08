@@ -192,17 +192,70 @@ public function webhook($provider, $path, Request $request) {
 
     public function unsubscribe() {
         if(!Auth::user()->package())
-            return redirect('/packages'); 
+            return redirect('/packages');
+
+        // Client's request (2026-10-08): this used to only cancel a Stripe subscription -
+        // for a CCBill one, nothing ever actually told CCBill to stop, so clicking
+        // "Unsubscribe" here only cleared our own local tracking while CCBill kept rebilling
+        // the card regardless. Cancel each CCBill subscription via their Subscription
+        // Management API (ccbill.com/doc/ccbill-api-cancel-subscription) BEFORE nulling
+        // subscription_id below, since that's the only place it's still on record.
+        $ccbillOrders = Order::where(['user_id'=>Auth::user()->id, 'status'=>'Accepted', 'payment_method'=>'CCBILL'])
+            ->whereNotNull('subscription_id')->get();
+        foreach ($ccbillOrders as $ccbillOrder) {
+            $this->cancelCCBillSubscription($ccbillOrder);
+        }
+
         $last_subscription = Order::where(['user_id'=>Auth::user()->id, 'status'=>'Accepted'])->update(['subscription_id' => NULL]);
         $stripePaymentService = new \App\Services\StripePaymentService();
-        
+
         $subsriptuions = $stripePaymentService->getCustomerSubscriptions(auth()->user()->stripe_customer_id);
         foreach ($subsriptuions->subscriptions['data'] as $key => $value) {
              $stripePaymentService->cancelSubscription($value['id']);
         }
-        
-        return redirect('/packages'); 
 
+        return redirect('/packages');
+
+    }
+
+    /**
+     * CCBill DataLink Subscription Management API (client's request, 2026-10-08) - needs its
+     * own username/password pair (CCBILL_DATALINK_USERNAME/PASSWORD), separate from the
+     * Dynamic Pricing salt, set up under the CCBill admin's main-account "Data Link" menu.
+     * clientSubacc is re-derived from the order's own package the same way newpayment()
+     * originally picked it (credits vs pack sub-account) - the Order itself doesn't record
+     * which sub-account the purchase actually went through.
+     */
+    private function cancelCCBillSubscription(Order $order): void
+    {
+        $datalinkUser = Settings::where('name', 'CCBILL_DATALINK_USERNAME')->value('value');
+        $datalinkPass = Settings::where('name', 'CCBILL_DATALINK_PASSWORD')->value('value');
+        $clientAccnum = Settings::where('name', 'CCBILL_ACC')->value('value') ?: env('PAYMENT_ACC');
+
+        if (!$datalinkUser || !$datalinkPass || !$clientAccnum) {
+            \Log::warning('[PaymentsController::cancelCCBillSubscription] Missing DataLink credentials - could not cancel subscription '.$order->subscription_id.' for order '.$order->id);
+            return;
+        }
+
+        $pack = Pack::find($order->package_id);
+        $clientSubacc = $pack && $pack->type == 'credits'
+            ? Settings::where('name', 'CCBILL_ACC_CREDITS')->value('value')
+            : Settings::where('name', 'CCBILL_ACC_PACK')->value('value');
+
+        try {
+            $response = \Illuminate\Support\Facades\Http::timeout(15)->get('https://datalink.ccbill.com/utils/subscriptionManagement.cgi', [
+                'clientAccnum' => $clientAccnum,
+                'clientSubacc' => $clientSubacc,
+                'usingSubacc' => $clientSubacc,
+                'subscriptionId' => $order->subscription_id,
+                'username' => $datalinkUser,
+                'password' => $datalinkPass,
+                'action' => 'cancelSubscription',
+            ]);
+            \Log::info('[PaymentsController::cancelCCBillSubscription] subscription '.$order->subscription_id.' (order '.$order->id.'): '.trim($response->body()));
+        } catch (\Throwable $e) {
+            \Log::error('[PaymentsController::cancelCCBillSubscription] Failed to cancel subscription '.$order->subscription_id.' for order '.$order->id.': '.$e->getMessage());
+        }
     }
     
 
