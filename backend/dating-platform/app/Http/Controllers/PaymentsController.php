@@ -650,8 +650,17 @@ public function webhook($provider, $path, Request $request) {
             // checks clientAccnum/clientSubacc/hash, the classic shape) comes back with the same
             // fields for a FlexForms-originated signup. Leave CCBILL_INTEGRATION_MODE on
             // "classic" until that's been confirmed with a live test.
-            $recurringParams = $isRecurring
+            // Found via CCBill docs, 2026-10-08: jpost/signup.cgi (classic) and FlexForms use
+            // DIFFERENT parameter names for the exact same recurring values - the digest is
+            // value-based so the hash math above was already correct, but sending FlexForms'
+            // names (recurringPrice/recurringPeriod/numRebills) to the classic endpoint meant
+            // it never recognized them as the recurring fields at all, hence "Invalid Digest".
+            // Classic wants formRecurringPrice/formRecurringPeriod/formRebills instead.
+            $recurringParamsFlex = $isRecurring
                 ? '&recurringPrice='.$recurringPrice.'&recurringPeriod='.$recurringPeriod.'&numRebills='.$numRebills
+                : '';
+            $recurringParamsClassic = $isRecurring
+                ? '&formRecurringPrice='.$recurringPrice.'&formRecurringPeriod='.$recurringPeriod.'&formRebills='.$numRebills
                 : '';
 
             // Prefill (client's question, 2026-10-08): saves the buyer re-typing data the
@@ -669,9 +678,9 @@ public function webhook($provider, $path, Request $request) {
 
             if (optional($CCB_integration_mode)->value === 'flexforms') {
                 $flexId = optional($CCB_flex_id)->value ?: '';
-                $url = 'https://api.ccbill.com/wap-frontflex/flexforms/'.$flexId.'?clientSubacc='.$clientSubACC.'&initialPrice='.$formPrice.'&initialPeriod='.$formPeriod.$recurringParams.'&formPrice='.$formPrice.'&formPeriod='.$formPeriod.'&language=English&orderId='.$order->id.'&hash='.$formDigest.'&currencyCode='.$currencyCode.'&formDigest='.$formDigest.$prefillParams;
+                $url = 'https://api.ccbill.com/wap-frontflex/flexforms/'.$flexId.'?clientSubacc='.$clientSubACC.'&initialPrice='.$formPrice.'&initialPeriod='.$formPeriod.$recurringParamsFlex.'&formPrice='.$formPrice.'&formPeriod='.$formPeriod.'&language=English&orderId='.$order->id.'&hash='.$formDigest.'&currencyCode='.$currencyCode.'&formDigest='.$formDigest.$prefillParams;
             } else {
-                $url = 'https://bill.ccbill.com/jpost/signup.cgi?clientAccnum='.$clientACC.'&clientSubacc='.$clientSubACC.'&initialPrice='.$formPrice.'&initialPeriod='.$formPeriod.$recurringParams.'&formName='.$formName.'&formPrice='.$formPrice.'&formPeriod='.$formPeriod.'&language=English&orderId='.$order->id.'&hash='.$formDigest.'&currencyCode='.$currencyCode.'&formDigest='.$formDigest.$prefillParams;
+                $url = 'https://bill.ccbill.com/jpost/signup.cgi?clientAccnum='.$clientACC.'&clientSubacc='.$clientSubACC.'&initialPrice='.$formPrice.'&initialPeriod='.$formPeriod.$recurringParamsClassic.'&formName='.$formName.'&formPrice='.$formPrice.'&formPeriod='.$formPeriod.'&language=English&orderId='.$order->id.'&hash='.$formDigest.'&currencyCode='.$currencyCode.'&formDigest='.$formDigest.$prefillParams;
             }
 
             return redirect($url);
