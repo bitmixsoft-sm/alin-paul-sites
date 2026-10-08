@@ -22,14 +22,80 @@ use App\Services\CentralpayPaymentService;
 class PaymentsController extends Controller
 {
 public function webhook($provider, $path, Request $request) {
-        \Log::info($request->all()); 
+        \Log::info($request->all());
         if($provider == 'centralpay' && $path == 'subscription'){
             $this->handleCentralPaySubscriptionWebhook($request);
         }
         if($provider == 'centralpay' && $path == 'transaction'){
             $this->handleCentralPayCreditsWebhook($request);
         }
+        if($provider == 'ccbill'){
+            $this->handleCCBillWebhook($request);
+        }
         return true;
+    }
+
+    /**
+     * CCBill recurring-billing lifecycle events (client's request, 2026-10-08) -
+     * RenewalSuccess/RenewalFailure/Cancellation/Chargeback/Refund, all posted by CCBill to
+     * the ONE Webhook URL configured under Sub Account Admin -> Webhooks, regardless of which
+     * event types are checked there. CCBill's own webhook docs (ccbill.com/doc) list each
+     * event's fields but don't document an explicit "event type" field distinguishing one
+     * POST from another, so the event is inferred here from which fields are present -
+     * UNVERIFIED against a real payload (the first live rebill can't happen until a
+     * subscription's first period elapses). \Log::info($request->all()) above always records
+     * the raw payload regardless, specifically so the first real event can be inspected and
+     * this guesswork corrected if wrong.
+     */
+    private function handleCCBillWebhook(Request $request): void
+    {
+        $subscriptionId = $request->input('subscriptionId') ?? $request->input('subscription_id');
+        if (!$subscriptionId) {
+            \Log::warning('[PaymentsController::handleCCBillWebhook] No subscriptionId in payload.');
+            return;
+        }
+
+        $order = Order::where('subscription_id', $subscriptionId)->orderBy('id', 'desc')->first();
+        if (!$order) {
+            \Log::warning('[PaymentsController::handleCCBillWebhook] No order found for subscriptionId '.$subscriptionId);
+            return;
+        }
+
+        if ($request->has('failureReason') || $request->has('failureCode')) {
+            // RenewalFailure - CCBill retries on its own (nextRetryDate); don't clear
+            // subscription_id yet, a later retry can still succeed.
+            \Log::warning('[PaymentsController::handleCCBillWebhook] Renewal failed for order '.$order->id);
+            return;
+        }
+
+        if ($request->has('cancelDate') || $request->has('cancellationReason') || $request->has('cancelReason')
+            || $request->has('chargebackAmount') || $request->has('refundAmount')) {
+            // Cancellation/Chargeback/Refund - stop User::package()'s optimistic auto-extend
+            // from assuming this subscription is still being paid. The existing User_Pack
+            // just expires on its own at its already-set expiration_date; no need to delete
+            // it early or ban the user.
+            $order->subscription_id = null;
+            $order->save();
+            \Log::info('[PaymentsController::handleCCBillWebhook] Subscription ended (cancel/chargeback/refund) for order '.$order->id);
+            return;
+        }
+
+        // RenewalSuccess (the default assumption once none of the above matched).
+        $user = User::where('id', $order->user_id)->first();
+        $pack = Pack::where('id', $order->package_id)->first();
+        if ($user && $pack) {
+            $currentPack = User_Pack::where('user_id', $user->id)->first();
+            if ($currentPack) {
+                $base = strtotime($currentPack->expiration_date) > time() ? $currentPack->expiration_date : date('Y-m-d H:i:s');
+                $currentPack->expiration_date = date('Y-m-d H:i:s', strtotime($base.' +'.$pack->duration.' day'));
+                $currentPack->save();
+            }
+            if ($pack->type == 'subscription-credits') {
+                $user->credits = $user->credits + $pack->credits;
+                $user->save();
+            }
+        }
+        \Log::info('[PaymentsController::handleCCBillWebhook] Renewal success applied for order '.$order->id);
     }
     
     private function handleCentralPaySubscriptionWebhook(Request $request){
@@ -505,10 +571,30 @@ public function webhook($provider, $path, Request $request) {
                $formPeriod = 30; 
             }
             $currencyCode = 978;
-            
-            $formDigest = md5($formPrice.$formPeriod.$currencyCode.$salt);
+
+            // Recurring billing (client's request, 2026-10-08): real packages (anything
+            // other than a one-off credits top-up) should actually auto-rebill on CCBill's
+            // side, not just locally pretend to via User::package()'s optimistic auto-extend
+            // (see User.php) - before this, CCBill was only ever asked for a single,
+            // non-recurring charge, so nothing ever really renewed. CCBill's Dynamic Pricing
+            // recurring formula folds 3 extra values into the digest, in this exact order -
+            // initialPrice, initialPeriod, recurringPrice, recurringPeriod, numRebills,
+            // currencyCode, salt (ccbill.com/doc/formdigest-value) - different from the
+            // non-recurring formula still used below for credits packs. numRebills: 99 is
+            // CCBill's own documented default/max for "until cancelled" (matches this
+            // sub-account's Feature Summary "Max Rebills: 99"), not literally infinite, but
+            // far more than any real subscriber will reach.
+            $isRecurring = $pack->type != 'credits';
+            if ($isRecurring) {
+                $recurringPrice = $formPrice;
+                $recurringPeriod = $formPeriod;
+                $numRebills = 99;
+                $formDigest = md5($formPrice.$formPeriod.$recurringPrice.$recurringPeriod.$numRebills.$currencyCode.$salt);
+            } else {
+                $formDigest = md5($formPrice.$formPeriod.$currencyCode.$salt);
+            }
             $order->hash = $formDigest;
-            if(Auth::user()->getDiscountByPack($pack->id)){ 
+            if(Auth::user()->getDiscountByPack($pack->id)){
                 $order->price = $pack->new_price;
             }else{
                 $order->price = $pack->price;
@@ -527,11 +613,15 @@ public function webhook($provider, $path, Request $request) {
             // checks clientAccnum/clientSubacc/hash, the classic shape) comes back with the same
             // fields for a FlexForms-originated signup. Leave CCBILL_INTEGRATION_MODE on
             // "classic" until that's been confirmed with a live test.
+            $recurringParams = $isRecurring
+                ? '&recurringPrice='.$recurringPrice.'&recurringPeriod='.$recurringPeriod.'&numRebills='.$numRebills
+                : '';
+
             if (optional($CCB_integration_mode)->value === 'flexforms') {
                 $flexId = optional($CCB_flex_id)->value ?: '';
-                $url = 'https://api.ccbill.com/wap-frontflex/flexforms/'.$flexId.'?clientSubacc='.$clientSubACC.'&initialPrice='.$formPrice.'&initialPeriod='.$formPeriod.'&formPrice='.$formPrice.'&formPeriod='.$formPeriod.'&language=English&orderId='.$order->id.'&hash='.$formDigest.'&currencyCode='.$currencyCode.'&formDigest='.$formDigest;
+                $url = 'https://api.ccbill.com/wap-frontflex/flexforms/'.$flexId.'?clientSubacc='.$clientSubACC.'&initialPrice='.$formPrice.'&initialPeriod='.$formPeriod.$recurringParams.'&formPrice='.$formPrice.'&formPeriod='.$formPeriod.'&language=English&orderId='.$order->id.'&hash='.$formDigest.'&currencyCode='.$currencyCode.'&formDigest='.$formDigest;
             } else {
-                $url = 'https://bill.ccbill.com/jpost/signup.cgi?clientAccnum='.$clientACC.'&clientSubacc='.$clientSubACC.'&initialPrice='.$formPrice.'&initialPeriod='.$formPeriod.'&formName='.$formName.'&formPrice='.$formPrice.'&formPeriod='.$formPeriod.'&language=English&orderId='.$order->id.'&hash='.$formDigest.'&currencyCode='.$currencyCode.'&formDigest='.$formDigest;
+                $url = 'https://bill.ccbill.com/jpost/signup.cgi?clientAccnum='.$clientACC.'&clientSubacc='.$clientSubACC.'&initialPrice='.$formPrice.'&initialPeriod='.$formPeriod.$recurringParams.'&formName='.$formName.'&formPrice='.$formPrice.'&formPeriod='.$formPeriod.'&language=English&orderId='.$order->id.'&hash='.$formDigest.'&currencyCode='.$currencyCode.'&formDigest='.$formDigest;
             }
 
             return redirect($url);
