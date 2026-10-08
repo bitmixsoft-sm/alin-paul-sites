@@ -171,7 +171,11 @@ class WebUsersController extends Controller
             }
             $user->credits = $request->credits;
 
-            if($user->gender == 'female' && $request->has('ai_enabled')){
+            // Admin-only per the client's explicit request (2026-10-02) - editors shouldn't be
+            // able to set these fields either, matching the role check that now hides them in
+            // admin/user_profile.blade.php. Deliberately role === 'admin', not isAdmin() (admin
+            // OR editor), same reasoning as AIProfilePolicy/AdminStyleLearningController.
+            if($user->gender == 'female' && $request->has('ai_enabled') && Auth::user()->role === 'admin'){
                 $user->ai_enabled = (bool) ((int) $request->input('ai_enabled'));
                 $user->ai_system_prompt = trim((string) $request->input('ai_system_prompt', ''));
                 $user->simli_face_id = trim((string) $request->input('simli_face_id', '')) ?: null;

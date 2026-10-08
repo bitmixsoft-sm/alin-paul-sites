@@ -336,7 +336,10 @@ final class AdminStyleLearningController extends Controller
 
     private function authorizeAdmin(): void
     {
-        abort_unless(Auth::check() && Auth::user()->isAdmin(), 403);
+        // Admin-only per the client's explicit request (2026-10-02) - deliberately NOT
+        // isAdmin() (admin OR editor), which editors were slipping through on, unlike
+        // most other admin-shared sections where that broader check is intended.
+        abort_unless(Auth::check() && Auth::user()->role === 'admin', 403);
     }
 
     private function authorizeFemale(User $user): void

@@ -193,3 +193,41 @@ input, .form-control {
 .author-name{
     color:#fff;
 }
+
+/* Classic theme's landing-page Sign in/up box (index.blade.php's .registration-login-form,
+   also shared by the old tabbed register/login markup and the unified-auth-form partial) -
+   unlike aurora/nordic/etc. it has no own themes/*.css file to give it a dark variant, so
+   without this it stayed a white box while the rules above still turned all its text (body
+   color, input color) white - invisible white-on-white. Scoped to body.theme-classic so it
+   never touches the other themes, which already handle this themselves. */
+body.theme-classic.site-dark-mode .registration-login-form {
+    background-color: var(--dark-2);
+    box-shadow: none;
+}
+body.theme-classic.site-dark-mode .registration-login-form .title,
+body.theme-classic.site-dark-mode .registration-login-form .content,
+body.theme-classic.site-dark-mode .registration-login-form .control-label,
+body.theme-classic.site-dark-mode .registration-login-form p,
+body.theme-classic.site-dark-mode .registration-login-form .remember label {
+    color: #fff;
+}
+body.theme-classic.site-dark-mode .registration-login-form .nav-tabs {
+    background-color: #000;
+    border-color: #333;
+}
+body.theme-classic.site-dark-mode .registration-login-form .nav-tabs .nav-link {
+    background-color: var(--dark-1);
+    border-color: #333;
+}
+body.theme-classic.site-dark-mode .registration-login-form .nav-tabs .nav-link.active {
+    background-color: var(--dark-2);
+}
+body.theme-classic.site-dark-mode .registration-login-form .form-control,
+body.theme-classic.site-dark-mode .registration-login-form input {
+    background-color: var(--dark-1);
+    color: #fff;
+    border: 1px solid #333;
+}
+body.theme-classic.site-dark-mode .registration-login-form a {
+    color: var(--hover-color, #10c1ed);
+}

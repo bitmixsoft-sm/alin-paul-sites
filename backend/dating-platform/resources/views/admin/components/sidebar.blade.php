@@ -37,7 +37,13 @@
                             <i class="fas fa-percent"></i>Reduceri</a>
                     </li>
                 @endif
-                @if(Auth::user()->role == 'admin' || Auth::user()->role == 'editor')
+                {{-- AI Profiles/Settings/Style Learning: admin-only per the client's explicit
+                     request (2026-10-02) - editors should not see or reach these, unlike most
+                     other admin-shared sections that intentionally use isAdmin() (admin OR
+                     editor). Kept as its own role check here instead of touching isAdmin()
+                     itself, since that's relied on elsewhere for the broader admin-or-editor
+                     behavior. --}}
+                @if(Auth::user()->role == 'admin')
                     <li @if($on_page == 'AI Profiles') class="active" @endif>
                         <a href="/admin/ai-profiles">
                             <i class="fas fa-user-circle"></i>AI Profiles</a>

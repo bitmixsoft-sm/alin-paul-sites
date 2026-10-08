@@ -270,6 +270,13 @@
                                                         </div>
                                                     </div>
 
+                                                    {{-- AI config fields (Raspuns automat AI / Persona AI / Stil AI invatat /
+                                                         Simli Face+Voice ID): admin-only per the client's explicit request
+                                                         (2026-10-02) - editors shouldn't see or set these here either, same
+                                                         as the dedicated /admin/ai-profiles, /admin/ai-settings and
+                                                         /admin/style-learning pages. Must stay in sync with the matching
+                                                         role check guarding the save in WebUsersController::store(). --}}
+                                                    @if(Auth::user()->role === 'admin')
                                                     <div class="row form-group">
                                                         <div class="col col-md-3">
                                                             <label class=" form-control-label">Raspuns automat AI</label>
@@ -351,6 +358,7 @@
                                                             @endif
                                                         </div>
                                                     </div>
+                                                    @endif
                                                 @endif
 
                                                 <div class="row form-group">

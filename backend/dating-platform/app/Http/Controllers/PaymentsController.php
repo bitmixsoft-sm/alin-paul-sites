@@ -191,6 +191,10 @@ public function webhook($provider, $path, Request $request) {
                 return redirect('/packages');
             }
         } elseif($request->clientAccnum!="" || $active_payment=="CCBILL") { //CCBILL
+            // Shared by both CCBILL_INTEGRATION_MODE values (see newpayment()) - unverified
+            // whether a FlexForms-originated signup posts back the same clientAccnum/
+            // clientSubacc/hash fields this validates below. Don't flip that setting to
+            // "flexforms" in production until a live test confirms this still matches.
             $order = Order::where('id', $request->orderId)->firstOrFail();
 
             $CCB_acc = Settings::where('name', 'CCBILL_ACC')->first();
@@ -472,6 +476,8 @@ public function webhook($provider, $path, Request $request) {
             $CCB_acc_pack = Settings::where('name', 'CCBILL_ACC_PACK')->first();
             $CCB_credits_hash = Settings::where('name', 'CCBILL_CREDITS_HASH')->first();
             $CCB_pack_hash = Settings::where('name', 'CCBILL_PACK_HASH')->first();
+            $CCB_integration_mode = Settings::where('name', 'CCBILL_INTEGRATION_MODE')->first();
+            $CCB_flex_id = Settings::where('name', 'CCBILL_FLEX_ID')->first();
 
             $clientACC = $CCB_acc->value ? $CCB_acc->value : env('PAYMENT_ACC');
             if($pack->type == 'credits'){
@@ -497,8 +503,25 @@ public function webhook($provider, $path, Request $request) {
                 $order->price = $pack->price;
             }
 
-            $order->save(); 
-            $url = 'https://bill.ccbill.com/jpost/signup.cgi?clientAccnum='.$clientACC.'&clientSubacc='.$clientSubACC.'&initialPrice='.$formPrice.'&initialPeriod='.$formPeriod.'&formName='.$formName.'&formPrice='.$formPrice.'&formPeriod='.$formPeriod.'&language=English&orderId='.$order->id.'&hash='.$formDigest.'&currencyCode='.$currencyCode.'&formDigest='.$formDigest;
+            $order->save();
+
+            // CCBILL_INTEGRATION_MODE (2026-10-08, client's request): lets the admin switch to
+            // CCBill's newer FlexForms signup (api.ccbill.com/wap-frontflex/flexforms/<Flex ID>)
+            // without losing the classic jpost/signup.cgi integration below, which stays the
+            // default ('classic') and is completely unchanged. The formDigest formula (price +
+            // period + currencyCode + salt) is documented as identical between the two systems
+            // (ccbill.com/doc/formdigest-value), so $formDigest/$order->hash above is reused
+            // as-is. NOT verified end-to-end against a real FlexForms sandbox transaction yet -
+            // in particular, whether the accepted()/declined() postback below (which still only
+            // checks clientAccnum/clientSubacc/hash, the classic shape) comes back with the same
+            // fields for a FlexForms-originated signup. Leave CCBILL_INTEGRATION_MODE on
+            // "classic" until that's been confirmed with a live test.
+            if (optional($CCB_integration_mode)->value === 'flexforms') {
+                $flexId = optional($CCB_flex_id)->value ?: '';
+                $url = 'https://api.ccbill.com/wap-frontflex/flexforms/'.$flexId.'?clientSubacc='.$clientSubACC.'&initialPrice='.$formPrice.'&initialPeriod='.$formPeriod.'&formPrice='.$formPrice.'&formPeriod='.$formPeriod.'&language=English&orderId='.$order->id.'&hash='.$formDigest.'&currencyCode='.$currencyCode.'&formDigest='.$formDigest;
+            } else {
+                $url = 'https://bill.ccbill.com/jpost/signup.cgi?clientAccnum='.$clientACC.'&clientSubacc='.$clientSubACC.'&initialPrice='.$formPrice.'&initialPeriod='.$formPeriod.'&formName='.$formName.'&formPrice='.$formPrice.'&formPeriod='.$formPeriod.'&language=English&orderId='.$order->id.'&hash='.$formDigest.'&currencyCode='.$currencyCode.'&formDigest='.$formDigest;
+            }
 
             return redirect($url);
          } else if($active_payment=="CENTRALPAY") { // Centralpay
