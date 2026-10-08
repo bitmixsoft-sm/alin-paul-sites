@@ -605,7 +605,15 @@ public function webhook($provider, $path, Request $request) {
             // duration 10) gets rejected outright ("Invalid Digest"). Packages shorter than
             // that fall back to the plain one-time charge below instead of failing to sell
             // at all - same as credits packs.
-            $isRecurring = $pack->type != 'credits' && $pack->duration >= 30;
+            //
+            // CCBILL_RECURRING_ENABLED (found live, 2026-10-08): even duration>=30 packages
+            // ("play", "exclusive king") are currently getting "Invalid Digest" once the
+            // recurring params are added - root cause not confirmed with CCBill support yet.
+            // Defaults to 'no' so those packages stay sellable as a one-time charge (exactly
+            // like before the recurring work) until this is sorted out - flip to 'yes' in
+            // admin/settings once CCBill confirms what's wrong, no redeploy needed.
+            $ccbillRecurringEnabled = optional(Settings::where('name', 'CCBILL_RECURRING_ENABLED')->first())->value === 'yes';
+            $isRecurring = $ccbillRecurringEnabled && $pack->type != 'credits' && $pack->duration >= 30;
             if ($isRecurring) {
                 $recurringPrice = $formPrice;
                 $recurringPeriod = $formPeriod;
