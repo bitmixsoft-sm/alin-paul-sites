@@ -252,7 +252,18 @@ public function webhook($provider, $path, Request $request) {
                 $order = Order::where('hash', $request->token)->firstOrFail();
             }
         }
-       
+
+        // None of the branches above matched/set $order - e.g. a plain, parameter-less click
+        // on the "Site URL" link CCBill's own hosted confirmation page shows after a classic
+        // signup.cgi approval (discovered 2026-10-08 CCBill testing: that link carries no
+        // query string at all, unlike the real approval data, which now arrives separately via
+        // the Background Post/Approval Post URL - see newpayment()'s CCBILL branch). Used to be
+        // a fatal "Attempt to assign property status on null" here instead of this redirect.
+        if (!isset($order) || !$order) {
+            \Log::warning('[PaymentsController::accepted] No order could be identified from this request.', $request->all());
+            return redirect('/packages');
+        }
+
         $order->status = 'Accepted';
         $order->subscription_id = $request->subscription_id ?? NULL;
         $order->save();

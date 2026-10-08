@@ -466,13 +466,19 @@ class User extends Authenticatable
             $user_pack = $user_pack->firstOrFail();
             // #bx start
             if ($user_pack && strtotime($user_pack->expiration_date) < strtotime(date('Y-m-d'))) { //extend subscription date automatically
-                $subscription = Order::where(['user_id' => Auth::user()->id, 'status' => 'Accepted'])->whereNotNull('subscription_id')->first();
+                // Was Auth::user()->id - broke whenever package() runs with no logged-in
+                // session, e.g. PaymentsController::accepted() handling a CCBill server-to-
+                // server Background Post (2026-10-08 CCBill testing): $user there is loaded
+                // directly from the Order's user_id, not from an authenticated session, so
+                // Auth::user() is null and ->id on it is a fatal error. $this is already the
+                // right user in both cases (Auth::user()->package() and $someUser->package()).
+                $subscription = Order::where(['user_id' => $this->id, 'status' => 'Accepted'])->whereNotNull('subscription_id')->first();
                 if ($subscription) {
                     $package = Pack::find($subscription->package_id);
                     if ($package) {
                         if ($package->type == "subscription-credits") { //if subscription-credits then add credits based on the expired days
                             $exp = ceil((strtotime(date('Y-m-d')) - strtotime($user_pack->expiration_date)) / (86400));
-                            $user = User::find(auth()->user()->id);
+                            $user = User::find($this->id);
                             $user->credits = $user->credits + ceil($exp / 4) * $package->credits;
                             $user->save();
                         }
