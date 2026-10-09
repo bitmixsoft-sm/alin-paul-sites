@@ -44,6 +44,21 @@
                                                                     data-price-mode-select="1"
                                                                 @elseif($priceModeFieldValue)
                                                                     data-price-mode-field="{{ $priceModeFieldValue }}"
+                                                                {{-- Client's question (2026-10-09): CCBILL_FLEX_ID only matters when
+                                                                     CCBILL_INTEGRATION_MODE is "flexforms", and the DataLink credentials
+                                                                     only matter when CCBILL_RECURRING_MODE is "yes" - hiding them
+                                                                     otherwise instead of leaving them sitting there looking equally
+                                                                     relevant. Same show/hide mechanism as the price-mode pair above,
+                                                                     just two more independent select/field pairs (own data-attributes,
+                                                                     so they don't collide with each other or with price-mode). --}}
+                                                                @elseif($setting->name === 'CCBILL_INTEGRATION_MODE')
+                                                                    data-ccbill-integration-select="1"
+                                                                @elseif($setting->name === 'CCBILL_FLEX_ID')
+                                                                    data-ccbill-integration-field="flexforms"
+                                                                @elseif($setting->name === 'CCBILL_RECURRING_MODE')
+                                                                    data-ccbill-recurring-select="1"
+                                                                @elseif(in_array($setting->name, ['CCBILL_DATALINK_USERNAME', 'CCBILL_DATALINK_PASSWORD']))
+                                                                    data-ccbill-recurring-field="yes"
                                                                 @endif
                                                             >
                                                                 <div class="col col-sm-5">
@@ -105,7 +120,8 @@
                                                                     </div>
                                                                 @elseif($setting->type == 'toggle')
                                                                 <div class="col col-sm-6">
-                                                                    <select name="{{$setting->id}}" class="form-control">
+                                                                    <select name="{{$setting->id}}" class="form-control"
+                                                                        @if($setting->name === 'CCBILL_RECURRING_MODE') data-ccbill-recurring-select-input="1" @endif>
                                                                         <option @if($setting->value == 'yes') selected @endif value="yes">Da</option>
                                                                         <option @if($setting->value == 'no') selected @endif value="no">Nu</option>
                                                                     </select>
@@ -127,7 +143,8 @@
                                                                 @elseif(strpos($setting->type, 'select|')!==false)
                                                                 <div class="col col-sm-6">
                                                                     <select name="{{$setting->id}}" class="form-control"
-                                                                        @if(str_ends_with($setting->name, '_PRICE_MODE')) data-price-mode-select-input="1" @endif>
+                                                                        @if(str_ends_with($setting->name, '_PRICE_MODE')) data-price-mode-select-input="1" @endif
+                                                                        @if($setting->name === 'CCBILL_INTEGRATION_MODE') data-ccbill-integration-select-input="1" @endif>
                                                                         @foreach(explode("~", str_replace("select|", "", $setting->type)) as $line)
                                                                         <option @if($setting->value == $line) selected @endif value="{{$line}}">{{$line}}</option>
                                                                         @endforeach
@@ -258,5 +275,28 @@ document.querySelectorAll('[data-price-mode-select-input]').forEach(function (se
     select.addEventListener('change', applyState);
     applyState();
 });
+
+// Client's question (2026-10-09): hides CCBILL_FLEX_ID unless CCBILL_INTEGRATION_MODE is
+// "flexforms", and hides the DataLink credentials unless CCBILL_RECURRING_MODE is "yes" -
+// same mechanism as the price-mode pair above (own data-attributes so the three don't
+// interfere with each other), see the blade section above for where these get set.
+function wireCcbillConditionalField(selectInputAttr, fieldAttr) {
+    document.querySelectorAll('[' + selectInputAttr + ']').forEach(function (select) {
+        var card = select.closest('.card');
+        if (!card) { return; }
+
+        function applyState() {
+            var value = select.value;
+            card.querySelectorAll('[' + fieldAttr + ']').forEach(function (field) {
+                field.style.display = field.getAttribute(fieldAttr) === value ? '' : 'none';
+            });
+        }
+
+        select.addEventListener('change', applyState);
+        applyState();
+    });
+}
+wireCcbillConditionalField('data-ccbill-integration-select-input', 'data-ccbill-integration-field');
+wireCcbillConditionalField('data-ccbill-recurring-select-input', 'data-ccbill-recurring-field');
 </script>
 @endsection
