@@ -71,11 +71,34 @@
                             <div class="card mb-4">
                                 <div class="card-header"><strong>Destinatari</strong></div>
                                 <div class="card-body">
+                                    {{-- Client's question (2026-10-20): "a list of 100-500+ addresses, do I
+                                         have to delete them one by one?" - two bulk options below.
+                                         bulk-delete-form has no fields of its own; the per-row checkboxes
+                                         live inside the table (form="bulk-delete-form" ties them to it by
+                                         id, since a <form> can't physically wrap a <table>'s cells AND also
+                                         contain the separate per-row single-delete <form>s below without
+                                         illegally nesting forms). --}}
+                                    <form id="bulk-delete-form" method="post" action="/admin/email-outreach/campaigns/{{ $campaign->id }}/recipients/bulk-delete">
+                                        @csrf
+                                    </form>
+                                    <form method="post" action="/admin/email-outreach/campaigns/{{ $campaign->id }}/recipients/delete-all"
+                                          onclick="return confirm('Sigur vrei sa stergi TOATA lista ({{ $stats['total'] }} destinatari) din aceasta campanie? Aceasta actiune nu poate fi anulata.');"
+                                          class="d-inline">
+                                        @csrf
+                                        <button type="submit" class="btn btn-sm btn-danger mb-2">Sterge toata lista ({{ $stats['total'] }})</button>
+                                    </form>
+                                    <button type="submit" form="bulk-delete-form" class="btn btn-sm btn-danger mb-2"
+                                            onclick="return confirm('Sigur vrei sa stergi destinatarii bifati?');">Sterge selectatii</button>
+
                                     <table class="table table-sm">
-                                        <thead><tr><td>Email</td><td>Status</td><td>Pas</td><td>Ultima trimitere</td><td>Ultima reactie</td><td></td></tr></thead>
+                                        <thead><tr>
+                                            <td><input type="checkbox" onclick="document.querySelectorAll('.recipient-check').forEach(function(c){c.checked=this.checked;}, this)"></td>
+                                            <td>Email</td><td>Status</td><td>Pas</td><td>Ultima trimitere</td><td>Ultima reactie</td><td></td>
+                                        </tr></thead>
                                         <tbody>
                                             @foreach($recipients as $recipient)
                                                 <tr>
+                                                    <td><input type="checkbox" class="recipient-check" name="recipient_ids[]" value="{{ $recipient->id }}" form="bulk-delete-form"></td>
                                                     <td>{{ $recipient->email }}</td>
                                                     <td>
                                                         @php
@@ -121,7 +144,7 @@
                                                 </tr>
                                                 @if(in_array($recipient->status, ['replied', 'manual']))
                                                     <tr id="reply-{{ $recipient->id }}" class="collapse">
-                                                        <td colspan="6">
+                                                        <td colspan="7">
                                                             <form method="post" action="/admin/email-outreach/recipients/{{ $recipient->id }}/reply">
                                                                 @csrf
                                                                 <textarea name="body" class="form-control mb-2" rows="3" placeholder="Raspunsul tau catre {{ $recipient->email }}" required></textarea>

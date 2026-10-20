@@ -297,4 +297,25 @@ class AdminEmailOutreachController extends Controller
         return redirect('/admin/email-outreach/campaigns/'.$campaignId)->with('status', 'Destinatar sters.');
     }
 
+    /**
+     * Client's question (2026-10-20): "what if the list has 100-500+ addresses, do I have to
+     * delete them one by one?" - no, two bulk options: checkbox-select-and-delete here, or
+     * deleteAllRecipients() below to clear the whole campaign in one go.
+     */
+    public function bulkDeleteRecipients(Request $request, $campaignId)
+    {
+        $ids = $request->input('recipient_ids', []);
+        $count = EmailOutreachRecipient::where('campaign_id', $campaignId)->whereIn('id', $ids)->delete();
+
+        return redirect('/admin/email-outreach/campaigns/'.$campaignId)->with('status', $count.' destinatari stersi.');
+    }
+
+    public function deleteAllRecipients($campaignId)
+    {
+        $campaign = EmailOutreachCampaign::findOrFail($campaignId);
+        $count = $campaign->recipients()->delete();
+
+        return redirect('/admin/email-outreach/campaigns/'.$campaign->id)->with('status', 'Lista intreaga stearsa ('.$count.' destinatari).');
+    }
+
 }
