@@ -28,7 +28,10 @@
                                                         <td>{{ $account->smtp_host }}:{{ $account->smtp_port }}</td>
                                                         <td>{{ $account->daily_send_limit }}</td>
                                                         <td>{{ $account->campaigns_count }}</td>
-                                                        <td><a href="/admin/email-outreach/accounts/{{ $account->id }}/edit" class="btn btn-sm btn-outline-secondary">Editeaza</a></td>
+                                                        {{-- btn-secondary (solid), not btn-outline-secondary - see campaign.blade.php's
+                                                             comment on the "Preia manual" button for why outline buttons are invisible
+                                                             until hover on this admin theme. --}}
+                                                        <td><a href="/admin/email-outreach/accounts/{{ $account->id }}/edit" class="btn btn-sm btn-secondary">Editeaza</a></td>
                                                     </tr>
                                                 @endforeach
                                             </tbody>

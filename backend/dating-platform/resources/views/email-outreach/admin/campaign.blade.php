@@ -98,7 +98,14 @@
                                                         @elseif(in_array($recipient->status, ['waiting', 'pending']))
                                                             <form method="post" action="/admin/email-outreach/recipients/{{ $recipient->id }}/take-over" class="d-inline">
                                                                 @csrf
-                                                                <button type="submit" class="btn btn-sm btn-outline-primary">Preia manual</button>
+                                                                {{-- btn-info (solid), not btn-outline-primary - outline buttons render
+                                                                     with invisible text on this admin theme (storage/app/assets/css/
+                                                                     style.css, loaded on admin pages too, overrides button text to
+                                                                     white regardless of background - only visible on :hover, when
+                                                                     Bootstrap's own outline-button hover state fills in a colored
+                                                                     background). Solid buttons (already used everywhere else in
+                                                                     this view) don't have that problem. --}}
+                                                                <button type="submit" class="btn btn-sm btn-info">Preia manual</button>
                                                             </form>
                                                         @endif
                                                         @if($recipient->status === 'manual')
