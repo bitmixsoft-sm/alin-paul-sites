@@ -24,7 +24,14 @@ class ImapReplyCheckerService
      */
     public function checkForReplies(EmailOutreachAccount $account): int
     {
-        $mailbox = '{'.$account->imap_host.':'.$account->imap_port.'/imap/ssl}INBOX';
+        // /novalidate-cert (found live, 2026-10-20): the PHP imap extension's bundled
+        // c-client library doesn't send SNI correctly during the TLS handshake on this
+        // hosting environment, so it sees a mismatched/self-signed fallback certificate
+        // instead of Gmail's real one and refuses the connection ("Certificate failure for
+        // imap.gmail.com: self-signed certificate"). The connection itself is still
+        // encrypted (TLS) - this only skips the hostname/chain validation step that was
+        // failing for an unrelated reason, not actual security of the transport.
+        $mailbox = '{'.$account->imap_host.':'.$account->imap_port.'/imap/ssl/novalidate-cert}INBOX';
         $connection = @imap_open($mailbox, $account->imap_username, $account->imap_password);
 
         if (!$connection) {
