@@ -183,6 +183,13 @@ class AdminEmailOutreachController extends Controller
 
     // -- Messages (the up-to-7 phrases) -----------------------------------------------------
 
+    /**
+     * Client's question (2026-10-20): couldn't see what image was attached, or remove/replace
+     * it. Now stored on the 'public' disk (same convention as ProfileController/
+     * WebUsersController's own image uploads) so it's actually viewable as a thumbnail via
+     * /storage/..., and the old file is deleted whenever it's replaced or explicitly removed -
+     * nothing orphaned piling up in storage.
+     */
     public function storeMessage(Request $request, $campaignId)
     {
         $campaign = EmailOutreachCampaign::findOrFail($campaignId);
@@ -190,16 +197,25 @@ class AdminEmailOutreachController extends Controller
             'step_order' => 'required|integer|min:1|max:7',
             'body' => 'required|string',
             'image' => 'nullable|image|max:5120',
+            'remove_image' => 'nullable|boolean',
         ]);
 
-        $imagePath = null;
+        $existing = EmailOutreachMessage::where('campaign_id', $campaign->id)->where('step_order', $data['step_order'])->first();
+        $updates = ['body' => $data['body']];
+
         if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('email-outreach-images');
+            if ($existing && $existing->image_path) {
+                \Storage::disk('public')->delete($existing->image_path);
+            }
+            $updates['image_path'] = $request->file('image')->store('email-outreach-images', 'public');
+        } elseif ($request->boolean('remove_image') && $existing && $existing->image_path) {
+            \Storage::disk('public')->delete($existing->image_path);
+            $updates['image_path'] = null;
         }
 
         EmailOutreachMessage::updateOrCreate(
             ['campaign_id' => $campaign->id, 'step_order' => $data['step_order']],
-            ['body' => $data['body']] + ($imagePath ? ['image_path' => $imagePath] : [])
+            $updates
         );
 
         return redirect('/admin/email-outreach/campaigns/'.$campaign->id)->with('status', 'Fraza salvata.');

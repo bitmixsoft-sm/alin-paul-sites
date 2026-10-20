@@ -42,10 +42,16 @@
                                             <input type="hidden" name="step_order" value="{{ $step }}">
                                             <label><strong>Fraza {{ $step }}</strong></label>
                                             <textarea name="body" class="form-control mb-2" rows="2" placeholder="Lasa gol daca nu vrei sa folosesti aceasta fraza">{{ $msg->body ?? '' }}</textarea>
+                                            @if($msg && $msg->image_path)
+                                                <div class="d-flex align-items-center mb-2">
+                                                    <img src="{{ asset('storage/'.$msg->image_path) }}" alt="" style="max-height:80px;max-width:140px;object-fit:cover;" class="border mr-3">
+                                                    <label class="mb-0"><input type="checkbox" name="remove_image" value="1"> Sterge aceasta imagine</label>
+                                                </div>
+                                            @endif
                                             <div class="d-flex align-items-center">
                                                 <input type="file" name="image" accept="image/*" class="mr-3">
                                                 @if($msg && $msg->image_path)
-                                                    <small class="text-muted mr-3">Imagine atasata deja.</small>
+                                                    <small class="text-muted mr-3">Alege un fisier nou ca sa o inlocuiesti.</small>
                                                 @endif
                                                 <button type="submit" class="btn btn-sm btn-primary">Salveaza fraza {{ $step }}</button>
                                             </div>

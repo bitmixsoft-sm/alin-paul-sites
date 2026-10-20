@@ -128,7 +128,9 @@ class EmailSequenceEngine
             $body = $this->translator->translate($campaign->account, $body, $targetLanguage);
         }
 
-        $imagePath = $message->image_path ? storage_path('app/'.$message->image_path) : null;
+        // 'public' disk now (see AdminEmailOutreachController::storeMessage) so the admin can
+        // preview the image as a thumbnail - the actual file sits under storage/app/public/.
+        $imagePath = $message->image_path ? storage_path('app/public/'.$message->image_path) : null;
         if ($imagePath) {
             $body .= '<br><img src="cid:outreach-image" style="max-width:100%;">';
         }
