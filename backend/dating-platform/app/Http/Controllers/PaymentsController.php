@@ -268,6 +268,10 @@ public function webhook($provider, $path, Request $request) {
      */
     public function accepted(Request $request)
     {
+        // Logged unconditionally (2026-10-15, testing FlexForms for the first time live) so
+        // we can see exactly which fields a FlexForms-originated approval actually sends back
+        // here - this was never confirmed, and the branch below had to start guessing at it.
+        \Log::info('[PaymentsController::accepted] incoming request', $request->all());
         $active_payment = '';
         // $active_payment = \App\Settings::where('name', "PAYMENT_ACTIVE")->first()->value;
         // $myarray=$_POST;echo '<pre><font face="verdana" size="2">';print_r($myarray);echo "<a href=\"subl://open?url=file://".urlencode(__FILE__)."&line=".__LINE__."\">".__FILE__.":".__LINE__.'</a></font></pre>'; exit;
@@ -309,12 +313,19 @@ public function webhook($provider, $path, Request $request) {
             } else {
                 return redirect('/packages');
             }
-        } elseif($request->clientAccnum!="" || $active_payment=="CCBILL") { //CCBILL
-            // Shared by both CCBILL_INTEGRATION_MODE values (see newpayment()) - unverified
-            // whether a FlexForms-originated signup posts back the same clientAccnum/
-            // clientSubacc/hash fields this validates below. Don't flip that setting to
-            // "flexforms" in production until a live test confirms this still matches.
-            $order = Order::where('id', $request->orderId)->firstOrFail();
+        } elseif($request->clientAccnum!="" || $request->clientSubacc!="" || $active_payment=="CCBILL") { //CCBILL
+            // Broadened (2026-10-15) to also catch clientSubacc alone - CCBill's own FlexForms
+            // request URLs (confirmed by their support) don't include clientAccnum at all,
+            // only clientSubacc, so the old clientAccnum-only check would never have matched a
+            // FlexForms-originated approval. orderId may or may not be echoed back by
+            // FlexForms either (unconfirmed) - firstOrFail() swapped for a graceful
+            // "no order identified" fallback (same one used lower down) instead of a hard
+            // crash if it isn't.
+            $order = $request->orderId ? Order::where('id', $request->orderId)->first() : null;
+            if (!$order) {
+                \Log::warning('[PaymentsController::accepted] CCBill branch matched but no orderId/order found.');
+                return redirect('/packages');
+            }
 
             $CCB_acc = Settings::where('name', 'CCBILL_ACC')->first();
             $CCB_acc_credits = Settings::where('name', 'CCBILL_ACC_CREDITS')->first();
@@ -326,8 +337,12 @@ public function webhook($provider, $path, Request $request) {
             }else{
                 $clientSubACC = $CCB_acc_pack->value ? $CCB_acc_pack->value : env('PAYMENT_ACC_PACK');
             }
-            
-            if($request->clientAccnum == $clientACC && $request->clientSubacc == $clientSubACC && $order->hash == $request->hash){
+
+            // classic always sends clientAccnum, so require the full match it always has;
+            // FlexForms (per CCBill support) doesn't send clientAccnum at all, so for that
+            // case only clientSubacc + hash are checked.
+            $clientAccOk = $request->clientAccnum == "" || $request->clientAccnum == $clientACC;
+            if($clientAccOk && $request->clientSubacc == $clientSubACC && $order->hash == $request->hash){
             }else{
                 $order->status = 'Declined';
                 $order->save();
@@ -440,7 +455,8 @@ public function webhook($provider, $path, Request $request) {
      */
     public function declined(Request $request)
     {
-         
+        \Log::info('[PaymentsController::declined] incoming request', $request->all());
+
         if(isset($request->orderId)){  //CCBILL
             $order = Order::where('id', $request->orderId)->firstOrFail();
             $order->status = 'Declined';
@@ -731,7 +747,16 @@ public function webhook($provider, $path, Request $request) {
 
             if (optional($CCB_integration_mode)->value === 'flexforms') {
                 $flexId = optional($CCB_flex_id)->value ?: '';
-                $url = 'https://api.ccbill.com/wap-frontflex/flexforms/'.$flexId.'?clientSubacc='.$clientSubACC.'&initialPrice='.$formPrice.'&initialPeriod='.$formPeriod.$recurringParamsFlex.'&formPrice='.$formPrice.'&formPeriod='.$formPeriod.'&language=English&orderId='.$order->id.'&hash='.$formDigest.'&currencyCode='.$currencyCode.'&formDigest='.$formDigest.$prefillParams;
+                // Simplified to exactly the parameter set CCBill support confirmed working in
+                // their own test links (2026-10-14, re: the classic-only "Invalid Initial
+                // Price" bug at 198/199 - their test used FlexForms, not jpost) - dropped
+                // formPrice/formPeriod/language/hash, which aren't in their example and
+                // aren't part of the documented formDigest formula either. orderId kept as a
+                // hopeful custom pass-through for our own Order matching in accepted() -
+                // UNCONFIRMED whether FlexForms actually echoes back unrecognized custom
+                // params the way classic jpost does; watch storage/logs/laravel.log on the
+                // first real approval to see what actually comes back.
+                $url = 'https://api.ccbill.com/wap-frontflex/flexforms/'.$flexId.'?clientSubacc='.$clientSubACC.'&initialPrice='.$formPrice.'&initialPeriod='.$formPeriod.$recurringParamsFlex.'&orderId='.$order->id.'&currencyCode='.$currencyCode.'&formDigest='.$formDigest.$prefillParams;
             } else {
                 $url = 'https://bill.ccbill.com/jpost/signup.cgi?clientAccnum='.$clientACC.'&clientSubacc='.$clientSubACC.'&initialPrice='.$formPrice.'&initialPeriod='.$formPeriod.$recurringParamsClassic.'&formName='.$formName.'&formPrice='.$formPrice.'&formPeriod='.$formPeriod.'&language=English&orderId='.$order->id.'&hash='.$formDigest.'&currencyCode='.$currencyCode.'&formDigest='.$formDigest.$prefillParams;
             }

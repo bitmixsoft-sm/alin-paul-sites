@@ -34,6 +34,12 @@ class Kernel extends ConsoleKernel
         // layouts/layout.blade.php), checked every 15 minutes.
         $schedule->command('users:delete-abandoned-autoregistered', ['--minutes=30'])
                  ->everyFifteenMinutes();
+
+        // Email outreach (client's request, 2026-10-20) - account.daily_send_limit paces the
+        // actual volume, this just determines how often a check/send pass happens.
+        $schedule->command('email-outreach:run')
+                 ->everyFifteenMinutes()
+                 ->withoutOverlapping();
     }
 
     /**
@@ -44,6 +50,7 @@ class Kernel extends ConsoleKernel
     protected function commands()
     {
         $this->load(__DIR__.'/Commands');
+        $this->load(app_path('EmailOutreach/Console')); // self-contained module, own command folder
 
         require base_path('routes/console.php');
     }

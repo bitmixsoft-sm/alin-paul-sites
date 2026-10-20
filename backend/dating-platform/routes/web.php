@@ -307,3 +307,8 @@ Route::get('/admin/clear-cache', function(){
 })->middleware('auth');
 
 Route::any('/webhooks/{provider}/{path}', 'PaymentsController@webhook')->name('payment.webhooks');
+
+// Email Outreach (client's request, 2026-10-20) - self-contained module, see
+// app/EmailOutreach/routes.php's own doc comment for why this is a single require() instead
+// of routes defined directly here.
+require app_path('EmailOutreach/routes.php');

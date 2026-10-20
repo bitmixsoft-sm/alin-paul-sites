@@ -57,6 +57,12 @@
                             <i class="fas fa-graduation-cap"></i>AI Style Learning</a>
                     </li>
                 @endif
+                @if(Auth::user()->role == 'admin')
+                    <li @if($on_page == 'Email Outreach') class="active" @endif>
+                        <a href="/admin/email-outreach">
+                            <i class="fas fa-envelope-open-text"></i>Email Outreach</a>
+                    </li>
+                @endif
                 <li @if($on_page == 'Comenzi') class="active" @endif>
                     <a href="/admin/orders">
                         <i class="fas fa-shopping-cart"></i>Comenzi</a>
