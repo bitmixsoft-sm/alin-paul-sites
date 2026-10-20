@@ -15,4 +15,21 @@
 .btn-success:hover { background-color: #28a745 !important; border-color: #28a745 !important; color: #fff !important; }
 .btn-info:hover { background-color: #17a2b8 !important; border-color: #17a2b8 !important; color: #fff !important; }
 .btn-danger:hover { background-color: #dc3545 !important; border-color: #dc3545 !important; color: #fff !important; }
+
+{{-- Found live, 2026-10-20: a plain <input type="checkbox"> renders invisible on this admin
+     page too - this theme hides native checkboxes elsewhere in favor of its own custom-styled
+     ones (an extra wrapper span drawing the visible box), which our plain table checkboxes
+     don't have. Forcing the native checkbox back to visible/normal-sized here rather than
+     tracking down and rebuilding the custom-checkbox markup just for this. --}}
+.recipient-check, thead input[type="checkbox"] {
+    opacity: 1 !important;
+    position: static !important;
+    -webkit-appearance: checkbox !important;
+    appearance: checkbox !important;
+    width: 16px !important;
+    height: 16px !important;
+    display: inline-block !important;
+    margin: 0 !important;
+    pointer-events: auto !important;
+}
 </style>
