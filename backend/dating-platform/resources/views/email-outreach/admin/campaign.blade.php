@@ -1,5 +1,6 @@
 @extends('admin.components.layout')
 @section('content')
+@include('email-outreach.admin._button-fix')
 <div class="page-container">
     <div class="main-content">
         <div class="section__content section__content--p30">
