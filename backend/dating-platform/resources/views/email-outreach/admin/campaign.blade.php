@@ -112,6 +112,11 @@
                                                         @if($recipient->status === 'manual')
                                                             <a href="#reply-{{ $recipient->id }}" data-toggle="collapse" class="btn btn-sm btn-primary">Scrie</a>
                                                         @endif
+                                                        <form method="post" action="/admin/email-outreach/recipients/{{ $recipient->id }}/delete" class="d-inline"
+                                                              onclick="return confirm('Sigur vrei sa stergi {{ $recipient->email }} din aceasta campanie? Nu va mai primi niciun email.');">
+                                                            @csrf
+                                                            <button type="submit" class="btn btn-sm btn-danger">Sterge</button>
+                                                        </form>
                                                     </td>
                                                 </tr>
                                                 @if(in_array($recipient->status, ['replied', 'manual']))

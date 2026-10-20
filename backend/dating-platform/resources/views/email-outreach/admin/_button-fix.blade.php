@@ -14,4 +14,5 @@
 .btn-secondary:hover { background-color: #6c757d !important; border-color: #6c757d !important; color: #fff !important; }
 .btn-success:hover { background-color: #28a745 !important; border-color: #28a745 !important; color: #fff !important; }
 .btn-info:hover { background-color: #17a2b8 !important; border-color: #17a2b8 !important; color: #fff !important; }
+.btn-danger:hover { background-color: #dc3545 !important; border-color: #dc3545 !important; color: #fff !important; }
 </style>

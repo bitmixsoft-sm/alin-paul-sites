@@ -282,4 +282,19 @@ class AdminEmailOutreachController extends Controller
         return back()->with('status', 'Eroare la trimitere: '.$result['error']);
     }
 
+    /**
+     * Client's question (2026-10-20): removes a recipient from a campaign entirely (e.g. a
+     * test address, or someone who should stop receiving anything at all). Their
+     * email_outreach_logs rows go with them (ON DELETE CASCADE) - nothing left behind to
+     * accidentally resurrect the sequence for that address later.
+     */
+    public function deleteRecipient($recipientId)
+    {
+        $recipient = EmailOutreachRecipient::findOrFail($recipientId);
+        $campaignId = $recipient->campaign_id;
+        $recipient->delete();
+
+        return redirect('/admin/email-outreach/campaigns/'.$campaignId)->with('status', 'Destinatar sters.');
+    }
+
 }

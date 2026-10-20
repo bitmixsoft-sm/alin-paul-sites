@@ -18,6 +18,7 @@ Route::post('/admin/email-outreach/campaigns/{id}/recipients', '\App\EmailOutrea
 Route::post('/admin/email-outreach/recipients/{id}/take-over', '\App\EmailOutreach\Http\AdminEmailOutreachController@takeOver')->name('admin_email_outreach_take_over');
 Route::post('/admin/email-outreach/recipients/{id}/continue', '\App\EmailOutreach\Http\AdminEmailOutreachController@continueAutomation')->name('admin_email_outreach_continue');
 Route::post('/admin/email-outreach/recipients/{id}/reply', '\App\EmailOutreach\Http\AdminEmailOutreachController@manualReply')->name('admin_email_outreach_manual_reply');
+Route::post('/admin/email-outreach/recipients/{id}/delete', '\App\EmailOutreach\Http\AdminEmailOutreachController@deleteRecipient')->name('admin_email_outreach_delete_recipient');
 
 // Public - loaded by the recipient's email client, not an admin. No auth middleware.
 Route::get('/email-outreach/track/{token}.gif', '\App\EmailOutreach\Http\EmailOutreachTrackingController@trackOpen')->name('email_outreach_track');
