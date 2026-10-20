@@ -233,7 +233,10 @@ class AdminEmailOutreachController extends Controller
         $campaign = EmailOutreachCampaign::findOrFail($campaignId);
         $data = $request->validate(['emails' => 'required|string']);
 
-        $lines = preg_split('/[\r\n,;]+/', $data['emails']);
+        // \s (not just \r\n) also splits on a bare space between addresses with no comma at
+        // all - found live, 2026-10-20: without this, "a@x.com b@x.com" silently became one
+        // invalid, skipped entry instead of two valid ones, easy to miss on a large paste.
+        $lines = preg_split('/[\s,;]+/', $data['emails']);
         $added = 0;
 
         foreach ($lines as $line) {
