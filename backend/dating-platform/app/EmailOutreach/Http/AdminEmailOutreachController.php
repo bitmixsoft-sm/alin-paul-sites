@@ -73,6 +73,53 @@ class AdminEmailOutreachController extends Controller
         return redirect('/admin/email-outreach')->with('status', 'Cont de email adaugat.');
     }
 
+    public function editAccount($id)
+    {
+        $on_page = 'Email Outreach';
+        $account = EmailOutreachAccount::findOrFail($id);
+
+        return view('email-outreach.admin.edit-account', compact('on_page', 'account'));
+    }
+
+    /**
+     * Password fields are left blank on the edit form by default ("leave blank to keep" -
+     * same convention as admin/ai_settings.blade.php's API key fields) - only overwritten if
+     * the admin actually typed a new value, so re-saving the form after a typo in some other
+     * field doesn't force re-entering the App Password too.
+     */
+    public function updateAccount(Request $request, $id)
+    {
+        $account = EmailOutreachAccount::findOrFail($id);
+
+        $data = $request->validate([
+            'label' => 'required|string|max:100',
+            'from_email' => 'required|email',
+            'from_name' => 'nullable|string|max:100',
+            'smtp_host' => 'required|string|max:255',
+            'smtp_port' => 'required|integer',
+            'smtp_encryption' => 'required|in:tls,ssl',
+            'smtp_username' => 'required|string|max:255',
+            'smtp_password' => 'nullable|string',
+            'imap_host' => 'required|string|max:255',
+            'imap_port' => 'required|integer',
+            'imap_username' => 'required|string|max:255',
+            'imap_password' => 'nullable|string',
+            'daily_send_limit' => 'required|integer|min:1',
+            'openai_api_key' => 'nullable|string',
+        ]);
+
+        foreach (['smtp_password', 'imap_password', 'openai_api_key'] as $secretField) {
+            if (($data[$secretField] ?? '') === '') {
+                unset($data[$secretField]); // keep the existing encrypted value
+            }
+        }
+
+        $account->fill($data);
+        $account->save();
+
+        return redirect('/admin/email-outreach')->with('status', 'Cont actualizat.');
+    }
+
     // -- Campaigns --------------------------------------------------------------------------
 
     public function storeCampaign(Request $request)

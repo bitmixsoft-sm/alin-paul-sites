@@ -60,7 +60,7 @@
                 @if(Auth::user()->role == 'admin')
                     <li @if($on_page == 'Email Outreach') class="active" @endif>
                         <a href="/admin/email-outreach">
-                            <i class="fas fa-envelope-open-text"></i>Email Outreach</a>
+                            <i class="fas fa-envelope-open"></i>Email Outreach</a>
                     </li>
                 @endif
                 <li @if($on_page == 'Comenzi') class="active" @endif>

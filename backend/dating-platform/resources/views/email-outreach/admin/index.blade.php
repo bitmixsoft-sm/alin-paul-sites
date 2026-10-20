@@ -19,7 +19,7 @@
                                 <div class="card-body">
                                     @if($accounts->count())
                                         <table class="table table-sm">
-                                            <thead><tr><td>Nume</td><td>Email</td><td>SMTP</td><td>Limita/zi</td><td>Campanii</td></tr></thead>
+                                            <thead><tr><td>Nume</td><td>Email</td><td>SMTP</td><td>Limita/zi</td><td>Campanii</td><td></td></tr></thead>
                                             <tbody>
                                                 @foreach($accounts as $account)
                                                     <tr>
@@ -28,6 +28,7 @@
                                                         <td>{{ $account->smtp_host }}:{{ $account->smtp_port }}</td>
                                                         <td>{{ $account->daily_send_limit }}</td>
                                                         <td>{{ $account->campaigns_count }}</td>
+                                                        <td><a href="/admin/email-outreach/accounts/{{ $account->id }}/edit" class="btn btn-sm btn-outline-secondary">Editeaza</a></td>
                                                     </tr>
                                                 @endforeach
                                             </tbody>

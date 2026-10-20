@@ -8,6 +8,8 @@
 
 Route::get('/admin/email-outreach', '\App\EmailOutreach\Http\AdminEmailOutreachController@index')->name('admin_email_outreach_index');
 Route::post('/admin/email-outreach/accounts', '\App\EmailOutreach\Http\AdminEmailOutreachController@storeAccount')->name('admin_email_outreach_store_account');
+Route::get('/admin/email-outreach/accounts/{id}/edit', '\App\EmailOutreach\Http\AdminEmailOutreachController@editAccount')->name('admin_email_outreach_edit_account');
+Route::post('/admin/email-outreach/accounts/{id}', '\App\EmailOutreach\Http\AdminEmailOutreachController@updateAccount')->name('admin_email_outreach_update_account');
 Route::post('/admin/email-outreach/campaigns', '\App\EmailOutreach\Http\AdminEmailOutreachController@storeCampaign')->name('admin_email_outreach_store_campaign');
 Route::get('/admin/email-outreach/campaigns/{id}', '\App\EmailOutreach\Http\AdminEmailOutreachController@showCampaign')->name('admin_email_outreach_show_campaign');
 Route::post('/admin/email-outreach/campaigns/{id}/messages', '\App\EmailOutreach\Http\AdminEmailOutreachController@storeMessage')->name('admin_email_outreach_store_message');
