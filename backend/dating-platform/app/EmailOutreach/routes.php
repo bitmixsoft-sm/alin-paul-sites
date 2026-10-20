@@ -12,6 +12,7 @@ Route::get('/admin/email-outreach/accounts/{id}/edit', '\App\EmailOutreach\Http\
 Route::post('/admin/email-outreach/accounts/{id}', '\App\EmailOutreach\Http\AdminEmailOutreachController@updateAccount')->name('admin_email_outreach_update_account');
 Route::post('/admin/email-outreach/campaigns', '\App\EmailOutreach\Http\AdminEmailOutreachController@storeCampaign')->name('admin_email_outreach_store_campaign');
 Route::get('/admin/email-outreach/campaigns/{id}', '\App\EmailOutreach\Http\AdminEmailOutreachController@showCampaign')->name('admin_email_outreach_show_campaign');
+Route::post('/admin/email-outreach/campaigns/{id}/run-now', '\App\EmailOutreach\Http\AdminEmailOutreachController@runCampaignNow')->name('admin_email_outreach_run_now');
 Route::post('/admin/email-outreach/campaigns/{id}/messages', '\App\EmailOutreach\Http\AdminEmailOutreachController@storeMessage')->name('admin_email_outreach_store_message');
 Route::post('/admin/email-outreach/campaigns/{id}/recipients', '\App\EmailOutreach\Http\AdminEmailOutreachController@importRecipients')->name('admin_email_outreach_import_recipients');
 Route::post('/admin/email-outreach/recipients/{id}/take-over', '\App\EmailOutreach\Http\AdminEmailOutreachController@takeOver')->name('admin_email_outreach_take_over');

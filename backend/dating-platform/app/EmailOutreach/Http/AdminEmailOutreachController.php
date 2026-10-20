@@ -7,6 +7,8 @@ use App\EmailOutreach\Models\EmailOutreachCampaign;
 use App\EmailOutreach\Models\EmailOutreachLog;
 use App\EmailOutreach\Models\EmailOutreachMessage;
 use App\EmailOutreach\Models\EmailOutreachRecipient;
+use App\EmailOutreach\Services\EmailSequenceEngine;
+use App\EmailOutreach\Services\ImapReplyCheckerService;
 use App\EmailOutreach\Services\SmtpMailerService;
 use App\Http\Controllers\Controller;
 use App\User;
@@ -136,6 +138,24 @@ class AdminEmailOutreachController extends Controller
         $campaign = EmailOutreachCampaign::create($data);
 
         return redirect('/admin/email-outreach/campaigns/'.$campaign->id)->with('status', 'Campanie creata.');
+    }
+
+    /**
+     * Client's question (2026-10-20): manual "send now" trigger, so testing doesn't require
+     * waiting for the next cron tick (every 15 minutes - see Kernel.php). Runs the exact same
+     * reply-check + send pass the scheduled command does, just for this one campaign's
+     * account, on demand.
+     */
+    public function runCampaignNow($id, ImapReplyCheckerService $replyChecker, EmailSequenceEngine $engine)
+    {
+        $campaign = EmailOutreachCampaign::findOrFail($id);
+        $account = $campaign->account;
+
+        $replies = $account ? $replyChecker->checkForReplies($account) : 0;
+        $sent = $engine->processCampaign($campaign);
+
+        return redirect('/admin/email-outreach/campaigns/'.$campaign->id)
+            ->with('status', "Rulare manuala: {$sent} email(uri) trimise, {$replies} raspuns(uri) detectate.");
     }
 
     public function showCampaign($id)

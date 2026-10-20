@@ -43,11 +43,17 @@ class EmailSequenceEngine
         $this->translator = $translator;
     }
 
-    public function processCampaign(EmailOutreachCampaign $campaign): void
+    /**
+     * @return int how many emails were actually sent during this pass (used by the admin's
+     * manual "Trimite acum" button to report back what happened).
+     */
+    public function processCampaign(EmailOutreachCampaign $campaign): int
     {
+        $sent = 0;
+
         $account = $campaign->account;
         if (!$account || !$campaign->active) {
-            return;
+            return $sent;
         }
 
         $sentToday = EmailOutreachLog::where('event', 'sent')
@@ -62,12 +68,12 @@ class EmailSequenceEngine
         $this->abandonStale($campaign);
 
         if ($remaining <= 0) {
-            return;
+            return $sent;
         }
 
         $maxStep = $campaign->maxStep();
         if ($maxStep < 1) {
-            return; // no phrases authored yet
+            return $sent; // no phrases authored yet
         }
 
         // Pending first (first impressions matter more than a 2nd/3rd phrase to someone
@@ -77,11 +83,13 @@ class EmailSequenceEngine
             if ($remaining-- <= 0) {
                 break;
             }
-            $this->sendStep($campaign, $recipient, 1);
+            if ($this->sendStep($campaign, $recipient, 1)) {
+                $sent++;
+            }
         }
 
         if ($remaining <= 0) {
-            return;
+            return $sent;
         }
 
         $engagedWaiting = $campaign->recipients()
@@ -95,15 +103,19 @@ class EmailSequenceEngine
             if ($remaining-- <= 0) {
                 break;
             }
-            $this->sendStep($campaign, $recipient, $recipient->current_step + 1);
+            if ($this->sendStep($campaign, $recipient, $recipient->current_step + 1)) {
+                $sent++;
+            }
         }
+
+        return $sent;
     }
 
-    private function sendStep(EmailOutreachCampaign $campaign, EmailOutreachRecipient $recipient, int $step): void
+    private function sendStep(EmailOutreachCampaign $campaign, EmailOutreachRecipient $recipient, int $step): bool
     {
         $message = $campaign->messages()->where('step_order', $step)->first();
         if (!$message) {
-            return;
+            return false;
         }
 
         $body = $message->body;
@@ -134,10 +146,12 @@ class EmailSequenceEngine
             $recipient->save();
 
             EmailOutreachLog::create(['recipient_id' => $recipient->id, 'event' => 'sent', 'step' => $step]);
-        } else {
-            \Log::error('[EmailSequenceEngine] send failed for recipient '.$recipient->id.': '.$result['error']);
-            EmailOutreachLog::create(['recipient_id' => $recipient->id, 'event' => 'bounced', 'step' => $step]);
+            return true;
         }
+
+        \Log::error('[EmailSequenceEngine] send failed for recipient '.$recipient->id.': '.$result['error']);
+        EmailOutreachLog::create(['recipient_id' => $recipient->id, 'event' => 'bounced', 'step' => $step]);
+        return false;
     }
 
     private function abandonStale(EmailOutreachCampaign $campaign): void

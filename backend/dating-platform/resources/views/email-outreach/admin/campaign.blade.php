@@ -14,6 +14,10 @@
                             <h3 class="title-3 m-b-30">
                                 <i class="fas fa-envelope-open-text"></i> {{ $campaign->name }}
                                 <a href="/admin/email-outreach" class="btn btn-sm btn-secondary float-right">&larr; Inapoi</a>
+                                <form method="post" action="/admin/email-outreach/campaigns/{{ $campaign->id }}/run-now" class="float-right mr-2">
+                                    @csrf
+                                    <button type="submit" class="btn btn-sm btn-success">Trimite acum</button>
+                                </form>
                             </h3>
 
                             {{-- Stats --}}
