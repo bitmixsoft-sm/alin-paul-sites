@@ -10,7 +10,7 @@ class EmailOutreachLog extends Model
     public $timestamps = true;
     const UPDATED_AT = null; // append-only log - never updated after creation
 
-    protected $fillable = ['recipient_id', 'event', 'step'];
+    protected $fillable = ['recipient_id', 'event', 'step', 'body'];
 
     public function recipient()
     {

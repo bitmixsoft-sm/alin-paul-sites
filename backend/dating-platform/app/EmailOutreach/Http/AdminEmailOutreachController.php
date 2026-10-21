@@ -160,14 +160,21 @@ class AdminEmailOutreachController extends Controller
 
     public function showCampaign($id)
     {
-        $campaign = EmailOutreachCampaign::with('messages')->findOrFail($id);
+        // "replied" was dropped as a persistent status (2026-10-21, see
+        // ImapReplyCheckerService's doc comment for why) - a reply no longer freezes a
+        // recipient, so "how many replied" is now counted from the log history instead of
+        // the current status column. Logs eager-loaded here for the conversation view the
+        // client asked for ("ar ajuta daca ar fi afisata si conversatia").
+        $campaign = EmailOutreachCampaign::with(['messages', 'recipients.logs'])->findOrFail($id);
         $on_page = 'Email Outreach';
-        $recipients = $campaign->recipients()->orderBy('id', 'desc')->paginate(50);
+        $recipients = $campaign->recipients()->with('logs')->orderBy('id', 'desc')->paginate(50);
         $stats = [
             'total' => $campaign->recipients()->count(),
             'pending' => $campaign->recipients()->where('status', 'pending')->count(),
             'waiting' => $campaign->recipients()->where('status', 'waiting')->count(),
-            'replied' => $campaign->recipients()->where('status', 'replied')->count(),
+            'replied' => EmailOutreachLog::where('event', 'replied')
+                ->whereHas('recipient', function ($q) use ($campaign) { $q->where('campaign_id', $campaign->id); })
+                ->distinct('recipient_id')->count('recipient_id'),
             'manual' => $campaign->recipients()->where('status', 'manual')->count(),
             'abandoned' => $campaign->recipients()->where('status', 'abandoned')->count(),
             'opened' => EmailOutreachLog::where('event', 'opened')
@@ -276,14 +283,25 @@ class AdminEmailOutreachController extends Controller
         return back()->with('status', 'Preluat manual.');
     }
 
-    public function continueAutomation($recipientId)
+    /**
+     * Client's feedback (2026-10-21): "am apasat [continua automat] si aia tot nu se trimite"
+     * ("I clicked it and it still didn't send") - this only ever flipped the status and waited
+     * for the next cron tick (up to 15 minutes) or a manual "Trimite acum", which read as
+     * broken. Now runs the engine for this recipient's campaign immediately, same as "Trimite
+     * acum" does for the whole campaign. Works for "manual" (reverting an earlier "Preia
+     * manual") - "replied" no longer exists as a status this needs to clear (see
+     * ImapReplyCheckerService).
+     */
+    public function continueAutomation($recipientId, EmailSequenceEngine $engine)
     {
-        $recipient = EmailOutreachRecipient::findOrFail($recipientId);
+        $recipient = EmailOutreachRecipient::with('campaign')->findOrFail($recipientId);
         $recipient->status = 'waiting';
         $recipient->last_engaged_at = now(); // so the engine's "engaged since last send" check picks it up
         $recipient->save();
 
-        return back()->with('status', 'Secventa automata reluata.');
+        $sent = $engine->processCampaign($recipient->campaign);
+
+        return back()->with('status', 'Secventa automata reluata ('.$sent.' email(uri) trimise acum).');
     }
 
     public function manualReply(Request $request, $recipientId, SmtpMailerService $mailer)
@@ -294,7 +312,7 @@ class AdminEmailOutreachController extends Controller
         $result = $mailer->send($recipient->campaign->account, $recipient->email, 'TrovaMequi', nl2br(e($data['body'])));
 
         if ($result['success']) {
-            EmailOutreachLog::create(['recipient_id' => $recipient->id, 'event' => 'manual_reply', 'step' => $recipient->current_step]);
+            EmailOutreachLog::create(['recipient_id' => $recipient->id, 'event' => 'manual_reply', 'step' => $recipient->current_step, 'body' => $data['body']]);
             return back()->with('status', 'Raspuns trimis.');
         }
 

@@ -108,24 +108,30 @@
                                                     <td>{{ $recipient->email }}</td>
                                                     <td>
                                                         @php
+                                                            // 'replied' included only as a safety net for rows saved before
+                                                            // 2026-10-21 (when a reply still froze the status) - treated the
+                                                            // same as 'waiting' everywhere below until the data migration
+                                                            // cleans them up.
                                                             $badgeClass = [
-                                                                'pending' => 'secondary', 'waiting' => 'info', 'replied' => 'success',
+                                                                'pending' => 'secondary', 'waiting' => 'info', 'replied' => 'info',
                                                                 'manual' => 'primary', 'abandoned' => 'warning', 'bounced' => 'danger',
                                                             ][$recipient->status] ?? 'secondary';
                                                         @endphp
-                                                        <span class="badge badge-{{ $badgeClass }}">{{ $recipient->status }}</span>
+                                                        <span class="badge badge-{{ $badgeClass }}">{{ $recipient->status === 'replied' ? 'waiting' : $recipient->status }}</span>
                                                     </td>
                                                     <td>{{ $recipient->current_step }}/7</td>
                                                     <td>{{ optional($recipient->last_sent_at)->format('d/m/Y H:i') }}</td>
                                                     <td>{{ optional($recipient->last_engaged_at)->format('d/m/Y H:i') }}</td>
                                                     <td>
-                                                        @if($recipient->status === 'replied')
-                                                            <a href="#reply-{{ $recipient->id }}" data-toggle="collapse" class="btn btn-sm btn-primary">Raspunde</a>
+                                                        @if($recipient->logs->count())
+                                                            <a href="#conv-{{ $recipient->id }}" data-toggle="collapse" class="btn btn-sm btn-secondary">Conversatie</a>
+                                                        @endif
+                                                        @if($recipient->status === 'manual')
                                                             <form method="post" action="/admin/email-outreach/recipients/{{ $recipient->id }}/continue" class="d-inline">
                                                                 @csrf
-                                                                <button type="submit" class="btn btn-sm btn-secondary">Continua automat</button>
+                                                                <button type="submit" class="btn btn-sm btn-success">Continua automat</button>
                                                             </form>
-                                                        @elseif(in_array($recipient->status, ['waiting', 'pending']))
+                                                        @else
                                                             <form method="post" action="/admin/email-outreach/recipients/{{ $recipient->id }}/take-over" class="d-inline">
                                                                 @csrf
                                                                 {{-- btn-info (solid), not btn-outline-primary - outline buttons render
@@ -138,9 +144,6 @@
                                                                 <button type="submit" class="btn btn-sm btn-info">Preia manual</button>
                                                             </form>
                                                         @endif
-                                                        @if($recipient->status === 'manual')
-                                                            <a href="#reply-{{ $recipient->id }}" data-toggle="collapse" class="btn btn-sm btn-primary">Scrie</a>
-                                                        @endif
                                                         <form method="post" action="/admin/email-outreach/recipients/{{ $recipient->id }}/delete" class="d-inline"
                                                               onclick="return confirm('Sigur vrei sa stergi {{ $recipient->email }} din aceasta campanie? Nu va mai primi niciun email.');">
                                                             @csrf
@@ -148,14 +151,39 @@
                                                         </form>
                                                     </td>
                                                 </tr>
-                                                @if(in_array($recipient->status, ['replied', 'manual']))
-                                                    <tr id="reply-{{ $recipient->id }}" class="collapse">
+                                                @if($recipient->logs->count() || $recipient->status === 'manual')
+                                                    <tr id="conv-{{ $recipient->id }}" class="collapse">
                                                         <td colspan="7">
-                                                            <form method="post" action="/admin/email-outreach/recipients/{{ $recipient->id }}/reply">
-                                                                @csrf
-                                                                <textarea name="body" class="form-control mb-2" rows="3" placeholder="Raspunsul tau catre {{ $recipient->email }}" required></textarea>
-                                                                <button type="submit" class="btn btn-sm btn-primary">Trimite raspuns</button>
-                                                            </form>
+                                                            {{-- Client's feedback (2026-10-21): "ar ajuta daca ar fi afisata si
+                                                                 conversatia" - the full back-and-forth (what was sent at each
+                                                                 step, what the recipient actually wrote back, any manual
+                                                                 replies), oldest first. --}}
+                                                            @if($recipient->logs->count())
+                                                                <div class="mb-2" style="max-height:220px;overflow-y:auto;">
+                                                                    @foreach($recipient->logs->sortBy('created_at') as $log)
+                                                                        @if(in_array($log->event, ['sent', 'replied', 'manual_reply']))
+                                                                            <div class="mb-1 p-2" style="background:{{ $log->event === 'sent' ? '#eef5ff' : ($log->event === 'manual_reply' ? '#eafbea' : '#f8f8f8') }};border-radius:4px;">
+                                                                                <small class="text-muted">
+                                                                                    {{ $log->created_at->format('d/m/Y H:i') }} -
+                                                                                    @if($log->event === 'sent') Fraza {{ $log->step }} trimisa catre {{ $recipient->email }}
+                                                                                    @elseif($log->event === 'manual_reply') Raspuns manual catre {{ $recipient->email }}
+                                                                                    @else {{ $recipient->email }} a raspuns @endif
+                                                                                </small>
+                                                                                @if($log->body)
+                                                                                    <div>{{ $log->body }}</div>
+                                                                                @endif
+                                                                            </div>
+                                                                        @endif
+                                                                    @endforeach
+                                                                </div>
+                                                            @endif
+                                                            @if($recipient->status === 'manual')
+                                                                <form method="post" action="/admin/email-outreach/recipients/{{ $recipient->id }}/reply">
+                                                                    @csrf
+                                                                    <textarea name="body" class="form-control mb-2" rows="3" placeholder="Raspunsul tau catre {{ $recipient->email }}" required></textarea>
+                                                                    <button type="submit" class="btn btn-sm btn-primary">Trimite raspuns</button>
+                                                                </form>
+                                                            @endif
                                                         </td>
                                                     </tr>
                                                 @endif
