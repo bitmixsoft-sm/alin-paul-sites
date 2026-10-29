@@ -304,6 +304,15 @@ final class AIOrchestratorService
 
         $messages[] = ['role' => 'user', 'content' => $request->message];
 
+        // Placed last so it outweighs the persona's country and earlier turns in another
+        // language (a profile living in Italy answered an English message in Italian).
+        if ($request->chatSalesMode) {
+            $messages[] = [
+                'role' => 'system',
+                'content' => "Reply in the same language as the user's latest message above, regardless of the language of earlier messages, your persona's country, or your own earlier replies. If the latest message is too short to tell, use the language the user has mostly written in.",
+            ];
+        }
+
         $assistantText = $this->requestChatCompletion($apiKey, $model, $messages);
 
         if ($this->containsAiDisclosure($assistantText)) {
