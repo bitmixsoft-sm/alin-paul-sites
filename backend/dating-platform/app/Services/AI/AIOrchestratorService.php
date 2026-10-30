@@ -268,7 +268,7 @@ final class AIOrchestratorService
         if ($request->styleGuide !== null && $request->styleGuide !== '') {
             $messages[] = [
                 'role' => 'system',
-                'content' => "Match this conversational style, derived from a persona that previously converted users well:\n" . $request->styleGuide,
+                'content' => "Match this conversational style (tone and manner only, not its language - always write in the user's language), derived from a persona that previously converted users well:\n" . $request->styleGuide,
             ];
         }
 
@@ -291,7 +291,9 @@ final class AIOrchestratorService
                 'content' => "Below are real messages you have sent before that worked well with users. When one fits the "
                     . "current moment in the conversation, reuse it verbatim or with only the minimal changes needed to fit "
                     . "the context (e.g. the other person's name) - do not paraphrase them freely into something new. If none "
-                    . "of them fit, reply normally in character.\n" . $examples,
+                    . "of them fit, reply normally in character. These examples may be in a different language than the user "
+                    . "is writing in: ONLY reuse one verbatim if it is in the user's language; otherwise translate its "
+                    . "meaning and style into the user's language instead of copying it in the original language.\n" . $examples,
             ];
         }
 
