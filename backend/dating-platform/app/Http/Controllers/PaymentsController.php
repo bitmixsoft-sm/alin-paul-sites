@@ -342,10 +342,22 @@ public function webhook($provider, $path, Request $request) {
             // FlexForms (per CCBill support) doesn't send clientAccnum at all, so for that
             // case only clientSubacc + hash are checked.
             $clientAccOk = $request->clientAccnum == "" || $request->clientAccnum == $clientACC;
-            if($clientAccOk && $request->clientSubacc == $clientSubACC && $order->hash == $request->hash){
+            // CCBill's Approval Post (found live, 2026-11-05: a real EUR 199 payment was marked
+            // Declined) echoes our digest back as "formDigest" but NOT as "hash", so comparing
+            // only "hash" always failed on that path. We send the same value in both params.
+            $returnedHash = $request->hash ?: $request->formDigest;
+            if($clientAccOk && $request->clientSubacc == $clientSubACC && $order->hash == $returnedHash){
             }else{
-                $order->status = 'Declined';
-                $order->save();
+                \Log::warning('[PaymentsController::accepted] CCBill verification mismatch for order '.$order->id, [
+                    'clientAccOk' => $clientAccOk,
+                    'subacc_received' => $request->clientSubacc,
+                    'subacc_expected' => $clientSubACC,
+                    'hash_match' => $order->hash == $returnedHash,
+                ]);
+                if ($order->status !== 'Accepted') {
+                    $order->status = 'Declined';
+                    $order->save();
+                }
                 return redirect('/packages');
             }
         } elseif($request->token!="" || $active_payment=="PAYPAL") {
@@ -457,16 +469,24 @@ public function webhook($provider, $path, Request $request) {
     {
         \Log::info('[PaymentsController::declined] incoming request', $request->all());
 
+        // A late/duplicate denial (e.g. an earlier failed card attempt on the same orderId, or
+        // CCBill's denial post arriving after the approval) must never downgrade an order that
+        // was already paid and accepted.
         if(isset($request->orderId)){  //CCBILL
             $order = Order::where('id', $request->orderId)->firstOrFail();
-            $order->status = 'Declined';
-            $order->save();
+            if ($order->status !== 'Accepted') {
+                $order->status = 'Declined';
+                $order->save();
+            } else {
+                \Log::warning('[PaymentsController::declined] ignored denial for already Accepted order '.$order->id);
+            }
         } else if(isset($request->token)){
             $order = Order::where('hash', $request->token)->firstOrFail();
 
-            $order->status = 'Declined';
-
-            $order->save();
+            if ($order->status !== 'Accepted') {
+                $order->status = 'Declined';
+                $order->save();
+            }
         }
         return redirect('/packages?payment=denied'); 
     }

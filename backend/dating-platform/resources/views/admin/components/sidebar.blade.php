@@ -67,6 +67,12 @@
                     <a href="/admin/orders">
                         <i class="fas fa-shopping-cart"></i>Comenzi</a>
                 </li>
+                @if(Auth::user()->role == 'admin')
+                    <li @if($on_page == 'Link de plata') class="active" @endif>
+                        <a href="/admin/payment-links">
+                            <i class="fas fa-link"></i>Link de plata</a>
+                    </li>
+                @endif
                 <li @if($on_page == 'Comenzi initiate') class="active" @endif>
                     <a href="/admin/order-attempts">
                         <i class="fas fa-shopping-cart"></i>Comenzi initiate</a>

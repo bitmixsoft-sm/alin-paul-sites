@@ -216,6 +216,9 @@ Route::get('/payments/denied', 'PaymentsController@accepted')->name('accepted_pa
 Route::post('/payments/accepted', 'PaymentsController@accepted')->name('accepted_payment');
 Route::post('/payments/denied', 'PaymentsController@declined')->name('declined_payment');
 Route::get('/payments/unsubscribe', 'PaymentsController@unsubscribe')->name('payment_unsubscribe');
+Route::get('/admin/payment-links', 'AdminPaymentLinkController@index')->name('admin_payment_links')->middleware('auth');
+Route::post('/admin/payment-links', 'AdminPaymentLinkController@store')->name('admin_payment_links_store')->middleware('auth');
+Route::get('/pay-link', 'AdminPaymentLinkController@pay')->name('payment_link_pay')->middleware('signed');
 Route::any('/payments/confirm-payment', 'PaymentsController@confirmPayment')->name('confirm_payment');
 Route::any('/payments/free', 'PaymentsController@freePackage')->name('free_package')->middleware('auth');
 Route::any('/payments/create-subscription', 'PaymentsController@create_subscription')->name('create-subscription');
